@@ -1,6 +1,9 @@
 <script lang="ts">
 	import '../app.css';
+	import '../fonts.css';
 	let { children } = $props();
 </script>
 
-{@render children()}
+<main class="h-[100vh] bg-[#FAFAFA]">
+	{@render children()}
+</main>
