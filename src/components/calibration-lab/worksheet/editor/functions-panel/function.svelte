@@ -5,13 +5,10 @@
 	import { currentActiveStore, setCurrentActiveColumn, setCurrentActiveComponent, setCurrentActiveFunction } from '../store/currentActiveElements-store.svelte';
 	import { removeFunction, updateFunctionName } from '../store/function-store.svelte';
 
-  // Destructure props
   let { fn } : {fn : Function} = $props();
 
-  // Local reactive state
   let isEditing = $state(false);
 
-  // Derive activeFunction from store
   let activeFunction = $derived(currentActiveStore.function);
 </script>
 

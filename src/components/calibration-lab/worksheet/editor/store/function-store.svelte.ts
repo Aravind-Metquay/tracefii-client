@@ -58,17 +58,3 @@ export function updateFunctionName(name: string, id: string): void {
   const fn = functionStore.find((f) => f.functionId === id);
   if (fn) fn.functionName = name;
 }
-
-/**
- * Reorder functions by dragIndex → hoverIndex
- * and reassign their `.order` fields.
- */
-export function reorderFunction(
-  dragIndex: number,
-  hoverIndex: number
-): void {
-  const [dragged] = functionStore.splice(dragIndex, 1);
-  functionStore.splice(hoverIndex, 0, dragged);
-
-  functionStore.forEach((f, i) => (f.order = i));
-}

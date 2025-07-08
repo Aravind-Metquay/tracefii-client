@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Trash2 } from '@lucide/svelte';
+  import { Trash2 } from '@lucide/svelte';
 	import FunctionConfiguration from './function-configuration.svelte';
 	import ColumnConfiguration from './column-configuration.svelte';
 	import TableConfiguration from './table-configuration.svelte';
