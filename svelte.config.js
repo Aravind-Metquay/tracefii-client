@@ -20,6 +20,7 @@ const config = {
 	compilerOptions : {
 		warningFilter: (warning) => {
             const ignore = [
+				'a11y_autofocus',
                 'a11y_media_has_caption',
                 'a11y_no_redundant_roles',
                 'a11y_consider_explicit_label',

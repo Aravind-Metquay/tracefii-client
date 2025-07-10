@@ -25,7 +25,7 @@
 
     <!-- Configuration sidebar -->
     <aside class="w-72 bg-white border rounded-md overflow-auto">
-      <ConfigurationPanel />
+      <!-- <ConfigurationPanel /> -->
     </aside>
   </div>
 </div>
