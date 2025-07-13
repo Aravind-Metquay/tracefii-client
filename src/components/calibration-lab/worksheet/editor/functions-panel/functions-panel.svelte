@@ -1,22 +1,24 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import Function from "./function.svelte";
+	import type { WorksheetManager } from "../store.svelte";
+	import { Button } from "@/components/ui/button";
   
-  const worksheet = getContext("worksheet");
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 </script>
 
 <div>
   <div class="flex justify-between items-center p-2 border-b h-[60px]">
     <p class="text-xl">Functions</p>
-    <button
-      onclick={() =>worksheet.addNewFunction()}
-      class="px-3 py-1 text-sm bg-secondary text-black rounded"
+    <Button
+      onclick={() =>worksheetManager.addNewFunction()}
     >
+      <!-- class="px-3 py-1 text-sm bg-secondary text-black rounded"  -->
       Add
-    </button>
+    </Button>
   </div>
 
-  {#each worksheet.getAllFunctions() as fn (fn.functionId)}
-    <Function fn={fn} />
+  {#each worksheetManager.getAllFunctions() as fn (fn.functionId)}
+    <Function fn={fn} worksheetManager={worksheetManager} />
   {/each}
 </div>

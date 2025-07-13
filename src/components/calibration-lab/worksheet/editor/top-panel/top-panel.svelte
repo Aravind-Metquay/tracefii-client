@@ -1,57 +1,34 @@
 <script lang="ts">
-  import { Button } from "bits-ui";
-  import AddComponentModal from "./add-component-modal.svelte";
-  import { currentActiveStore } from "../store/currentActiveElements-store.svelte";
-  import type { WorksheetType } from "@/Types";
-
-  interface Props {
-    worksheet: WorksheetType;
-    isSaving: boolean;
-  }
-
-  let { worksheet, isSaving }: Props = $props();
-
-  let isModalOpen = $state(false);
-  
-  // Reactive derived values
-  let currentActiveFunction = $derived(currentActiveStore.function);
-  let isAddDisabled = $derived(!currentActiveFunction?.functionId);
-
-  function openModal() {
-    isModalOpen = true;
-  }
-
-  function closeModal() {
-    isModalOpen = false;
-  }
-
-  function onModalOpenChange(open: boolean) {
-    isModalOpen = open;
-  }
+  import { getContext } from "svelte";
+  import type { WorksheetManager } from "../store.svelte";
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 </script>
 
-<div class="flex justify-between p-2">
-  <div>
-    <div class="flex items-center gap-2">
-      <h1 class="text-xl">{worksheet.worksheetName}</h1>
-      {#if isSaving}
-        <span class="text-gray-500 text-xs text-center">Saving...</span>
-      {/if}
+<div class="flex items-center justify-between p-4 bg-white shadow-sm border-b border-gray-200">
+  <div class="flex items-center gap-4">
+    <!-- <button>
+      Exit
+    </button> -->
+
+    <div>
+      <h1 class="text-lg font-semibold text-gray-800">{worksheetManager.getWorksheet().metadata.worksheetName || "Untitled Worksheet"}</h1>
+      <div class="flex items-center gap-2 text-xs text-gray-500">
+        <span>ID: {worksheetManager.getWorksheet().metadata.worksheetId || "N/A"}</span>
+        <span>&bull;</span>
+        <span>Version: {worksheetManager.getWorksheet().metadata.worksheetName || "1.0.0"}</span>
+      </div>
     </div>
-    <p class="text-sm text-gray-400">{worksheet.worksheetId}</p>
   </div>
-  
-  <Button.Root 
-    disabled={isAddDisabled} 
-    class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-    onclick={openModal}
-  >
-    Add Component
-  </Button.Root>
-  
-  <AddComponentModal 
-    bind:isOpen={isModalOpen} 
-    onOpenChange={onModalOpenChange} 
-    onClose={closeModal} 
-  />
+
+  <div>
+    <button onclick={()=>console.log("Hello World!")}>Add Component</button>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <div class="flex items-center p-1 bg-gray-200 rounded-lg">
+      <button>Edit</button>
+      <button>View</button>
+    </div>
+    <button>Save</button>
+  </div>
 </div>

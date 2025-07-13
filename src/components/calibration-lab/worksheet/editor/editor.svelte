@@ -7,8 +7,8 @@
 
 <div class="flex flex-col h-full">
   <!-- HEADER -->
-  <header>
-    <!-- <TopPanel /> -->
+  <header class='bg-white border'>
+    <TopPanel />
   </header>
 
   <!-- MAIN PANES -->

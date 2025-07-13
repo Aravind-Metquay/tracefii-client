@@ -1,9 +1,11 @@
 <script lang="ts">
 	import '../app.css';
-	import '../fonts.css';
+		
 	let { children } = $props();
+	import { ModeWatcher } from "mode-watcher";
 </script>
 
+<ModeWatcher />
 <main class="h-[100vh] bg-[#FAFAFA]">
 	{@render children()}
 </main>

@@ -3,8 +3,8 @@
 	import Editor from "./editor/editor.svelte";
 
 
-    let {worksheet} = $props()
-    setContext("worksheet" , worksheet)
+    let {worksheetManager} = $props()
+    setContext("worksheetManager" , worksheetManager)
 </script>
 
 

@@ -1,4 +1,4 @@
-import type { Component, DataStore, DependentStore, ExpressionStore, Function, GraphComponent, InputComponent, ReferenceInstrumentDataStore, ReferenceWorksheetStore, SelectComponent, TableColumn, TableComponent, TextComponent, WorksheetType } from "@/Types";
+import type { Component, DataStore, DependentStore, ExpressionStore, Function, GraphComponent, InputComponent, ReferenceInstrumentDataStore, ReferenceWorksheetStore, SelectComponent, TableColumn, TableComponent, TextComponent, WorksheetType } from "src/Types";
 
 interface WorksheetStateType {
     metadata: {
@@ -52,7 +52,7 @@ type ExcludeComponentPropsThatCannotBeEdited =
 type ExcludeColumnPropsThatCannotBeEdited  = 'columnType' | 'columnId' | 'inputComponent' | 'selectComponent'
 
 // Return type for the initializeWorksheet function
-type WorksheetManager = {
+export type WorksheetManager = {
     getWorksheet(): WorksheetStateType;
     
     // Utils
@@ -168,7 +168,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
         worksheet.tableRowDependents = worksheetData.stores.dependents.tableRow;
         worksheet.repeatDependents = worksheetData.stores.dependents.repeat;
     } else {
-        throw new Error("Worksheet data is required"); // Added proper error handling
+        
     }
 
     return {

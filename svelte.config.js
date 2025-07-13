@@ -13,14 +13,15 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		alias: {
-			'@': 'src',
-			'@/*': 'src/*'
+			"@/*": "src/lib/*",
+			'src' : 'src'
 		}
 	},
 	compilerOptions : {
 		warningFilter: (warning) => {
             const ignore = [
 				'a11y_autofocus',
+				'a11y_missing_attribute',
                 'a11y_media_has_caption',
                 'a11y_no_redundant_roles',
                 'a11y_consider_explicit_label',
