@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Code } from '@lucide/svelte';
-  import { updateFunction } from '../Store/function-store.svelte';
+  import { updateFunction } from '../store/function-store.svelte';
 
   let { function: functionData, onExpressionModal } = $props();
 
