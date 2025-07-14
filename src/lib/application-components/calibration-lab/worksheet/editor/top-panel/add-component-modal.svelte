@@ -1,72 +1,71 @@
 <script lang="ts">
-  import { X, Plus } from "@lucide/svelte";
-  import type { 
-    Component, 
-    InputComponent, 
-    SelectComponent, 
-    TextComponent, 
-    TableComponent, 
-    GraphComponent 
-  } from "@/Types";
-  import { currentActiveStore, setCurrentActiveComponent } from "../store/currentActiveElements-store.svelte";
-  import { addComponent } from "../store/component-store.svelte";
-  import { addComponentId } from "../store/componentId-store.svelte";
-  import { setComponentValue } from "../store/data-store.svelte";
-  import { generateComponentId } from "../utils/componentId-generator";
+  import * as Dialog from '$lib/components/ui/dialog/index';
+  import * as Select from '$lib/components/ui/select/index';
+  import { Button } from '$lib/components/ui/button/index';
+  import { Input } from '$lib/components/ui/input/index';
+  import { Label } from '$lib/components/ui/label/index';
+  import { Checkbox } from '$lib/components/ui/checkbox/index';
+  import { Badge } from '$lib/components/ui/badge/index';
+  import { X, Plus } from '@lucide/svelte';
+  import { getContext } from 'svelte';
+  import type { WorksheetManager } from '../store.svelte';
+  import type { Component, GraphComponent, InputComponent, SelectComponent, TableComponent, TextComponent } from 'src/Types';
 
   interface Props {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    onClose: () => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
   }
 
-  let { isOpen = $bindable(), onOpenChange, onClose }: Props = $props();
+  let { open = $bindable(false), onOpenChange }: Props = $props();
 
-  // Get current active function
-  let currentActiveFunction = $derived(currentActiveStore.function);
+  const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
-  // Form state
+  let currentActiveFunctionId = $derived(worksheetManager.getWorksheet().currentActiveElements.function?.functionId)
+
   let formData = $state<Component>({
-    functionId: "",
-    componentType: "Input",
-    componentId: "",
-    label: "",
+    functionId: currentActiveFunctionId as string,
+    componentType: 'Input',
+    componentId: '',
+    label: '',
     showInCertificate: false,
     certificateVisibilityExpression: '',
     isExpressionEnabled: false,
-    valueExpression: "",
+    valueExpression: '',
     isRequired: false,
-    defaultValue: "",
+    defaultValue: '',
     isComponentDisabledOnExpression: false,
-    disableExpression: "",
+    disableExpression: '',
     isDisabled: false,
     isReadOnly: false,
     order: 0,
     isValidationEnabled: false,
-    validationExpression: "",
-    validationMessage: "",
+    validationExpression: '',
+    validationMessage: '',
     isInvalid: false,
     certificateVisibilityBasedonExpression: false
   });
 
   let inputComponentData = $state<InputComponent>({
-    type: "Number",
+    type: 'Number',
     roundingDigits: 0
   });
 
   let selectComponentData = $state<SelectComponent>({
-    type: "Yes or No",
-    referenceWorksheetId: "",
-    values: [{ key: "Yes", value: "Yes" }, { key: "No", value: "No" }]
+    type: 'Yes or No',
+    referenceWorksheetId: '',
+    values: [
+      { key: 'Yes', value: 'Yes' },
+      { key: 'No', value: 'No' }
+    ]
   });
 
   let textComponentData = $state<TextComponent>({
-    type: "Paragraph",
-    heading: ""
+    type: 'Paragraph',
+    heading: ''
   });
 
   let tableComponentData = $state<TableComponent>({
-    tableName: "",
+    tableName: '',
     showTableNameInWorksheet: false,
     columns: [],
     isTableRowExpressionEnabled: false,
@@ -79,65 +78,40 @@
   let customSelectValues = $state<Array<{ key: string; value: string }>>([]);
   let newCustomValue = $state('');
 
-  // Auto-generate component ID when label changes
-  let componentId = $derived.by(() => {
-    if (label.trim()) {
-      return generateComponentId(label);
-    }
-    return '';
-  });
+  let componentId = worksheetManager.generateUniqueId(label, "component")
 
-  // Update formData when componentId changes
   $effect(() => {
     if (componentId) {
       formData.componentId = componentId;
     }
   });
 
-  // Update formData functionId when currentActiveFunction changes
-  $effect(() => {
-    if (currentActiveFunction?.functionId) {
-      formData.functionId = currentActiveFunction.functionId;
-    }
-  });
+  function handleComponentTypeChange(value: "Input" | "Select" | "Table" | "Text" | "Graph") {
+    formData.componentType = value;
 
-  // Handle component type changes
-  function handleComponentTypeChange(value: string) {
-    formData.componentType = value as any;
-    
     // Reset type-specific data when component type changes
-    if (value === "Select") {
-      selectComponentData.type = "Yes or No";
-      selectComponentData.values = [{ key: "Yes", value: "Yes" }, { key: "No", value: "No" }];
-    }
-  }
-
-  // Handle input type changes
-  function handleInputTypeChange(value: string) {
-    if (value === "Text" || value === "Number") {
-      inputComponentData.type = value;
+    if (value === 'Select') {
+      selectComponentData.type = 'Yes or No';
+      selectComponentData.values = [
+        { key: 'Yes', value: 'Yes' },
+        { key: 'No', value: 'No' }
+      ];
     }
   }
 
   // Handle select type changes
-  function handleSelectTypeChange(value: string) {
-    if (value === "Yes or No" || value === "Reference Asset" || value === "Custom") {
-      selectComponentData.type = value;
-      
-      if (value === "Yes or No") {
-        selectComponentData.values = [{ key: "Yes", value: "Yes" }, { key: "No", value: "No" }];
-      } else if (value === "Custom") {
-        selectComponentData.values = [...customSelectValues];
-      } else {
-        selectComponentData.values = [];
-      }
-    }
-  }
+  function handleSelectTypeChange(value: "Yes or No" | "Reference Asset" | "Custom") {
+    selectComponentData.type = value;
 
-  // Handle text type changes
-  function handleTextTypeChange(value: string) {
-    if (value === "Heading" || value === "Paragraph") {
-      textComponentData.type = value;
+    if (value === 'Yes or No') {
+      selectComponentData.values = [
+        { key: 'Yes', value: 'Yes' },
+        { key: 'No', value: 'No' }
+      ];
+    } else if (value === 'Custom') {
+      selectComponentData.values = [...customSelectValues];
+    } else {
+      selectComponentData.values = [];
     }
   }
 
@@ -159,95 +133,101 @@
 
   // Handle form submission
   function handleAddComponent() {
+    // Mock current active function for demo
+    const currentActiveFunction = { functionId: currentActiveFunctionId };
+
     if (!currentActiveFunction) {
-      console.error("No current active function");
+      console.error('No current active function');
       return;
     }
 
     if (!formData.componentId.trim()) {
-      console.error("Component ID is required");
+      console.error('Component ID is required');
       return;
     }
 
     const component = {
       ...formData,
-      functionId: currentActiveFunction.functionId
+      functionId: currentActiveFunction.functionId as string
     };
 
     // Add specific component data based on type
     switch (formData.componentType) {
-      case "Input":
+      case 'Input':
         component.inputComponent = inputComponentData;
         break;
-      case "Select":
+      case 'Select':
         component.selectComponent = selectComponentData;
-        // TODO: Handle reference worksheet if needed
         break;
-      case "Text":
+      case 'Text':
         component.textComponent = textComponentData;
         break;
-      case "Table":
+      case 'Table':
         component.tableComponent = tableComponentData;
         break;
-      case "Graph":
+      case 'Graph':
         component.graphComponent = graphComponentData;
         break;
     }
 
     // Initialize table data if it's a table component
-    if (component.componentType === "Table") {
-      setComponentValue(currentActiveFunction.functionId, component.componentId, []);
+    if (component.componentType === 'Table') {
+      // setComponentValue(currentActiveFunction.functionId, component.componentId, []);
     }
 
     // Add component ID to the global set and add component
-    addComponentId(formData.componentId);
-    addComponent(component);
-    setCurrentActiveComponent(component);
-    
+    // addComponentId(formData.componentId);
+    // addComponent(component);
+    // setCurrentActiveComponent(component);
+    worksheetManager.addNewComponent(component)
+
     // Reset form and close modal
     resetForm();
-    onClose();
+    open = false;
   }
 
   // Reset form data
   function resetForm() {
     label = '';
     formData = {
-      functionId: currentActiveFunction?.functionId || "",
-      componentType: "Input",
-      componentId: "",
-      label: "",
+      functionId: '',
+      componentType: 'Input',
+      componentId: '',
+      label: '',
       showInCertificate: false,
       certificateVisibilityExpression: '',
       isExpressionEnabled: false,
-      valueExpression: "",
+      valueExpression: '',
       isRequired: false,
-      defaultValue: "",
+      defaultValue: '',
       isComponentDisabledOnExpression: false,
-      disableExpression: "",
+      disableExpression: '',
       isDisabled: false,
       isReadOnly: false,
       order: 0,
       isValidationEnabled: false,
-      validationExpression: "",
-      validationMessage: "",
+      validationExpression: '',
+      validationMessage: '',
       isInvalid: false,
       certificateVisibilityBasedonExpression: false
     };
-    
-    inputComponentData = { type: "Number", roundingDigits: 0 };
-    selectComponentData = { 
-      type: "Yes or No", 
-      referenceWorksheetId: "", 
-      values: [{ key: "Yes", value: "Yes" }, { key: "No", value: "No" }] 
+
+    inputComponentData = { type: 'Number', roundingDigits: 0 };
+    selectComponentData = {
+      type: 'Yes or No',
+      referenceWorksheetId: '',
+      values: [
+        { key: 'Yes', value: 'Yes' },
+        { key: 'No', value: 'No' }
+      ]
     };
-    textComponentData = { type: "Paragraph", heading: "" };
-    tableComponentData = { 
-      tableName: "", 
-      showTableNameInWorksheet: false, 
-      columns: [], 
-      isTableRowExpressionEnabled: false, 
-      tableRowExpression: '' 
+    textComponentData = { type: 'Paragraph', heading: '' };
+    tableComponentData = {
+      tableName: '',
+      showTableNameInWorksheet: false,
+      columns: [],
+      isTableRowExpressionEnabled: false,
+      tableRowExpression: ''
     };
     customSelectValues = [];
     newCustomValue = '';
@@ -262,244 +242,232 @@
   }
 </script>
 
-{#if isOpen}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between p-6 border-b">
-        <h2 class="text-xl font-semibold">Add New Component</h2>
-        <button onclick={onClose} class="p-1 hover:bg-gray-100 rounded">
-          <X size={20} />
-        </button>
+<div>{currentActiveFunctionId}</div>
+
+<Dialog.Root bind:open {onOpenChange}>
+  <Dialog.Trigger>
+    <Button>Add New Component</Button>
+  </Dialog.Trigger>
+
+  <Dialog.Content class="max-h-[90vh] max-w-4xl overflow-y-auto">
+    <Dialog.Header>
+      <Dialog.Title>Add New Component</Dialog.Title>
+      <Dialog.Description>Configure your new component with the options below.</Dialog.Description>
+    </Dialog.Header>
+
+    <div class="space-y-6 py-4">
+      <!-- Component Type Selection -->
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="space-y-2">
+          <Label for="component-type">Component Type</Label>
+          <Select.Root type="single" bind:value={formData.componentType}>
+            <Select.Trigger id="component-type">
+              {formData.componentType || "Select component type"}
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value="Input" label="Input">Input</Select.Item>
+              <Select.Item value="Select" label="Select">Select</Select.Item>
+              <Select.Item value="Table" label="Table">Table</Select.Item>
+              <Select.Item value="Text" label="Text">Text</Select.Item>
+              <Select.Item value="Graph" label="Graph">Graph</Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </div>
+
+        <!-- Conditional Sub-type Selection -->
+        {#if formData.componentType === 'Input'}
+          <div class="space-y-2">
+            <Label for="input-type">Input Type</Label>
+            <Select.Root type="single" bind:value={inputComponentData.type}>
+              <Select.Trigger id="input-type">
+                {inputComponentData.type || "Select input type"}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="Text" label="Text">Text</Select.Item>
+                <Select.Item value="Number" label="Number">Number</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </div>
+        {/if}
+
+        {#if formData.componentType === 'Select'}
+          <div class="space-y-2">
+            <Label for="select-type">Select Type</Label>
+            <Select.Root type="single" bind:value={selectComponentData.type}>
+              <Select.Trigger id="select-type">
+                {selectComponentData.type || "Select type"}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="Yes or No" label="Yes or No">Yes or No</Select.Item>
+                <Select.Item value="Reference Asset" label="Reference Asset">Reference Asset</Select.Item>
+                <Select.Item value="Custom" label="Custom">Custom</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </div>
+        {/if}
+
+        {#if formData.componentType === 'Text'}
+          <div class="space-y-2">
+            <Label for="text-type">Text Type</Label>
+            <Select.Root type="single" bind:value={textComponentData.type}>
+              <Select.Trigger id="text-type">
+                {textComponentData.type || "Select text type"}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="Heading" label="Heading">Heading</Select.Item>
+                <Select.Item value="Paragraph" label="Paragraph">Paragraph</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </div>
+        {/if}
       </div>
 
-      <!-- Modal Body -->
-      <div class="p-6 space-y-6">
-        <!-- Component Type Selection -->
-        <div class="flex justify-between gap-4">
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Component Type</label>
-            <select 
-              bind:value={formData.componentType}
-              onchange={(e) => handleComponentTypeChange(e.target.value)}
-              class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Input">Input</option>
-              <option value="Select">Select</option>
-              <option value="Table">Table</option>
-              <option value="Text">Text</option>
-              <option value="Graph">Graph</option>
-            </select>
-          </div>
-
-          <!-- Conditional Sub-type Selection -->
-          {#if formData.componentType === "Input"}
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Input Type</label>
-              <select 
-                bind:value={inputComponentData.type}
-                onchange={(e) => handleInputTypeChange(e.target.value)}
-                class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Text">Text</option>
-                <option value="Number">Number</option>
-              </select>
-            </div>
-          {/if}
-
-          {#if formData.componentType === "Select"}
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Select Type</label>
-              <select 
-                bind:value={selectComponentData.type}
-                onchange={(e) => handleSelectTypeChange(e.target.value)}
-                class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Yes or No">Yes or No</option>
-                <option value="Reference Asset">Reference Asset</option>
-                <option value="Custom">Custom</option>
-              </select>
-            </div>
-          {/if}
-
-          {#if formData.componentType === "Text"}
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Text Type</label>
-              <select 
-                bind:value={textComponentData.type}
-                onchange={(e) => handleTextTypeChange(e.target.value)}
-                class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Heading">Heading</option>
-                <option value="Paragraph">Paragraph</option>
-              </select>
-            </div>
-          {/if}
-        </div>
-
-        <!-- Component Label and ID -->
-        <div class="flex justify-between gap-4">
-          {#if formData.componentType === "Text" && textComponentData.type === "Heading"}
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Heading</label>
-              <input 
-                bind:value={textComponentData.heading}
-                class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter heading text"
-              />
-            </div>
-          {:else if formData.componentType === "Table"}
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Table Name</label>
-              <input 
-                bind:value={tableComponentData.tableName}
-                class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter table name"
-              />
-            </div>
-          {:else}
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Component Label</label>
-              <input 
-                bind:value={label}
-                oninput={(e) => formData.label = e.target.value}
-                class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter component label"
-              />
-            </div>
-          {/if}
-
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Component ID</label>
-            <input 
-              bind:value={formData.componentId}
-              class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Auto-generated or enter custom ID"
+      <!-- Component Label and ID -->
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {#if formData.componentType === 'Text' && textComponentData.type === 'Heading'}
+          <div class="space-y-2">
+            <Label for="heading">Heading</Label>
+            <Input
+              id="heading"
+              bind:value={textComponentData.heading}
+              placeholder="Enter heading text"
             />
           </div>
-        </div>
-
-        <!-- Component Specific Inputs -->
-        {#if formData.componentType === "Input" && inputComponentData.type === "Number"}
-          <div class="w-full max-w-xs">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Rounding Digits</label>
-            <input 
-              type="number"
-              bind:value={inputComponentData.roundingDigits}
-              class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              min="0"
+        {:else if formData.componentType === 'Table'}
+          <div class="space-y-2">
+            <Label for="table-name">Table Name</Label>
+            <Input
+              id="table-name"
+              bind:value={tableComponentData.tableName}
+              placeholder="Enter table name"
+            />
+          </div>
+        {:else}
+          <div class="space-y-2">
+            <Label for="component-label">Component Label</Label>
+            <Input
+              id="component-label"
+              bind:value={label}
+              oninput={(e) => (formData.label = e.currentTarget.value)}
+              placeholder="Enter component label"
             />
           </div>
         {/if}
 
-        {#if formData.componentType === "Select" && selectComponentData.type === "Reference Asset"}
-          <div class="w-full max-w-xs">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Reference Worksheet</label>
-            <select 
-              bind:value={selectComponentData.referenceWorksheetId}
-              class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select a worksheet...</option>
+        <div class="space-y-2">
+          <Label for="component-id">Component ID</Label>
+          <Input
+            id="component-id"
+            bind:value={formData.componentId}
+            placeholder="Auto-generated or enter custom ID"
+          />
+        </div>
+      </div>
+
+      <!-- Component Specific Inputs -->
+      {#if formData.componentType === 'Input' && inputComponentData.type === 'Number'}
+        <div class="w-full max-w-xs space-y-2">
+          <Label for="rounding-digits">Rounding Digits</Label>
+          <Input
+            id="rounding-digits"
+            type="number"
+            bind:value={inputComponentData.roundingDigits}
+            min="0"
+          />
+        </div>
+      {/if}
+
+      {#if formData.componentType === 'Select' && selectComponentData.type === 'Reference Asset'}
+        <div class="w-full max-w-xs space-y-2">
+          <Label for="reference-worksheet">Reference Worksheet</Label>
+          <Select.Root type="single" bind:value={selectComponentData.referenceWorksheetId}>
+            <Select.Trigger id="reference-worksheet">
+              {selectComponentData.referenceWorksheetId || "Select a worksheet..."}
+            </Select.Trigger>
+            <Select.Content>
               <!-- TODO: Add worksheet options from API -->
-            </select>
-          </div>
-        {/if}
+              <Select.Item value="worksheet1" label="Worksheet 1">Worksheet 1</Select.Item>
+              <Select.Item value="worksheet2" label="Worksheet 2">Worksheet 2</Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </div>
+      {/if}
 
-        {#if formData.componentType === "Select" && selectComponentData.type === "Custom"}
-          <div class="w-full">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Custom Values</label>
-            <div class="flex gap-2 mb-2">
-              <input 
-                bind:value={newCustomValue}
-                onkeydown={handleCustomValueKeydown}
-                class="flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter value and press Enter"
-              />
-              <button 
-                onclick={addCustomValue}
-                class="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center gap-1"
-              >
-                <Plus size={16} /> Add
-              </button>
-            </div>
-            
-            {#if customSelectValues.length > 0}
-              <div class="flex flex-wrap gap-2">
-                {#each customSelectValues as item, index}
-                  <div class="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
-                    <span>{item.value}</span>
-                    <button 
-                      onclick={() => removeCustomValue(index)}
-                      class="hover:bg-blue-200 rounded-full p-1"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/if}
-
-        <!-- Checkboxes -->
-        <div class="flex flex-wrap gap-4">
-          {#if formData.componentType === "Table"}
-            <label class="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                bind:checked={tableComponentData.showTableNameInWorksheet}
-                class="rounded"
-              />
-              <span class="text-sm">Show table name in certificate</span>
-            </label>
-          {/if}
-
-          <label class="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              bind:checked={formData.showInCertificate}
-              class="rounded"
+      {#if formData.componentType === 'Select' && selectComponentData.type === 'Custom'}
+        <div class="space-y-4">
+          <Label>Custom Values</Label>
+          <div class="flex gap-2">
+            <Input
+              bind:value={newCustomValue}
+              onkeydown={handleCustomValueKeydown}
+              placeholder="Enter value and press Enter"
+              class="flex-1"
             />
-            <span class="text-sm">Show component in certificate</span>
-          </label>
+            <Button onclick={addCustomValue} type="button" size="sm">
+              <Plus class="mr-1 h-4 w-4" />
+              Add
+            </Button>
+          </div>
 
-          {#if !(formData.componentType === "Text" && textComponentData.type === "Heading") && formData.componentType !== "Table"}
-            <label class="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                bind:checked={formData.isRequired}
-                class="rounded"
-              />
-              <span class="text-sm">Is component mandatory</span>
-            </label>
-
-            <label class="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                bind:checked={formData.isReadOnly}
-                class="rounded"
-              />
-              <span class="text-sm">Is component readonly</span>
-            </label>
+          {#if customSelectValues.length > 0}
+            <div class="flex flex-wrap gap-2">
+              {#each customSelectValues as item, index}
+                <Badge variant="secondary" class="flex items-center gap-1">
+                  <span>{item.value}</span>
+                  <button
+                    onclick={() => removeCustomValue(index)}
+                    class="hover:bg-muted rounded-full p-0.5"
+                    type="button"
+                  >
+                    <X class="h-3 w-3" />
+                  </button>
+                </Badge>
+              {/each}
+            </div>
           {/if}
         </div>
-      </div>
+      {/if}
 
-      <!-- Modal Footer -->
-      <div class="flex justify-end gap-2 p-6 border-t">
-        <button 
-          onclick={onClose}
-          class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-        <button 
-          onclick={handleAddComponent}
-          class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-        >
-          Add Component
-        </button>
+      <!-- Checkboxes -->
+      <div class="space-y-4">
+        <div class="flex flex-wrap gap-6">
+          {#if formData.componentType === 'Table'}
+            <div class="flex items-center space-x-2">
+              <Checkbox
+                id="show-table-name"
+                bind:checked={tableComponentData.showTableNameInWorksheet}
+              />
+              <Label for="show-table-name" class="text-sm font-normal">
+                Show table name in certificate
+              </Label>
+            </div>
+          {/if}
+
+          <div class="flex items-center space-x-2">
+            <Checkbox id="show-in-certificate" bind:checked={formData.showInCertificate} />
+            <Label for="show-in-certificate" class="text-sm font-normal">
+              Show component in certificate
+            </Label>
+          </div>
+
+          {#if !(formData.componentType === 'Text' && textComponentData.type === 'Heading') && formData.componentType !== 'Table'}
+            <div class="flex items-center space-x-2">
+              <Checkbox id="is-required" bind:checked={formData.isRequired} />
+              <Label for="is-required" class="text-sm font-normal">Is component mandatory</Label>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <Checkbox id="is-readonly" bind:checked={formData.isReadOnly} />
+              <Label for="is-readonly" class="text-sm font-normal">Is component readonly</Label>
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
-  </div>
-{/if}
+
+    <Dialog.Footer>
+      <Button variant="outline" onclick={() => (open = false)}>Cancel</Button>
+      <Button onclick={handleAddComponent}>Add Component</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>

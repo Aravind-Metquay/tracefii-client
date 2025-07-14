@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getContext } from "svelte";
   import type { WorksheetManager } from "../store.svelte";
+	import AddComponentModal from "./add-component-modal.svelte";
   const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 </script>
 
@@ -20,9 +21,7 @@
     </div>
   </div>
 
-  <div>
-    <button onclick={()=>console.log("Hello World!")}>Add Component</button>
-  </div>
+  <AddComponentModal />
 
   <div class="flex items-center gap-4">
     <div class="flex items-center p-1 bg-gray-200 rounded-lg">
