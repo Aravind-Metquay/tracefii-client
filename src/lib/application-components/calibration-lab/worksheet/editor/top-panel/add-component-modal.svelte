@@ -9,7 +9,7 @@
   import { X, Plus } from '@lucide/svelte';
   import { getContext } from 'svelte';
   import type { WorksheetManager } from '../store.svelte';
-  import type { Component, GraphComponent, InputComponent, SelectComponent, TableComponent, TextComponent } from 'src/Types';
+  import type { Component, GraphComponent, InputComponent, SelectComponent, TableComponent, TextComponent } from '@/Types';
 
   interface Props {
     open?: boolean;

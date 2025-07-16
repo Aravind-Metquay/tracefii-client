@@ -1,4 +1,4 @@
-import type { Component, DataStore, DependentStore, ExpressionStore, Function, GraphComponent, InputComponent, ReferenceInstrumentDataStore, ReferenceWorksheetStore, SelectComponent, TableColumn, TableComponent, TextComponent, WorksheetType } from "src/Types";
+import type { Component, DataStore, DependentStore, ExpressionStore, Function, GraphComponent, InputComponent, ReferenceInstrumentDataStore, ReferenceWorksheetStore, SelectComponent, TableColumn, TableComponent, TextComponent, WorksheetType } from "@/Types";
 
 interface WorksheetStateType {
     metadata: {

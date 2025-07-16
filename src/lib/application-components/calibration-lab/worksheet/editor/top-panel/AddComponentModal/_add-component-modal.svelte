@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import type { Component } from 'src/Types';
+	import type { Component } from '@/Types';
 	import ComponentSelection from './component-selection.svelte';
 	import ComponentTypeSelection from './component-type-selection.svelte';
 	let { open = $bindable() }: { open: boolean } = $props();
