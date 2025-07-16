@@ -3,21 +3,26 @@
     import * as Select from "$lib/components/ui/select/index.js";
 	import Input from "@/components/ui/input/input.svelte";
 	import Checkbox from "@/components/ui/checkbox/checkbox.svelte";
+	import Button from "@/components/ui/button/button.svelte";
+	import type { WorksheetManager } from "../../store.svelte";
+	import { getContext } from "svelte";
+	import type { Component } from "@/Types";
 
     const components = [
-        {value : 'input' , label : 'Input'},
-        {value : 'select' , label : 'Select'},
-        {value : 'table' , label : 'Table'},
-        {value : 'text' , label : 'Text'},
-        {value : 'graph' , label : 'Graph'},
+        {value : 'Input' , label : 'Input'},
+        {value : 'Select' , label : 'Select'},
+        {value : 'Table' , label : 'Table'},
+        {value : 'Text' , label : 'Text'},
+        {value : 'Graph' , label : 'Graph'},
 
     ]
     const staticReferenceWorksheets = [
     {varId:"a",worksheetName : "Pressure gauge reference"},
     {varId:"b",worksheetName : "Multimeter reference"}
     ]
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
-    let selectedComponent = $state("input");
+    let selectedComponent = $state<Component["componentType"]>("Input");
     let componentName = $state("");
 
     let inputType = $state("Number");
@@ -43,27 +48,51 @@
     const selectedRefWorksheet = $derived(
         staticReferenceWorksheets.find((f) => f.varId === referenceWorksheetId)?.worksheetName ?? "Select a component"
     );
-    function addCustomValues() {
+    const  addCustomValues = () => {
         const trimmedValue = inputValue.trim();
         if (trimmedValue && !customValues.includes(trimmedValue)) {
             customValues = [...customValues, trimmedValue];
             inputValue = "";
         }
     }
-    function removeTag(index: number) {
+    const  removeTag = (index: number) => {
         customValues = customValues.filter((_, i) => i !== index);
     }
-    function handleKeyPress(e: KeyboardEvent) {
+    const  handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === "Enter") {
             e.preventDefault();
             addCustomValues();
         }
     }
+    const handleCreateComponent =() => {
+      const  component : Component  = {
+        functionId:worksheetManager.getCurrentActiveFunction()?.functionId || "",
+        componentType: selectedComponent,
+        componentId:worksheetManager.generateUniqueId(componentName,"component"),
+        certificateVisibilityBasedonExpression:false,
+        certificateVisibilityExpression:"",
+        showInCertificate,
+        isRequired,
+        defaultValue:"",
+        isComponentDisabledOnExpression:false,
+        disableExpression:"",
+        isDisabled:false,
+        isReadOnly,
+        order:0,
+        isValidationEnabled:false,
+        validationExpression:"",
+        validationMessage:"",
+        isInvalid:false,
+        label:componentName,
+        isExpressionEnabled:false,
+        valueExpression:"",
+    }
+    worksheetManager.addNewComponent(component)
+
+    }
 
 
 </script>
-
-
 <div>
     <div id="component-selection" class="flex justify-between">
         <div id="component-selection-left-side" class="flex flex-col gap-5">
@@ -81,13 +110,13 @@
             <div id="component-label">
                 <Input 
                     bind:value={componentName} 
-                    placeholder={selectedComponent === "table" ? "Table Name" : "Component Label"} 
+                    placeholder={selectedComponent === "Table" ? "Table Name" : "Component Label"} 
                     class="border-0 shadow-none border-b-2 rounded-none"
                 />
             </div>
         </div>
         <div id="component-selection-right-side" class="flex flex-col gap-5">
-            {#if selectedComponent === "input"}
+            {#if selectedComponent === "Input"}
             <div id="input-type">
                 <Label for="Input type" class='py-2 text-gray-800 font-normal text-xs'>Input type</Label>
                     <Select.Root type="single" bind:value={inputType}>
@@ -99,7 +128,7 @@
                     </Select.Root>
             </div>
             {/if}
-            {#if selectedComponent === "select"}
+            {#if selectedComponent === "Select"}
             <div id="select-type">
                 <Label for="select type" class='py-2 text-gray-800 font-normal text-xs'>Select type</Label>
                     <Select.Root type="single" bind:value={selectType}>
@@ -112,7 +141,7 @@
                     </Select.Root>
             </div>
             {/if}
-            {#if selectedComponent === "text"}
+            {#if selectedComponent === "Text"}
             <div id="text-type">
                 <Label for="text type" class='py-2 text-gray-800 font-normal text-xs'>Text type</Label>
                     <Select.Root type="single" bind:value={textType}>
@@ -124,7 +153,7 @@
                     </Select.Root>
             </div>
             {/if}
-            {#if inputType === "Number" && selectedComponent === "input"}
+            {#if inputType === "Number" && selectedComponent === "Input"}
                 <div id="Rounding-digits">
                     <Input bind:value={roundingDigits} placeholder="Rounding digits" class="border-0 shadow-none border-b-2 rounded-none"/>
                 </div>
@@ -145,34 +174,34 @@
         </div>
     </div>
     <div id="component-selection-bottom">
-            <div id="custom-values-for-select" >
-                {#if selectedComponent === "select" && selectType === "Custom"}
-                    <Input
-                        bind:value={inputValue}
-                        onkeydown={ handleKeyPress}
-                        placeholder="Enter values and press enter"
-                        class="border-0 shadow-none border-b-2 rounded-none w-full"
-                        /> 
-                     <!-- Tags display -->
-                    {#if customValues.length > 0}
-                        <div class="flex flex-wrap gap-2 mt-2">
-                            {#each customValues as tag, index (index)}
-                                <div class="bg-gray-100 px-3 py-1 rounded-full flex items-center">
-                                    {tag}
-                                    <button
-                                        onclick={() => removeTag(index)}
-                                        class="ml-2 text-gray-500 hover:text-gray-700"
-                                        aria-label={`Remove ${tag}`}
-                                    >
-                                    ×
-                                    </button>
-                                </div>
-                            {/each}
-                        </div>
-                    {/if}              
-                    
-                {/if}
-            </div>
+        <div id="custom-values-for-select" >
+            {#if selectedComponent === "Select" && selectType === "Custom"}
+                <Input
+                    bind:value={inputValue}
+                    onkeydown={ handleKeyPress}
+                    placeholder="Enter values and press enter"
+                    class="border-0 shadow-none border-b-2 rounded-none w-full"
+                    /> 
+                    <!-- Tags display -->
+                {#if customValues.length > 0}
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        {#each customValues as tag, index (index)}
+                            <div class="bg-gray-100 px-3 py-1 rounded-full flex items-center">
+                                {tag}
+                                <button
+                                    onclick={() => removeTag(index)}
+                                    class="ml-2 text-gray-500 hover:text-gray-700"
+                                    aria-label={`Remove ${tag}`}
+                                >
+                                ×
+                                </button>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}              
+                
+            {/if}
+        </div>
         <div  class="flex pt-10">
              <div class="flex gap-2 items-center">
             <Checkbox id="table-in-certificate" bind:checked={tableInCertificate} />
@@ -191,7 +220,8 @@
             <Label for="component-readonly" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Is component readonly?</Label>
         </div>
         </div>
-       
-            
+        <div id="add" class="flex justify-end pt-5">
+            <Button size="sm" class="text-xs w-18" onclick={handleCreateComponent}>Add</Button>  
+        </div>
     </div>
 </div>
