@@ -64,7 +64,6 @@ export type WorksheetManager = {
     updateFunctionName(functionId: string, newFunctionName: string): void;
     getAllFunctions(): Function[];
     reorderFunction(): void;
-    getComponentsOfCurrentFunction(): Component[];
     
     // ComponentIds
     addNewComponentId(id: string): void;
@@ -86,7 +85,9 @@ export type WorksheetManager = {
     updateTextComponent(componentId: string, props: Partial<TextComponent>): void;
     updateGraphComponent(componentId: string, props: Partial<GraphComponent>): void;
     updateTableComponent(componentId: string, props: Partial<TableComponent>): void;
-    
+    getAllComponents() : void
+    getComponentsOfCurrentFunction(): Component[];
+
     // Table Columns
     createNewColumn(tableId: string, newColumn: TableColumn): void;
     getColumnComponentById(tableId: string, columnId: string): TableColumn | null;
@@ -100,6 +101,9 @@ export type WorksheetManager = {
     setCurrentActiveFunction(fn: Function): void;
     setCurrentActiveComponent(comp: Component): void;
     setCurrentActiveColumn(col: TableColumn): void;
+    getCurrentActiveFunction() : Function | null;
+    getCurrentActiveComponent() : Component | null;
+    getCurrentActiveColumn() : TableColumn | null;
 };
 
 export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetManager {
@@ -296,6 +300,10 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 
         },
 
+        getAllComponents() : Component[]{
+            return worksheet.components
+        },
+        
         getComponentsOfCurrentFunction() : Component[]{
             if(worksheet.currentActiveElements.function){
                 return worksheet.components.filter((com) => com.functionId === worksheet.currentActiveElements.function?.functionId);
@@ -334,6 +342,11 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 
         //Components
         addNewComponent(comp : Component){
+            if(!worksheet.currentActiveElements.function?.functionId){
+                console.log("Component cannot be created since there is no active function ID")
+                return;
+            }
+            comp.functionId = worksheet.currentActiveElements.function?.functionId;
             const componentId = this.generateUniqueId(comp.label , "component");
             this.addNewComponentId(componentId);
             comp.componentId = componentId;
@@ -355,6 +368,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
             const component = this.getComponentById(componentId);
             if(!component) throw new Error('Component not found while updating properties' + " " + JSON.stringify(component));
             Object.assign(component , props);
+            this.setCurrentActiveComponent(component);
         },
 
         removeComponent(componentId : string){
@@ -574,6 +588,18 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 
         setCurrentActiveColumn(col : TableColumn){
             worksheet.currentActiveElements.column = col;
+        },
+
+        getCurrentActiveFunction() : Function | null {
+            return worksheet.currentActiveElements.function || null
+        },
+
+        getCurrentActiveColumn() : TableColumn | null {
+            return worksheet.currentActiveElements.column || null
+        },
+
+        getCurrentActiveComponent() : Component | null {
+            return worksheet.currentActiveElements.component || null
         },
     }
 }
