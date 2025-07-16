@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { setContext } from 'svelte';
-	import ContainerPanel from './ContainerPanel.svelte';
-	import ComponentToolbar from './ComponentToolbar.svelte';
-	import CanvasEditor from './CanvasEditor.svelte';
-	import PropertyPanel from './PropertyPanel.svelte';
+	import ContainerPanel from './components/ContainerPanel.svelte';
+	import ComponentToolbar from './components/ComponentToolbar.svelte';
+	import CanvasEditor from './components/CanvasEditor.svelte';
+	import PropertyPanel from './components/PropertyPanel.svelte';
 
 	let { appState } = $props();
 
