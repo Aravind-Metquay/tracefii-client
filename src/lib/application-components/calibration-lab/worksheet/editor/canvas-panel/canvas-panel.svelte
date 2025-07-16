@@ -7,8 +7,6 @@
 	import GraphComponent from "../components/graph-component.svelte";
 	import type { WorksheetManager } from "../store.svelte";
 	import { getContext } from "svelte";
-	import Input from "@/components/ui/input/input.svelte";
-
 
   const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
