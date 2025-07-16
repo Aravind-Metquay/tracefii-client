@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { setContext } from 'svelte';
 	import ContainerPanel from './ContainerPanel.svelte';
 	import ComponentToolbar from './ComponentToolbar.svelte';
@@ -10,7 +10,7 @@
 
 	setContext('appState', appState);
 
-	function handleComponentSelect(componentType) {
+	function handleComponentSelect(componentType: String) {
 		appState.setSelectedComponentType(componentType);
 	}
 </script>
@@ -33,7 +33,7 @@
 
 		<!-- Canvas Area -->
 		<div class="flex-1 bg-gray-50 p-4">
-			<div class="flex h-full flex-col rounded-lg border bg-white shadow-md">
+			<div class="flex h-full flex-col rounded-lg">
 				<!-- Component Toolbar -->
 				{#if appState.canAddComponents}
 					<div class="border-b p-4">
