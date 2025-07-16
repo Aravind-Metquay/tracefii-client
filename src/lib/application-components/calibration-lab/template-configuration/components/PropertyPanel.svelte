@@ -31,17 +31,18 @@
 				<div class="space-y-4">
 					<h4 class="text-sm font-medium text-gray-700">Text</h4>
 
-					<div>
+					<div class="space-y-1">
 						<label for="content" class="text-xs text-gray-600">Content</label>
 						<Input
 							id="content"
 							value={selectedObject?.text ?? ''}
 							oninput={(e: Event) => updateProperty('text', (e.target as HTMLInputElement).value)}
+							class="w-full"
 						/>
 					</div>
 
 					<div class="grid grid-cols-2 gap-2">
-						<div>
+						<div class="space-y-1">
 							<label for="font-size" class="text-xs text-gray-600">Font Size</label>
 							<Input
 								id="font-size"
@@ -49,9 +50,10 @@
 								value={selectedObject?.fontSize ?? 32}
 								oninput={(e: Event) =>
 									updateProperty('fontSize', Number((e.target as HTMLInputElement).value))}
+								class="w-full"
 							/>
 						</div>
-						<div>
+						<div class="space-y-1">
 							<label for="font-family" class="text-xs text-gray-600">Font Family</label>
 							<select
 								id="font-family"
@@ -69,7 +71,7 @@
 						</div>
 					</div>
 
-					<div class="flex items-center gap-4">
+					<div class="flex gap-2 pt-2">
 						<Button
 							onclick={() =>
 								updateProperty(
@@ -78,6 +80,7 @@
 								)}
 							variant={selectedObject?.fontWeight === 'bold' ? 'default' : 'outline'}
 							size="sm"
+							class="w-10 justify-center"
 						>
 							B
 						</Button>
@@ -89,6 +92,7 @@
 								)}
 							variant={selectedObject?.fontStyle === 'italic' ? 'default' : 'outline'}
 							size="sm"
+							class="w-10 justify-center"
 						>
 							I
 						</Button>
@@ -96,6 +100,7 @@
 							onclick={() => updateProperty('underline', !selectedObject?.underline)}
 							variant={selectedObject?.underline ? 'default' : 'outline'}
 							size="sm"
+							class="w-10 justify-center"
 						>
 							U
 						</Button>
@@ -107,12 +112,14 @@
 			<div class="space-y-4">
 				<h4 class="text-sm font-medium text-gray-700">Appearance</h4>
 
-				<div class="flex items-center gap-2">
+				<div class="space-y-1">
 					<label for="fill-color" class="text-xs text-gray-600">Fill Color</label>
-					<ColorPicker hex={selectedObject?.fill ?? '#000000'} onInput={handleColorChange} />
+					<div class="w-full">
+						<ColorPicker hex={selectedObject?.fill ?? '#FFFFFF'} onInput={handleColorChange} />
+					</div>
 				</div>
 
-				<div>
+				<div class="space-y-1">
 					<label for="opacity" class="text-xs text-gray-600">Opacity</label>
 					<input
 						id="opacity"
@@ -125,11 +132,20 @@
 							updateProperty('opacity', Number((e.target as HTMLInputElement).value))}
 						class="w-full"
 					/>
-					<span class="text-xs text-gray-500"
-						>{Math.round((selectedObject?.opacity ?? 1) * 100)}%</span
-					>
+					<span class="block text-right text-xs text-gray-500">
+						{Math.round((selectedObject?.opacity ?? 1) * 100)}%
+					</span>
 				</div>
 			</div>
+
+			<Button
+				onclick={editor.deleteSelected}
+				disabled={!editor.hasSelection}
+				size="sm"
+				variant="outline"
+			>
+				🗑️ Delete
+			</Button>
 		</div>
 	{:else}
 		<div class="flex h-full flex-col items-center justify-center text-gray-500">

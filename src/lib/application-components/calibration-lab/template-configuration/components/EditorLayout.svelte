@@ -2,7 +2,6 @@
 	import { setContext } from 'svelte';
 	import ContainerPanel from './ContainerPanel.svelte';
 	import ComponentToolbar from './ComponentToolbar.svelte';
-	import MainToolbar from './MainToolbar.svelte';
 	import CanvasEditor from './CanvasEditor.svelte';
 	import PropertyPanel from './PropertyPanel.svelte';
 
@@ -28,15 +27,12 @@
 
 	<!-- Main Content -->
 	<div class="flex flex-1 flex-col">
-		<!-- Main Toolbar -->
-		<MainToolbar editor={appState.editor} />
-
 		<!-- Canvas Area -->
-		<div class="flex-1 bg-gray-50 p-4">
+		<div class="flex-1 p-4">
 			<div class="flex h-full flex-col rounded-lg">
 				<!-- Component Toolbar -->
 				{#if appState.canAddComponents}
-					<div class="border-b p-4">
+					<div class="p-4">
 						<ComponentToolbar
 							availableComponents={appState.availableComponents}
 							onSelectComponent={handleComponentSelect}

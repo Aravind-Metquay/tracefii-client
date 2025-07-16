@@ -12,8 +12,6 @@
 		editor
 	} = $props();
 
-	let selectedObject = $derived(editor.selectedObject);
-
 	function handleTypeChange(type: string) {
 		selectedType = type;
 		onTypeChange?.(type);
@@ -23,7 +21,6 @@
 		unit = newUnit;
 	}
 
-	// ✅ Reused logic from earlier understood code
 	function handleColorChange(color: { hex: string | null }) {
 		if (color.hex && editor.canvas) {
 			const workspace = editor.canvas
@@ -32,8 +29,30 @@
 			if (workspace) {
 				workspace.set('fill', color.hex);
 				editor.canvas.renderAll();
+
+				// Update the bound backgroundColor state
+				backgroundColor = hexToRgb(color.hex);
 			}
 		}
+	}
+
+	function hexToRgb(hex: string): { r: number; g: number; b: number } {
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result
+			? {
+					r: parseInt(result[1], 16),
+					g: parseInt(result[2], 16),
+					b: parseInt(result[3], 16)
+				}
+			: { r: 255, g: 255, b: 255 };
+	}
+	function rgbToHex({ r, g, b }: { r: number; g: number; b: number }): string {
+		return [r, g, b]
+			.map((x) => {
+				const hex = x.toString(16);
+				return hex.length === 1 ? '0' + hex : hex;
+			})
+			.join('');
 	}
 </script>
 
@@ -45,8 +64,8 @@
 
 		<div class="space-y-4">
 			<!-- Type Selection -->
-			<div>
-				<label for="type" class="mb-1 block text-xs text-gray-600">
+			<div class="space-y-1">
+				<label for="type" class="block text-xs text-gray-600">
 					Type <span class="text-red-500">*</span>
 				</label>
 				<select
@@ -61,8 +80,8 @@
 			</div>
 
 			<!-- Unit Selection -->
-			<div>
-				<label for="unit" class="mb-1 block text-xs text-gray-600">
+			<div class="space-y-1">
+				<label for="unit" class="block text-xs text-gray-600">
 					Unit of Measurement <span class="text-red-500">*</span>
 				</label>
 				<select
@@ -77,8 +96,8 @@
 			</div>
 
 			<!-- Dimensions -->
-			<div>
-				<label for="dimensions" class="mb-1 block text-xs text-gray-600">Dimensions</label>
+			<div class="space-y-1">
+				<label for="dimensions" class="block text-xs text-gray-600">Dimensions</label>
 				<div class="grid grid-cols-2 gap-2">
 					<Input placeholder={`Width (${unit})`} bind:value={dimensions.width} />
 					<Input placeholder={`Height (${unit})`} bind:value={dimensions.height} />
@@ -86,9 +105,11 @@
 			</div>
 
 			<!-- Background Color -->
-			<div class="flex items-center justify-between">
-				<label for="background-color" class="text-xs text-gray-600">Background Color</label>
-				<ColorPicker hex={selectedObject?.fill ?? '#FFFFFF'} onInput={handleColorChange} />
+			<div class="space-y-1">
+				<label for="background-color" class="block text-xs text-gray-600">Background Color</label>
+				<div class="flex w-full items-center gap-2">
+					<ColorPicker hex={`#${rgbToHex(backgroundColor as { r: number; g: number; b: number })}`} onInput={handleColorChange} />
+				</div>
 			</div>
 		</div>
 	</div>
