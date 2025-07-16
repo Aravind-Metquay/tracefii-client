@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
 	import { Button } from '@/components/ui/button';
-	import { ColorPicker } from '@/components/ui/color-picker';
+	import ColorPicker from 'svelte-awesome-color-picker';
 	import { Input } from '@/components/ui/input';
 
 	let { editor } = $props();
@@ -8,16 +8,16 @@
 	let selectedObject = $derived(editor.selectedObject);
 	let hasSelection = $derived(editor.hasSelection);
 
-	function updateProperty(property, value) {
+	function updateProperty(property: string, value: any) {
 		if (selectedObject) {
 			editor.updateSelectedObject({ [property]: value });
 		}
 	}
 
-	function handleColorChange(color) {
-		const hex =
-			'#' + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
-		updateProperty('fill', hex);
+	function handleColorChange(color: { hex: string | null }) {
+		if (color.hex) {
+			updateProperty('fill', color.hex);
+		}
 	}
 </script>
 
@@ -26,76 +26,38 @@
 		<div class="space-y-6 p-4">
 			<h3 class="text-lg font-semibold">Properties</h3>
 
-			<!-- Transform Properties -->
-			<div class="space-y-4">
-				<h4 class="text-sm font-medium text-gray-700">Transform</h4>
-
-				<div class="grid grid-cols-2 gap-2">
-					<div>
-						<label class="text-xs text-gray-600">X</label>
-						<Input
-							type="number"
-							value={selectedObject?.left || 0}
-							oninput={(e) => updateProperty('left', Number(e.target.value))}
-						/>
-					</div>
-					<div>
-						<label class="text-xs text-gray-600">Y</label>
-						<Input
-							type="number"
-							value={selectedObject?.top || 0}
-							oninput={(e) => updateProperty('top', Number(e.target.value))}
-						/>
-					</div>
-				</div>
-
-				<div class="grid grid-cols-2 gap-2">
-					<div>
-						<label class="text-xs text-gray-600">Width</label>
-						<Input
-							type="number"
-							value={selectedObject?.width || 0}
-							oninput={(e) => updateProperty('width', Number(e.target.value))}
-						/>
-					</div>
-					<div>
-						<label class="text-xs text-gray-600">Height</label>
-						<Input
-							type="number"
-							value={selectedObject?.height || 0}
-							oninput={(e) => updateProperty('height', Number(e.target.value))}
-						/>
-					</div>
-				</div>
-			</div>
-
 			<!-- Appearance Properties -->
 			{#if selectedObject?.type === 'textbox'}
 				<div class="space-y-4">
 					<h4 class="text-sm font-medium text-gray-700">Text</h4>
 
 					<div>
-						<label class="text-xs text-gray-600">Content</label>
+						<label for="content" class="text-xs text-gray-600">Content</label>
 						<Input
-							value={selectedObject?.text || ''}
-							oninput={(e) => updateProperty('text', e.target.value)}
+							id="content"
+							value={selectedObject?.text ?? ''}
+							oninput={(e: Event) => updateProperty('text', (e.target as HTMLInputElement).value)}
 						/>
 					</div>
 
 					<div class="grid grid-cols-2 gap-2">
 						<div>
-							<label class="text-xs text-gray-600">Font Size</label>
+							<label for="font-size" class="text-xs text-gray-600">Font Size</label>
 							<Input
+								id="font-size"
 								type="number"
-								value={selectedObject?.fontSize || 32}
-								oninput={(e) => updateProperty('fontSize', Number(e.target.value))}
+								value={selectedObject?.fontSize ?? 32}
+								oninput={(e: Event) =>
+									updateProperty('fontSize', Number((e.target as HTMLInputElement).value))}
 							/>
 						</div>
 						<div>
-							<label class="text-xs text-gray-600">Font Family</label>
+							<label for="font-family" class="text-xs text-gray-600">Font Family</label>
 							<select
-								value={selectedObject?.fontFamily || 'Arial'}
-								onchange={(e) => updateProperty('fontFamily', e.target.value)}
+								id="font-family"
+								value={selectedObject?.fontFamily ?? 'Arial'}
+								onchange={(e: Event) =>
+									updateProperty('fontFamily', (e.target as HTMLSelectElement).value)}
 								class="w-full rounded border border-gray-300 p-2 text-sm"
 							>
 								<option>Arial</option>
@@ -146,32 +108,41 @@
 				<h4 class="text-sm font-medium text-gray-700">Appearance</h4>
 
 				<div class="flex items-center gap-2">
-					<label class="text-xs text-gray-600">Fill Color</label>
-					<ColorPicker color={{ r: 0, g: 0, b: 0 }} onchange={handleColorChange} />
+					<label for="fill-color" class="text-xs text-gray-600">Fill Color</label>
+					<ColorPicker hex={selectedObject?.fill ?? '#000000'} onInput={handleColorChange} />
 				</div>
 
 				<div>
-					<label class="text-xs text-gray-600">Opacity</label>
+					<label for="opacity" class="text-xs text-gray-600">Opacity</label>
 					<input
+						id="opacity"
 						type="range"
 						min="0"
 						max="1"
 						step="0.1"
-						value={selectedObject?.opacity || 1}
-						oninput={(e) => updateProperty('opacity', Number(e.target.value))}
+						value={selectedObject?.opacity ?? 1}
+						oninput={(e: Event) =>
+							updateProperty('opacity', Number((e.target as HTMLInputElement).value))}
 						class="w-full"
 					/>
 					<span class="text-xs text-gray-500"
-						>{Math.round((selectedObject?.opacity || 1) * 100)}%</span
+						>{Math.round((selectedObject?.opacity ?? 1) * 100)}%</span
 					>
 				</div>
 			</div>
 		</div>
 	{:else}
-		<div class="p-4 text-center text-gray-500">
-			<div class="mb-2 text-4xl">🧩</div>
-			<p>No object selected</p>
+		<div class="flex h-full flex-col items-center justify-center text-gray-500">
+			<div class="mb-4 text-4xl">🧩</div>
+			<p class="text-base font-medium">No object selected</p>
 			<p class="text-sm">Select an object to edit its properties</p>
 		</div>
 	{/if}
 </div>
+
+<style>
+	.property-panel {
+		display: flex;
+		flex-direction: column;
+	}
+</style>
