@@ -2,7 +2,7 @@ import * as  fabric  from 'fabric';
 import { createHistory } from './history.svelte.js';
 import { createCanvasEvents } from './canvas-events.svelte.js';
 import { AddElementCommand, TransformCommand } from '../commands/commands.svelte.js';
-import * as fabricHelpers from '../utils.ts';
+import * as fabricHelpers from '../lib/utils.ts';
 
 export function createEditor() {
   let canvas = $state(null);
