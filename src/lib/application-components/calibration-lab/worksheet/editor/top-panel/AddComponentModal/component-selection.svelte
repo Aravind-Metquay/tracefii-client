@@ -6,8 +6,10 @@
 	import Button from "@/components/ui/button/button.svelte";
 	import type { WorksheetManager } from "../../store.svelte";
 	import { getContext } from "svelte";
-	import type { Component } from "@/Types";
+	import type { Component, SelectItem } from "@/Types";
 	import InputComponent from "../../components/input-component.svelte";
+	import SelectComponent from "../../components/select-component.svelte";
+	import TextComponent from "../../components/text-component.svelte";
 
     const components = [
         {value : 'Input' , label : 'Input'},
@@ -29,13 +31,13 @@
     let inputType = $state<InputComponent["type"]>("Number");
     let roundingDigits = $state(0);
 
-    let selectType = $state("Yes or No");
+    let selectType = $state<SelectComponent["type"]>("Yes or No");
     let referenceWorksheetId = $state("");
-    let customValues = $state<string[]>([]);
+    let customValues = $state<SelectItem[]>([]);
     let inputValue = $state<string>("");
 
 
-    let textType = $state("Heading");
+    let textType = $state<TextComponent["type"]>("Heading");
 
     let tableInCertificate = $state(false)
     let showInCertificate = $state(false);
@@ -49,10 +51,11 @@
     const selectedRefWorksheet = $derived(
         staticReferenceWorksheets.find((f) => f.varId === referenceWorksheetId)?.worksheetName ?? "Select a component"
     );
-    const  addCustomValues = () => {
+
+    const addCustomValues = () => {
         const trimmedValue = inputValue.trim();
-        if (trimmedValue && !customValues.includes(trimmedValue)) {
-            customValues = [...customValues, trimmedValue];
+        if (trimmedValue && !customValues.some(item => item.value === trimmedValue)) {
+            customValues = [...customValues, { key: crypto.randomUUID(), value: trimmedValue }];
             inputValue = "";
         }
     }
@@ -90,7 +93,23 @@
         inputComponent:{
             type: inputType,
             roundingDigits,
-        }
+        },
+        textComponent: {
+            type: textType,
+        },
+        selectComponent: {
+            type: selectType,
+            referenceWorksheetId,
+            values: selectType === "Custom" ? customValues : selectType === "yes Or No" ? [{ key: "true", value: "Yes" }, { key: "false", value: "No" }] : [],
+        },
+        tableComponent: {
+            tableName: componentName,
+            showTableNameInWorksheet: tableInCertificate,
+            columns: [],
+            isTableRowExpressionEnabled: false,
+            tableRowExpression: "",
+        
+        },
     }
     worksheetManager.addNewComponent(component)
 
@@ -192,11 +211,11 @@
                     <div class="flex flex-wrap gap-2 mt-2">
                         {#each customValues as tag, index (index)}
                             <div class="bg-gray-100 px-3 py-1 rounded-full flex items-center">
-                                {tag}
+                                {tag.value}
                                 <button
                                     onclick={() => removeTag(index)}
                                     class="ml-2 text-gray-500 hover:text-gray-700"
-                                    aria-label={`Remove ${tag}`}
+                                    aria-label={`Remove ${tag.value}`}
                                 >
                                 ×
                                 </button>
@@ -208,22 +227,24 @@
             {/if}
         </div>
         <div  class="flex pt-10">
-             <div class="flex gap-2 items-center">
-            <Checkbox id="table-in-certificate" bind:checked={tableInCertificate} />
-            <Label for="table-in-certificate" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Show table name in certificate</Label>
-        </div>
-        <div class="flex gap-2 items-center">
-            <Checkbox id="show-in-certificate" bind:checked={showInCertificate} />
-            <Label for="show-in-certificate" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Show component in certificate?</Label>
-        </div>
-        <div class="flex gap-2 items-center">
-            <Checkbox id="component-mandatory" bind:checked={isRequired} />
-            <Label for="component-mandatory" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Is component mandatory?</Label>
-        </div>
-        <div class="flex gap-2 items-center">
-            <Checkbox id="component-readonly" bind:checked={isReadOnly} />
-            <Label for="component-readonly" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Is component readonly?</Label>
-        </div>
+            {#if selectedComponent === "Table"}
+                <div class="flex gap-2 items-center">
+                    <Checkbox id="table-in-certificate" bind:checked={tableInCertificate} />
+                    <Label for="table-in-certificate" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Show table name in certificate</Label>
+                </div>
+            {/if}
+            <div class="flex gap-2 items-center">
+                <Checkbox id="show-in-certificate" bind:checked={showInCertificate} />
+                <Label for="show-in-certificate" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Show component in certificate?</Label>
+            </div>
+            <div class="flex gap-2 items-center">
+                <Checkbox id="component-mandatory" bind:checked={isRequired} />
+                <Label for="component-mandatory" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Is component mandatory?</Label>
+            </div>
+            <div class="flex gap-2 items-center">
+                <Checkbox id="component-readonly" bind:checked={isReadOnly} />
+                <Label for="component-readonly" class='py-2 cursor-pointer text-gray-900 font-normal text-sm'>Is component readonly?</Label>
+            </div>
         </div>
         <div id="add" class="flex justify-end pt-5">
             <Button size="sm" class="text-xs w-18" onclick={handleCreateComponent}>Add</Button>  

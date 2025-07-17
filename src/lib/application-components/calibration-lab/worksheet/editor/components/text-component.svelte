@@ -2,12 +2,15 @@
 	import type { Component } from "@/Types";
 	import { currentActiveStore, setCurrentActiveComponent } from "../store/currentActiveElements-store.svelte";
 	import { dataStore, setComponentValue } from "../store/data-store.svelte";
+	import { getContext } from "svelte";
+	import type { WorksheetManager } from "../store.svelte";
 
 
   export let component: Component;
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
   // Svelte reactivity for active function and value
-  var currentActiveFunctionId = currentActiveStore.function?.functionId;
+  const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
   var dataSnapshot = dataStore;
   var currentValue = currentActiveFunctionId
     ? (dataSnapshot[currentActiveFunctionId]?.[component.componentId] ?? "")
