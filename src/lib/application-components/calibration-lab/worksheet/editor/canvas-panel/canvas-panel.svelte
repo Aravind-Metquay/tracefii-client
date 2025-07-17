@@ -27,7 +27,7 @@
  
     {#if getRendererComponent(component) !== null}
       <svelte:component
-        this={getRendererComponent(component)}
+        this={getRendererComponent(component) as any}
         {component}
       />
     {/if}
