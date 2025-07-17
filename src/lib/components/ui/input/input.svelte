@@ -1,12 +1,15 @@
 <script lang="ts">
 	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from "svelte/elements";
 	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { useId } from "bits-ui";
 
 	type InputType = Exclude<HTMLInputTypeAttribute, "file">;
 
 	type Props = WithElementRef<
 		Omit<HTMLInputAttributes, "type"> &
-			({ type: "file"; files?: FileList } | { type?: InputType; files?: undefined })
+			({ type: "file"; files?: FileList } | { type?: InputType; files?: undefined }) & {
+				label?: string,hint?:string;
+			}
 	>;
 
 	let {
@@ -15,37 +18,39 @@
 		type,
 		files = $bindable(),
 		class: className,
+		label,
+		hint,
 		...restProps
 	}: Props = $props();
+
+	const inputId = useId();
 </script>
 
-{#if type === "file"}
-	<input
-		bind:this={ref}
-		data-slot="input"
-		class={cn(
-			"selection:bg-primary dark:bg-input/30 selection:text-primary-foreground border-input ring-offset-background placeholder:text-muted-foreground shadow-xs flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 pt-1.5 text-sm font-medium outline-none transition-[color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-			"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-			className
-		)}
-		type="file"
-		bind:files
-		bind:value
-		{...restProps}
-	/>
-{:else}
-	<input
-		bind:this={ref}
-		data-slot="input"
-		class={cn(
-			"border-input bg-background selection:bg-primary dark:bg-input/30 selection:text-primary-foreground ring-offset-background placeholder:text-muted-foreground shadow-xs flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base outline-none transition-[color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-			"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-			className
-		)}
-		{type}
-		bind:value
-		{...restProps}
-	/>
-{/if}
+<div 
+	class="flex flex-col gap-1 w-fit group"
+	aria-invalid={restProps['aria-invalid']}>
+
+	{#if label}
+		<label for={inputId} class=" text-left w-full text-[14px] text-[var(--secondary-foreground)] font-medium">		
+			{label}
+		</label>
+	{/if}
+		<input
+			id={inputId}
+			bind:this={ref}
+			data-slot="input"
+			class={cn(
+				"w-[320px] h-[44px] cursor-pointer border border-[var(--unchecked-default)] rounded-[8px] px-[14px] py-[10px] disabled:cursor-not-allowed disabled:opacity-30",
+				"focus:outline-4 focus:outline-[var(--ring-checkbox)] focus:border-[var(--unchecked-focus)]",
+				"hover:placeholder:text-[var(--input)]",
+				"group-aria-invalid:border-[var(--destructive-border)] group-aria-invalid:focus:outline-[var(--ring-destructive)] group-aria-invalid:focus:border-[var(--destructive-border)]",
+				className
+			)}
+			{type}
+			bind:value
+			{...restProps}
+		/>
+		{#if hint}
+		<p class="group-aria-invalid:text-[var(--destructive-hint)] w-[320px] h-[20px] text-[var(--hint)] text-[14px] font-normal leading-[20px]">{hint}</p>
+		{/if}
+</div>

@@ -2,24 +2,27 @@
 	import { cn, type WithElementRef } from "$lib/utils.js";
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import { type VariantProps, tv } from "tailwind-variants";
+	
 
 	export const buttonVariants = tv({
-		base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+		base: "items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer",
 		variants: {
 			variant: {
 				default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+				primary:"bg-primary text-primary-foreground hover:bg-[var(--primary-hover)] focus:ring-4 focus:ring-[var(--ring-primary)] focus:bg-primary ",
+				secondary: "bg-secondary text-secondary-foreground hover:bg-[var(--secondary-hover)] focus:ring-4 focus:ring-[var(--ring-secondary)]  ",
 				destructive:
-					"bg-destructive shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white",
+					"bg-destructive text-white hover:bg-[var(--destructive-hover)] focus:ring-4 focus:ring-[var(--ring-destructive)] focus:bg-destructive",
 				outline:
 					"bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border",
-				secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
 				ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
 				link: "text-primary underline-offset-4 hover:underline",
-			},
+			},	
 			size: {
-				default: "h-9 px-4 py-2 has-[>svg]:px-3",
-				sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-				lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+				default: "h-[40px] w-[110px] py-[10px] px-[16px] border rounded-lg",
+				sm: "h-[36px] w-[106px] py-[8px] px-[14px] border rounded-lg ",
+				lg: "h-[44px] w-[125px] py-[10px] px-[18px] border rounded-lg",
+				xl: "h-[48px] w-[129px] py-[12px] px-[20px] border rounded-lg",
 				icon: "size-9",
 			},
 		},
