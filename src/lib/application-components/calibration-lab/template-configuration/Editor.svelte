@@ -1,5 +1,5 @@
 <script>
-	import EditorLayout from "./components/EditorLayout.svelte";
+	import EditorLayout from "./EditorLayout.svelte";
 	import { appState } from "./store/app-state.svelte";
 
 </script>

@@ -1,16 +1,15 @@
-<script>
+<script lang="ts">
 	import { setContext } from 'svelte';
-	import ContainerPanel from './ContainerPanel.svelte';
-	import ComponentToolbar from './ComponentToolbar.svelte';
-	import MainToolbar from './MainToolbar.svelte';
-	import CanvasEditor from './CanvasEditor.svelte';
-	import PropertyPanel from './PropertyPanel.svelte';
+	import ContainerPanel from './components/ContainerPanel.svelte';
+	import ComponentToolbar from './components/ComponentToolbar.svelte';
+	import CanvasEditor from './components/CanvasEditor.svelte';
+	import PropertyPanel from './components/PropertyPanel.svelte';
 
 	let { appState } = $props();
 
 	setContext('appState', appState);
 
-	function handleComponentSelect(componentType) {
+	function handleComponentSelect(componentType: String) {
 		appState.setSelectedComponentType(componentType);
 	}
 </script>
@@ -28,15 +27,12 @@
 
 	<!-- Main Content -->
 	<div class="flex flex-1 flex-col">
-		<!-- Main Toolbar -->
-		<MainToolbar editor={appState.editor} />
-
 		<!-- Canvas Area -->
-		<div class="flex-1 bg-gray-50 p-4">
-			<div class="flex h-full flex-col rounded-lg border bg-white shadow-md">
+		<div class="flex-1 p-4">
+			<div class="flex h-full flex-col rounded-lg">
 				<!-- Component Toolbar -->
 				{#if appState.canAddComponents}
-					<div class="border-b p-4">
+					<div class="p-4">
 						<ComponentToolbar
 							availableComponents={appState.availableComponents}
 							onSelectComponent={handleComponentSelect}
