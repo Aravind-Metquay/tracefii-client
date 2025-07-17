@@ -33,19 +33,18 @@
         value={item.value}
         disabled={item.disabled}
         class="
-  relative w-4 h-4 rounded-full border border-gray-400 cursor-pointer
-  hover:border-primary
-  data-[state=checked]:border-primary
+ relative min-w-[1rem] min-h-[1rem] rounded-full border border-gray-400 cursor-pointer
+hover:border-primary
+data-[state=checked]:border-primary
 
-  after:content-[''] after:absolute after:inset-1 after:rounded-full
-  after:bg-transparent data-[state=checked]:after:bg-primary
-  after:transition-transform after:scale-0 data-[state=checked]:after:scale-100
+after:content-[''] after:absolute after:inset-[0.0625rem] after:rounded-full
+after:bg-transparent data-[state=checked]:after:bg-primary
+after:transition-transform after:scale-0 data-[state=checked]:after:scale-50
 
-  focus:outline-none focus:ring-2 focus:ring-[var(--ring-checkbox)]
+focus:outline-none focus:ring-2 focus:ring-[var(--ring-checkbox)]
 
-  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-400
-  transition-all
-">
+disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-400
+transition-all">
         {#snippet children({ checked })}
           {#if checked}
             <!-- Optional: Custom check icon or leave empty since styling handles it -->
