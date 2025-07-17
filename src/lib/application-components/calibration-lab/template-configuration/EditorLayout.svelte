@@ -3,7 +3,7 @@
 	import ContainerPanel from './components/ContainerPanel.svelte';
 	import ComponentToolbar from './components/ComponentToolbar.svelte';
 	import CanvasEditor from './components/CanvasEditor.svelte';
-	import PropertyPanel from './components/PropertyPanel.svelte';
+	import ConfigPanel from './components/configPanel/defaultPanel.svelte';
 
 	let { appState } = $props();
 
@@ -50,5 +50,5 @@
 	</div>
 
 	<!-- Right Panel -->
-	<PropertyPanel editor={appState.editor} />
+	<ConfigPanel editor={appState.editor} />
 </div>

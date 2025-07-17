@@ -1,14 +1,12 @@
 <script lang="ts">
-	import TextConfig from './textPanel.svelte';
-	import ImageConfig from './imagePanel.svelte';
-	import BarcodeConfig from './barcodePanel.svelte';
-	import DateConfig from './datePanel.svelte';
-	import QRCodeConfig from './qrcodePanel.svelte';
-	import Toolbar from './toolbar.svelte';
+	import TextConfig from './Text/textPanel.svelte';
+	// import ImageConfig from './Image/imagePanel.svelte';
+	// import BarcodeConfig from './Barcode/barcodePanel.svelte';
+	// import DateConfig from './Date/datePanel.svelte';
+	// import QRCodeConfig from './QRcode/qrcodePanel.svelte';
+	import Toolbar from './toolbarPanel.svelte';
 
-
-
-	let { editor, selectedComponentType }: Props = $props();
+	let { editor, selectedComponentType } = $props();
 
 	let opacity = $state(Math.round((editor.getActiveOpacity() ?? 1) * 100));
 
@@ -41,24 +39,24 @@
 
 <div class="h-full w-[20vw] min-w-[240px]">
 	{#if selectedComponentType}
-		<div class="bg-white rounded-xl p-6 space-y-6">
+		<div class="space-y-6 rounded-xl bg-white p-6">
 			<div class="text-lg font-semibold text-gray-900">Config Panel</div>
-			
+
 			{#if selectedComponentType === 'Text'}
 				<TextConfig {editor} />
-			{:else if selectedComponentType === 'Image'}
+			<!-- {:else if selectedComponentType === 'Image'}
 				<ImageConfig {editor} />
 			{:else if selectedComponentType === 'Barcode'}
 				<BarcodeConfig {editor} />
 			{:else if selectedComponentType === 'Date'}
 				<DateConfig {editor} />
 			{:else if selectedComponentType === 'QR Code'}
-				<QRCodeConfig {editor} />
+				<QRCodeConfig {editor} /> -->
 			{/if}
 
 			<!-- Opacity Control -->
 			<div class="flex flex-col gap-3">
-				<label class="text-sm font-medium text-gray-900">Opacity</label>
+				<label for="opacity" class="text-sm font-medium text-gray-900">Opacity</label>
 				<div class="flex items-center gap-4">
 					<input
 						type="range"
@@ -67,7 +65,7 @@
 						step="1"
 						value={opacity}
 						oninput={handleOpacityInput}
-						class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
 					/>
 					<input
 						type="number"
@@ -84,8 +82,10 @@
 			<Toolbar {editor} />
 		</div>
 	{:else}
-		<div class="flex flex-col items-center justify-center h-full rounded-xl p-6 text-center text-gray-600">
-			<span class="text-2xl mb-2">🧩</span>
+		<div
+			class="flex h-full flex-col items-center justify-center rounded-xl p-6 text-center text-gray-600"
+		>
+			<span class="mb-2 text-2xl">🧩</span>
 			<p class="font-medium">No Component Selected</p>
 		</div>
 	{/if}
