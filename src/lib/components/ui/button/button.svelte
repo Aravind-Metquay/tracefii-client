@@ -5,7 +5,7 @@
 	
 
 	export const buttonVariants = tv({
-		base: "items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer",
+		base: "flex items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer",
 		variants: {
 			variant: {
 				default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
@@ -19,12 +19,12 @@
 				link: "text-primary underline-offset-4 hover:underline",
 			},	
 			size: {
-				default: "h-[40px] w-[110px] py-[10px] px-[16px] border rounded-lg",
-				sm: "h-[36px] w-[106px] py-[8px] px-[14px] border rounded-lg ",
-				lg: "h-[44px] w-[125px] py-[10px] px-[18px] border rounded-lg",
-				xl: "h-[48px] w-[129px] py-[12px] px-[20px] border rounded-lg",
-				icon: "size-9",
-			},
+	            default: "min-h-[2.5rem] min-w-[6.875rem] py-[0.625rem] px-[1rem] border rounded-lg",
+	            sm: "min-h-[2.25rem] min-w-[6.625rem] py-[0.5rem] px-[0.875rem] border rounded-lg",
+	            lg: "min-h-[2.75rem] min-w-[7.8125rem] py-[0.625rem] px-[1.125rem] border rounded-lg",
+	            xl: "min-h-[3rem] min-w-[8.0625rem] py-[0.75rem] px-[1.25rem] border rounded-lg",
+	            icon: "size-9",
+             },
 		},
 		defaultVariants: {
 			variant: "default",

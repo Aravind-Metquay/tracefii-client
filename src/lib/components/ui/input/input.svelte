@@ -27,7 +27,7 @@
 </script>
 
 <div 
-	class="flex flex-col gap-1 w-fit group"
+	class="flex flex-col gap-1 group"
 	aria-invalid={restProps['aria-invalid']}>
 
 	{#if label}
@@ -40,10 +40,13 @@
 			bind:this={ref}
 			data-slot="input"
 			class={cn(
-				"w-[320px] h-[44px] cursor-pointer border border-[var(--unchecked-default)] rounded-[8px] px-[14px] py-[10px] disabled:cursor-not-allowed disabled:opacity-30",
-				"focus:outline-4 focus:outline-[var(--ring-checkbox)] focus:border-[var(--unchecked-focus)]",
-				"hover:placeholder:text-[var(--input)]",
-				"group-aria-invalid:border-[var(--destructive-border)] group-aria-invalid:focus:outline-[var(--ring-destructive)] group-aria-invalid:focus:border-[var(--destructive-border)]",
+				 "min-w-[20rem] min-h-[2.75rem] cursor-pointer border border-[var(--unchecked-default)] rounded-[0.5rem] px-[0.875rem] py-[0.625rem] disabled:cursor-not-allowed disabled:opacity-30",
+
+				 "focus:outline-4 focus:outline-[var(--ring-checkbox)] focus:border-[var(--unchecked-focus)]",
+
+                 "hover:placeholder:text-[var(--input)]",
+
+                 "group-aria-invalid:border-[var(--destructive-border)] group-aria-invalid:focus:outline-[var(--ring-destructive)] group-aria-invalid:focus:border-[var(--destructive-border)]",
 				className
 			)}
 			{type}
@@ -51,6 +54,6 @@
 			{...restProps}
 		/>
 		{#if hint}
-		<p class="group-aria-invalid:text-[var(--destructive-hint)] w-[320px] h-[20px] text-[var(--hint)] text-[14px] font-normal leading-[20px]">{hint}</p>
+		<p class="group-aria-invalid:text-[var(--destructive-hint)] w-[20rem] h-[1.25rem] text-[var(--hint)] text-[0.875rem] font-normal leading-[1.25rem]">{hint}</p>
 		{/if}
 </div>

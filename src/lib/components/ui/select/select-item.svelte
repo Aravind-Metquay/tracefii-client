@@ -18,21 +18,22 @@
 	{value}
 	data-slot="select-item"
 	class={cn(
-		"w-[320px] h-[44px] px-[14px] py-[10px] text-[var(--input)] font-medium text-base hover:bg-[var(--secondary-hover)]",
+		"w-[20rem] h-[2.75rem] px-[0.875rem] py-[0.625rem] text-[var(--input)] font-medium text-base hover:bg-[var(--secondary-hover)]",
+		"flex items-center justify-between",
 		className
 	)}
 	{...restProps}
 >
 	{#snippet children({ selected, highlighted })}
-		<span class="absolute right-2 flex size-5 items-center justify-center">
-			{#if selected}
-				<CheckIcon class="size-5 text-primary" />
+		<span class="truncate">{#if childrenProp}
+			{@render childrenProp({ selected, highlighted })}
+			{:else}
+			{label || value}
 			{/if}
 		</span>
-		{#if childrenProp}
-			{@render childrenProp({ selected, highlighted })}
-		{:else}
-			{label || value}
+		{#if selected}
+			<CheckIcon class="w-[1.25rem] h-[1.25rem] text-primary" />
 		{/if}
 	{/snippet}
 </SelectPrimitive.Item>
+

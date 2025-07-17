@@ -3,7 +3,8 @@
     Select,
     SelectContent,
     SelectItem,
-    SelectTrigger
+    SelectTrigger,
+    SelectLabel
   } from '@/components/ui/select/index';
 
   let selectedValue = '';
@@ -31,28 +32,24 @@
   { value: 'lime', label: 'Lime' },
 ];
 
-
-  function handleValueChange(event) {
-    console.log('Selected:', event.detail);
-  }
 </script>
 
-<div class="flex items-center justify-center h-screen bg-gray-100">
-  <div class="p-6 bg-white rounded-lg shadow-md w-80">
-    <h2 class="text-xl font-semibold mb-4 text-center">Basic Select</h2>
+<div class="flex items-center justify-center h-screen bg-gray-100 ">
+  <div class="p-[1.5rem] bg-white rounded-lg shadow-md w-[22rem]">
+    <h2 class="text-xl font-semibold mb-[1rem] text-center"> Select</h2>
 
-    <Select bind:value={selectedValue} on:change={handleValueChange}>
-      <SelectTrigger class="w-full border rounded-md px-3 py-2 text-left">
-        <span>{selectedValue || 'Select a fruit...'}</span>
-      </SelectTrigger>
+  <Select bind:value={selectedValue} type="single">
+  <SelectLabel>Fruits</SelectLabel>
+  <SelectTrigger placeholder="Pick a Fruit" value={selectedValue}>
+  </SelectTrigger>
 
-      <SelectContent class="w-full">
-        {#each fruits as fruit}
-          <SelectItem value={fruit.value}>{fruit.label}</SelectItem>
-        {/each}
-      </SelectContent>
-    </Select>
+  <SelectContent>
+    {#each fruits as fruit}
+      <SelectItem value={fruit.value}>{fruit.label}</SelectItem>
+    {/each}
+  </SelectContent>
+  </Select>
 
-    <p class="mt-4 text-center text-gray-600">Selected: {selectedValue}</p>
   </div>
 </div>
+
