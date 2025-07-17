@@ -7,6 +7,7 @@
 	import type { WorksheetManager } from "../../store.svelte";
 	import { getContext } from "svelte";
 	import type { Component } from "@/Types";
+	import InputComponent from "../../components/input-component.svelte";
 
     const components = [
         {value : 'Input' , label : 'Input'},
@@ -25,7 +26,7 @@
     let selectedComponent = $state<Component["componentType"]>("Input");
     let componentName = $state("");
 
-    let inputType = $state("Number");
+    let inputType = $state<InputComponent["type"]>("Number");
     let roundingDigits = $state(0);
 
     let selectType = $state("Yes or No");
@@ -86,6 +87,10 @@
         label:componentName,
         isExpressionEnabled:false,
         valueExpression:"",
+        inputComponent:{
+            type: inputType,
+            roundingDigits,
+        }
     }
     worksheetManager.addNewComponent(component)
 

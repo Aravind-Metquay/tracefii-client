@@ -25,11 +25,11 @@
 <div class="grid grid-cols-3 gap-6 p-4">
   {#each  worksheetManager.getComponentsOfCurrentFunction() as component (component.componentId)}
  
-    <!-- {#if getRendererComponent(component) !== null} -->
+    {#if getRendererComponent(component) !== null}
       <svelte:component
         this={getRendererComponent(component)}
         {component}
       />
-    <!-- {/if} -->
+    {/if}
   {/each}
 </div>
