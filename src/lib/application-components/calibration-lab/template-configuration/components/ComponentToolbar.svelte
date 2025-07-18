@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { Button } from '@/components/ui/button';
 	import type { ComponentType } from '../lib/types';
-	let { availableComponents = [], onSelectComponent, editor } = $props();
+
+	let {
+		availableComponents = [],
+		onSelectComponent,
+		editor
+	} = $props<{
+		availableComponents?: ComponentType[];
+		onSelectComponent?: (component: ComponentType) => void;
+		editor?: any;
+	}>();
 
 	const componentIcons: Record<string, string> = {
 		Text: '📝',
@@ -18,22 +27,22 @@
 
 		switch (componentType) {
 			case 'Text':
-				editor.addText();
+				if (editor.addText) editor.addText();
 				break;
 			case 'Date':
-				editor.addDate();
+				if (editor.addDate) editor.addDate();
 				break;
 			case 'Image':
-				// Use the Amazon image URL instead of placeholder
-				editor.addImage(
-					'https://images-eu.ssl-images-amazon.com/images/G/31/sthaneka/Alphonsa/desktop/Unrec/low-res_2._CB789029460_.jpg'
-				);
+				if (editor.addImage)
+					editor.addImage(
+						'https://images-eu.ssl-images-amazon.com/images/G/31/sthaneka/Alphonsa/desktop/Unrec/low-res_2._CB789029460_.jpg'
+					);
 				break;
 			case 'QR Code':
-				editor.addQRCode();
+				if (editor.addQRCode) editor.addQRCode();
 				break;
 			case 'Barcode':
-				editor.addBarcode();
+				if (editor.addBarcode) editor.addBarcode();
 				break;
 		}
 	}
@@ -44,7 +53,7 @@
 		<Button
 			onclick={() => handleComponentClick(component)}
 			variant="outline"
-			class="flex min-w-[80px] items-center justify-center gap-1 p-3"
+			class="flex min-w-[80px] items-center justify-center gap-1 border-0 p-3"
 		>
 			<span class="text-2xl">{componentIcons[component] || '📄'}</span>
 			<span class="text-xs">{component}</span>

@@ -1,7 +1,47 @@
 <script lang="ts">
-	let { editor } = $props();
+	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
 
-	let selectedObject = $derived(editor?.selectedObjects?.[0]);
+	let { editor } = $props<{ editor: Editor }>();
+	let selectedObject = $derived<ExtendedFabricObject | undefined>(
+		editor?.selectedObjects?.[0] as ExtendedFabricObject
+	);
+
+	function handleQRDataChange(value: string) {
+		if (editor?.changeQRData && selectedObject) {
+			editor.changeQRData(value);
+		}
+	}
+
+	function handleQRSizeChange(value: number) {
+		if (isNaN(value) || value <= 0) return;
+		if (editor?.changeQRSize && selectedObject) {
+			editor.changeQRSize(value);
+		}
+	}
+
+	function handleQRErrorLevelChange(value: string) {
+		if (editor?.changeQRErrorLevel && selectedObject) {
+			editor.changeQRErrorLevel(value);
+		}
+	}
+
+	function handleQRForegroundColorChange(value: string) {
+		if (editor?.changeQRForegroundColor && selectedObject) {
+			editor.changeQRForegroundColor(value);
+		}
+	}
+
+	function handleQRBackgroundColorChange(value: string) {
+		if (editor?.changeQRBackgroundColor && selectedObject) {
+			editor.changeQRBackgroundColor(value);
+		}
+	}
+
+	function handleQRIncludeMarginChange(checked: boolean) {
+		if (editor?.changeQRIncludeMargin && selectedObject) {
+			editor.changeQRIncludeMargin(checked);
+		}
+	}
 </script>
 
 <div class="space-y-4">
@@ -13,9 +53,10 @@
 			id="qr-data"
 			class="w-full rounded border border-gray-300 p-2 text-sm"
 			rows="3"
-			value={selectedObject?.data ?? ''}
+			value={selectedObject?.data?.template ?? ''}
 			placeholder="Enter QR code data (text, URL, etc.)"
-			oninput={(e) => editor?.changeQRData?.((e.target as HTMLTextAreaElement).value)}
+			oninput={(e) => handleQRDataChange((e.target as HTMLTextAreaElement).value)}
+			disabled={!selectedObject || !editor?.changeQRData}
 		></textarea>
 	</div>
 
@@ -25,9 +66,11 @@
 			<input
 				id="qr-size"
 				type="number"
+				min="1"
 				class="w-full rounded border border-gray-300 p-2 text-sm"
-				value={selectedObject?.size ?? 100}
-				oninput={(e) => editor?.changeQRSize?.(Number((e.target as HTMLInputElement).value))}
+				value={selectedObject?.width ?? 100}
+				oninput={(e) => handleQRSizeChange(Number((e.target as HTMLInputElement).value))}
+				disabled={!selectedObject || !editor?.changeQRSize}
 			/>
 		</div>
 
@@ -35,9 +78,10 @@
 			<label for="qr-error-level" class="text-xs text-gray-600">Error Correction</label>
 			<select
 				id="qr-error-level"
-				value={selectedObject?.errorCorrectionLevel ?? 'M'}
-				onchange={(e) => editor?.changeQRErrorLevel?.((e.target as HTMLSelectElement).value)}
+				value={selectedObject?.data?.errorCorrectionLevel ?? 'M'}
+				onchange={(e) => handleQRErrorLevelChange((e.target as HTMLSelectElement).value)}
 				class="w-full rounded border border-gray-300 p-2 text-sm"
+				disabled={!selectedObject || !editor?.changeQRErrorLevel}
 			>
 				<option value="L">Low (7%)</option>
 				<option value="M">Medium (15%)</option>
@@ -54,8 +98,9 @@
 				id="qr-fg-color"
 				type="color"
 				class="w-full rounded border border-gray-300 p-1"
-				value={selectedObject?.foregroundColor ?? '#000000'}
-				onchange={(e) => editor?.changeQRForegroundColor?.((e.target as HTMLInputElement).value)}
+				value={selectedObject?.fill ?? '#000000'}
+				onchange={(e) => handleQRForegroundColorChange((e.target as HTMLInputElement).value)}
+				disabled={!selectedObject || !editor?.changeQRForegroundColor}
 			/>
 		</div>
 
@@ -65,8 +110,9 @@
 				id="qr-bg-color"
 				type="color"
 				class="w-full rounded border border-gray-300 p-1"
-				value={selectedObject?.backgroundColor ?? '#ffffff'}
-				onchange={(e) => editor?.changeQRBackgroundColor?.((e.target as HTMLInputElement).value)}
+				value={selectedObject?.data?.backgroundColor ?? '#ffffff'}
+				onchange={(e) => handleQRBackgroundColorChange((e.target as HTMLInputElement).value)}
+				disabled={!selectedObject || !editor?.changeQRBackgroundColor}
 			/>
 		</div>
 	</div>
@@ -75,8 +121,9 @@
 		<label class="flex items-center gap-2 text-xs text-gray-600">
 			<input
 				type="checkbox"
-				checked={selectedObject?.includeMargin ?? true}
-				onchange={(e) => editor?.changeQRIncludeMargin?.((e.target as HTMLInputElement).checked)}
+				checked={selectedObject?.data?.includeMargin ?? true}
+				onchange={(e) => handleQRIncludeMarginChange((e.target as HTMLInputElement).checked)}
+				disabled={!selectedObject || !editor?.changeQRIncludeMargin}
 			/>
 			Include Margin
 		</label>

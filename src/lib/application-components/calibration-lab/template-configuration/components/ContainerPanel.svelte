@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '@/components/ui/button';
-	import ColorPicker from 'svelte-awesome-color-picker';
 	import { Input } from '@/components/ui/input';
+	import ColorPicker from 'svelte-awesome-color-picker';
 	import type { TemplateType, UnitType, Editor, Color, Dimensions } from '../lib/types';
 
 	interface Props {
@@ -22,20 +22,22 @@
 		editor
 	}: Props = $props();
 
-	function handleTypeChange(type: TemplateType) {
+	function handleTypeChange(event: Event) {
+		const target = event.target as HTMLSelectElement;
+		const type = target.value as TemplateType;
 		selectedType = type;
 		onTypeChange?.(type);
 	}
 
-	function handleUnitChange(newUnit: UnitType) {
-		unit = newUnit;
+	function handleUnitChange(event: Event) {
+		const target = event.target as HTMLSelectElement;
+		unit = target.value as UnitType;
 	}
 
 	function handleDimensionChange() {
 		if (dimensions.width && dimensions.height && editor?.canvas) {
 			const width = parseFloat(dimensions.width);
 			const height = parseFloat(dimensions.height);
-
 			if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
 				editor.changeSize({ width, height });
 			}
@@ -48,14 +50,12 @@
 			if (workspace) {
 				workspace.set('fill', color.hex);
 				editor.canvas.renderAll();
-
-				// Update the bound backgroundColor state
 				backgroundColor = hexToRgb(color.hex);
 			}
 		}
 	}
 
-	function hexToRgb(hex: string): { r: number; g: number; b: number } {
+	function hexToRgb(hex: string): Color {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 		return result
 			? {
@@ -66,19 +66,10 @@
 			: { r: 255, g: 255, b: 255 };
 	}
 
-	function rgbToHex({ r, g, b }: { r: number; g: number; b: number }): string {
-		return (
-			'#' +
-			[r, g, b]
-				.map((x) => {
-					const hex = x.toString(16);
-					return hex.length === 1 ? '0' + hex : hex;
-				})
-				.join('')
-		);
+	function rgbToHex({ r, g, b }: Color): string {
+		return '#' + [r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('');
 	}
 
-	// Watch for dimension changes and apply them
 	$effect(() => {
 		if (dimensions.width || dimensions.height) {
 			handleDimensionChange();
@@ -93,14 +84,13 @@
 		<h1 class="text-2xl font-semibold">Untitled Design</h1>
 
 		<div class="space-y-4">
-			<!-- Type Selection -->
 			<div class="space-y-1">
 				<label for="type" class="block text-xs text-gray-600">
 					Type <span class="text-red-500">*</span>
 				</label>
 				<select
 					bind:value={selectedType}
-					onchange={(e) => handleTypeChange((e.target as HTMLSelectElement).value as TemplateType)}
+					onchange={handleTypeChange}
 					class="w-full rounded border border-gray-300 p-2 text-sm"
 				>
 					<option value="">Select type...</option>
@@ -109,14 +99,13 @@
 				</select>
 			</div>
 
-			<!-- Unit Selection -->
 			<div class="space-y-1">
 				<label for="unit" class="block text-xs text-gray-600">
 					Unit of Measurement <span class="text-red-500">*</span>
 				</label>
 				<select
 					bind:value={unit}
-					onchange={(e) => handleUnitChange((e.target as HTMLSelectElement).value as UnitType)}
+					onchange={handleUnitChange}
 					class="w-full rounded border border-gray-300 p-2 text-sm"
 				>
 					<option value="mm">mm</option>
@@ -125,7 +114,6 @@
 				</select>
 			</div>
 
-			<!-- Dimensions -->
 			<div class="space-y-1">
 				<label for="dimensions" class="block text-xs text-gray-600">Dimensions</label>
 				<div class="grid grid-cols-2 gap-2">
@@ -134,7 +122,6 @@
 				</div>
 			</div>
 
-			<!-- Background Color -->
 			<div class="space-y-1">
 				<label for="background-color" class="block text-xs text-gray-600">Background Color</label>
 				<div class="flex w-full items-center gap-2">

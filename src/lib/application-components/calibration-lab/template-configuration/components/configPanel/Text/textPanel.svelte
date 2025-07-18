@@ -1,29 +1,57 @@
 <script lang="ts">
 	import ColorPicker from 'svelte-awesome-color-picker';
 	import { colord, type Colord } from 'colord';
+	import type { FabricObject } from 'fabric';
+	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
 
-	let { editor } = $props();
+	let { editor } = $props<{ editor: Editor }>();
+	let selectedObject = $derived<ExtendedFabricObject | undefined>(
+		editor?.selectedObjects?.[0] as ExtendedFabricObject
+	);
+	let color = $derived<Colord>(
+		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
+	);
 
-	let selectedObject = $derived(editor?.selectedObjects?.[0]);
-	let color = $state<Colord>(colord('#000000'));
-
-	$effect(() => {
-		if (selectedObject?.fill) {
-			color = colord(selectedObject.fill);
+	function handleTextChange(value: string) {
+		if (editor?.changeText && selectedObject) {
+			editor.changeText(value);
 		}
-	});
+	}
 
-	function handleColorChange(colorData: {
-		hsv: any | null;
-		rgb: any | null;
-		hex: string | null;
-		color: Colord | null;
-	}) {
-		if (colorData.hex) {
-			color = colord(colorData.hex);
-			if (editor?.changeFillColor) {
-				editor.changeFillColor(colorData.hex);
-			}
+	function handleFontSizeChange(value: number) {
+		if (isNaN(value) || value <= 0) return;
+		if (editor?.changeFontSize && selectedObject) {
+			editor.changeFontSize(value);
+		}
+	}
+
+	function handleFontFamilyChange(value: string) {
+		if (editor?.changeFontFamily && selectedObject) {
+			editor.changeFontFamily(value);
+		}
+	}
+
+	function handleFontWeightChange() {
+		if (editor?.changeFontWeight && selectedObject) {
+			editor.changeFontWeight(selectedObject.fontWeight === 'bold' ? 'normal' : 'bold');
+		}
+	}
+
+	function handleFontStyleChange() {
+		if (editor?.changeFontStyle && selectedObject) {
+			editor.changeFontStyle(selectedObject.fontStyle === 'italic' ? 'normal' : 'italic');
+		}
+	}
+
+	function handleFontUnderlineChange() {
+		if (editor?.changeFontUnderline && selectedObject) {
+			editor.changeFontUnderline(!selectedObject.underline);
+		}
+	}
+
+	function handleColorChange(colorData: { hex: string | null }) {
+		if (colorData.hex && editor?.changeFillColor && selectedObject) {
+			editor.changeFillColor(colorData.hex);
 		}
 	}
 </script>
@@ -37,7 +65,8 @@
 			id="content"
 			class="w-full rounded border border-gray-300 p-2 text-sm"
 			value={selectedObject?.text ?? ''}
-			oninput={(e) => editor?.changeText?.((e.target as HTMLInputElement).value)}
+			oninput={(e) => handleTextChange((e.target as HTMLInputElement).value)}
+			disabled={!selectedObject || !editor?.changeText}
 		/>
 	</div>
 
@@ -47,9 +76,11 @@
 			<input
 				id="font-size"
 				type="number"
+				min="1"
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.fontSize ?? 32}
-				oninput={(e) => editor?.changeFontSize?.(Number((e.target as HTMLInputElement).value))}
+				oninput={(e) => handleFontSizeChange(Number((e.target as HTMLInputElement).value))}
+				disabled={!selectedObject || !editor?.changeFontSize}
 			/>
 		</div>
 
@@ -58,8 +89,9 @@
 			<select
 				id="font-family"
 				value={selectedObject?.fontFamily ?? 'Arial'}
-				onchange={(e) => editor?.changeFontFamily?.((e.target as HTMLSelectElement).value)}
+				onchange={(e) => handleFontFamilyChange((e.target as HTMLSelectElement).value)}
 				class="w-full rounded border border-gray-300 p-2 text-sm"
+				disabled={!selectedObject || !editor?.changeFontFamily}
 			>
 				<option>Arial</option>
 				<option>Helvetica</option>
@@ -72,28 +104,25 @@
 
 	<div class="flex items-center gap-4">
 		<button
-			onclick={() =>
-				editor?.changeFontWeight?.(selectedObject?.fontWeight === 'bold' ? 'normal' : 'bold')}
-			class={`rounded-md border border-gray-300 p-2 ${
-				selectedObject?.fontWeight === 'bold' ? 'bg-gray-200' : ''
-			}`}
+			onclick={handleFontWeightChange}
+			class={`rounded-md border border-gray-300 p-2 ${selectedObject?.fontWeight === 'bold' ? 'bg-gray-200' : ''}`}
+			disabled={!selectedObject || !editor?.changeFontWeight}
 		>
 			B
 		</button>
 
 		<button
-			onclick={() =>
-				editor?.changeFontStyle?.(selectedObject?.fontStyle === 'italic' ? 'normal' : 'italic')}
-			class={`rounded-md border border-gray-300 p-2 ${
-				selectedObject?.fontStyle === 'italic' ? 'bg-gray-200' : ''
-			}`}
+			onclick={handleFontStyleChange}
+			class={`rounded-md border border-gray-300 p-2 ${selectedObject?.fontStyle === 'italic' ? 'bg-gray-200' : ''}`}
+			disabled={!selectedObject || !editor?.changeFontStyle}
 		>
 			I
 		</button>
 
 		<button
-			onclick={() => editor?.changeFontUnderline?.(!selectedObject?.underline)}
+			onclick={handleFontUnderlineChange}
 			class={`rounded-md border border-gray-300 p-2 ${selectedObject?.underline ? 'bg-gray-200' : ''}`}
+			disabled={!selectedObject || !editor?.changeFontUnderline}
 		>
 			U
 		</button>

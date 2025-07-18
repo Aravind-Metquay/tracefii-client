@@ -1,70 +1,77 @@
-interface Command {
-	execute(): void;
-	undo(): void;
+import { writable, get } from 'svelte/store';
+import type { Canvas } from 'fabric';
+
+interface HistoryOptions {
+	canvas: Canvas | null;
+	saveCallback?: () => void;
 }
 
-export function createHistory(maxSize: number = 50) {
-	let commands = $state<Command[]>([]);
-	let currentIndex = $state(-1);
+export function createHistory({ canvas, saveCallback }: HistoryOptions) {
+	const canvasHistory = writable<string[]>([]);
+	const historyIndex = writable<number>(0);
 
-	let canUndo = $derived(currentIndex >= 0);
-	let canRedo = $derived(currentIndex < commands.length - 1);
-	let currentState = $derived(commands[currentIndex]);
+	function save() {
+		if (!canvas) return;
+		const state = JSON.stringify(canvas.toJSON());
+		canvasHistory.update((history) => {
+			const newHistory = history.slice(0, get(historyIndex) + 1);
+			newHistory.push(state);
+			return newHistory;
+		});
+		historyIndex.update((index) => index + 1);
+		saveCallback?.();
+	}
 
-	function execute(command: Command) {
-		// Remove future commands when executing new one
-		commands.splice(currentIndex + 1);
-
-		// Execute command
+	function execute(command: { execute: () => void; undo: () => void }) {
 		command.execute();
-		commands.push(command);
-		currentIndex++;
-
-		// Limit history size
-		if (commands.length > maxSize) {
-			commands.shift();
-			currentIndex--;
-		}
+		save();
 	}
 
 	function undo() {
-		if (canUndo) {
-			commands[currentIndex].undo();
-			currentIndex--;
+		if (!canvas || !canUndo()) return;
+		historyIndex.update((index) => index - 1);
+		const history = get(canvasHistory);
+		const state = history[get(historyIndex)];
+		if (state) {
+			canvas.loadFromJSON(JSON.parse(state), () => {
+				canvas.renderAll();
+			});
 		}
 	}
 
 	function redo() {
-		if (canRedo) {
-			currentIndex++;
-			commands[currentIndex].execute();
+		if (!canvas || !canRedo()) return;
+		historyIndex.update((index) => index + 1);
+		const history = get(canvasHistory);
+		const state = history[get(historyIndex)];
+		if (state) {
+			canvas.loadFromJSON(JSON.parse(state), () => {
+				canvas.renderAll();
+			});
 		}
 	}
 
-	function clear() {
-		commands = [];
-		currentIndex = -1;
+	function canUndo() {
+		return get(historyIndex) > 0;
 	}
 
-	function save() {
-		// This is a placeholder for saving the current state
-		// It can be used to mark a checkpoint in the history
+	function canRedo() {
+		return get(canvasHistory).length - 1 > get(historyIndex);
+	}
+
+	function setHistoryIndex(index: number) {
+		historyIndex.set(index);
 	}
 
 	return {
-		get canUndo() {
-			return canUndo;
-		},
-		get canRedo() {
-			return canRedo;
-		},
-		get currentState() {
-			return currentState;
-		},
+		canvasHistory,
+		historyIndex,
+		save,
 		execute,
 		undo,
 		redo,
-		clear,
-		save
+		canUndo,
+		canRedo,
+		setHistoryIndex
 	};
 }
