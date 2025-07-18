@@ -56,6 +56,9 @@ importers:
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
+      colord:
+        specifier: ^2.9.3
+        version: 2.9.3
       fabric:
         specifier: ^6.7.0
         version: 6.7.0

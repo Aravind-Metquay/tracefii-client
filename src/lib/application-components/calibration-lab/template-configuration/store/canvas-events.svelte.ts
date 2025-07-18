@@ -1,21 +1,27 @@
+interface MousePosition {
+  x: number;
+  y: number;
+}
+
 export function createCanvasEvents() {
-  let mousePos = $state({ x: 0, y: 0 });
+  let mousePos = $state<MousePosition>({ x: 0, y: 0 });
   let isPressed = $state(false);
-  let dragStart = $state(null);
-  let canvas = $state(null);
+  let dragStart = $state<MousePosition | null>(null);
+  let canvas = $state<HTMLCanvasElement | null>(null);
   
   let isDragging = $derived(isPressed && dragStart !== null);
   let dragDistance = $derived(
-    isDragging ? Math.sqrt(
+    isDragging && dragStart ? Math.sqrt(
       Math.pow(mousePos.x - dragStart.x, 2) + 
       Math.pow(mousePos.y - dragStart.y, 2)
     ) : 0
   );
   
-  function attachEvents(canvasElement) {
+  function attachEvents(canvasElement: HTMLCanvasElement) {
     canvas = canvasElement;
     
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       mousePos = {
         x: e.clientX - rect.left,
@@ -23,7 +29,7 @@ export function createCanvasEvents() {
       };
     };
     
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (_e: MouseEvent) => {
       isPressed = true;
       dragStart = { ...mousePos };
     };
@@ -33,14 +39,18 @@ export function createCanvasEvents() {
       dragStart = null;
     };
     
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
+    if (canvas) {
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mousedown', handleMouseDown);
+      canvas.addEventListener('mouseup', handleMouseUp);
+    }
     
     return () => {
-      canvas?.removeEventListener('mousemove', handleMouseMove);
-      canvas?.removeEventListener('mousedown', handleMouseDown);
-      canvas?.removeEventListener('mouseup', handleMouseUp);
+      if (canvas) {
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        canvas.removeEventListener('mousedown', handleMouseDown);
+        canvas.removeEventListener('mouseup', handleMouseUp);
+      }
     };
   }
   

@@ -21,11 +21,20 @@
 		unit = newUnit;
 	}
 
+	function handleDimensionChange() {
+		if (dimensions.width && dimensions.height && editor.canvas) {
+			const width = parseFloat(dimensions.width);
+			const height = parseFloat(dimensions.height);
+			
+			if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+				editor.changeSize({ width, height });
+			}
+		}
+	}
+
 	function handleColorChange(color: { hex: string | null }) {
 		if (color.hex && editor.canvas) {
-			const workspace = editor.canvas
-				.getObjects()
-				.find((obj: { name: string }) => obj.name === 'workspace');
+			const workspace = editor.getWorkspace();
 			if (workspace) {
 				workspace.set('fill', color.hex);
 				editor.canvas.renderAll();

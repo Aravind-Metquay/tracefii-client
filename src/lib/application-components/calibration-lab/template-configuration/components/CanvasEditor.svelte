@@ -1,19 +1,36 @@
-<script>
+<script lang="ts">
 	import { Button } from '@/components/ui/button';
 	import FabricCanvas from './FabricCanvas.svelte';
+	import type { Editor } from '../lib/types';
 
-	let { editor } = $props();
+	let { editor } = $props<{ editor: Editor }>();
 
 	function handleZoomIn() {
-		editor.setZoom(editor.zoom + 0.1);
+		if (editor) editor.zoomIn();
 	}
 
 	function handleZoomOut() {
-		editor.setZoom(editor.zoom - 0.1);
+		if (editor) editor.zoomOut();
 	}
 
 	function handleZoomReset() {
-		editor.setZoom(1);
+		if (editor) editor.autoZoom();
+	}
+
+	function handleUndo() {
+		if (editor?.history) editor.history.undo();
+	}
+
+	function handleRedo() {
+		if (editor?.history) editor.history.redo();
+	}
+
+	function handleExportPNG() {
+		if (editor) editor.savePng();
+	}
+
+	function handleExportJSON() {
+		if (editor) editor.saveJson();
 	}
 </script>
 
@@ -24,31 +41,45 @@
 	</div>
 
 	<!-- Footer -->
-	<div
-		class="canvas-footer flex flex-wrap items-center justify-between gap-4 p-4"
-	>
+	<div class="canvas-footer flex flex-wrap items-center justify-between gap-4 p-4">
 		<!-- Zoom Controls -->
 		<div class="zoom-controls flex items-center gap-2">
 			<Button onclick={handleZoomOut} size="sm">-</Button>
-			<span class="w-12 text-center text-sm">{Math.round(editor.zoom * 100)}%</span>
+			<span class="w-12 text-center text-sm">{Math.round((editor?.zoom || 1) * 100)}%</span>
 			<Button onclick={handleZoomIn} size="sm">+</Button>
 			<Button onclick={handleZoomReset} size="sm" variant="outline">Reset</Button>
 		</div>
 
 		<!-- Undo/Redo Toolbar -->
 		<div class="main-toolbar flex items-center gap-2">
-			<Button onclick={editor.undo} disabled={!editor.canUndo} size="sm" variant="outline">
+			<Button
+				onclick={handleUndo}
+				disabled={!editor?.history?.canUndo}
+				size="sm"
+				variant="outline"
+			>
 				↶ Undo
 			</Button>
-			<Button onclick={editor.redo} disabled={!editor.canRedo} size="sm" variant="outline">
+			<Button
+				onclick={handleRedo}
+				disabled={!editor?.history?.canRedo}
+				size="sm"
+				variant="outline"
+			>
 				↷ Redo
 			</Button>
 		</div>
 
 		<!-- Export Buttons -->
 		<div class="export-controls flex items-center gap-2">
-			<Button onclick={editor.exportToPNG} size="sm" variant="outline">PNG</Button>
-			<Button onclick={editor.exportToJSON} size="sm" variant="outline">JSON</Button>
+			<Button onclick={handleExportPNG} size="sm" variant="outline">PNG</Button>
+			<Button onclick={handleExportJSON} size="sm" variant="outline">JSON</Button>
 		</div>
 	</div>
 </div>
+
+<style>
+	.canvas-content {
+		min-height: 400px;
+	}
+</style>

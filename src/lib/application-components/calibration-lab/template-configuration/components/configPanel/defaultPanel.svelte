@@ -8,17 +8,18 @@
 
 	let { editor, selectedComponentType } = $props();
 
-	let opacity = $state(Math.round((editor.getActiveOpacity() ?? 1) * 100));
+	let opacity = $state(Math.round((editor?.getActiveOpacity?.() ?? 1) * 100));
 
 	$effect(() => {
-		if (selectedComponentType) {
+		if (selectedComponentType && editor?.getActiveOpacity) {
 			const current = editor.getActiveOpacity() ?? 1;
 			opacity = Math.round(current * 100);
 		}
 	});
 
 	function handleOpacityChange(value: number) {
-		if (value >= 0 && value <= 100) {
+		if (isNaN(value) || value < 0 || value > 100) return;
+		if (editor?.changeOpacity) {
 			editor.changeOpacity(value / 100);
 			opacity = value;
 		}
@@ -37,9 +38,9 @@
 	}
 </script>
 
-<div class="h-full w-[20vw] min-w-[240px]">
+<div class="h-full w-80 max-w-[320px] min-w-[240px] bg-gray-50">
 	{#if selectedComponentType}
-		<div class="space-y-6 rounded-xl bg-white p-6">
+		<div class="space-y-6 rounded-xl bg-white p-6 shadow-sm">
 			<div class="text-lg font-semibold text-gray-900">Config Panel</div>
 
 			{#if selectedComponentType === 'Text'}
@@ -60,12 +61,13 @@
 				<div class="flex items-center gap-4">
 					<input
 						type="range"
+						id="opacity"
 						min="0"
 						max="100"
 						step="1"
 						value={opacity}
 						oninput={handleOpacityInput}
-						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-blue-500"
 					/>
 					<input
 						type="number"
@@ -83,10 +85,32 @@
 		</div>
 	{:else}
 		<div
-			class="flex h-full flex-col items-center justify-center rounded-xl p-6 text-center text-gray-600"
+			class="flex h-full flex-col items-center justify-center rounded-xl bg-white p-6 text-center text-gray-600 shadow-sm"
 		>
 			<span class="mb-2 text-2xl">🧩</span>
 			<p class="font-medium">No Component Selected</p>
+			<p class="text-sm">Select an object to edit its properties</p>
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Custom styles for range input to ensure consistency */
+	input[type='range']::-webkit-slider-thumb {
+		appearance: none;
+		width: 16px;
+		height: 16px;
+		background: #3b82f6;
+		border-radius: 50%;
+		cursor: pointer;
+	}
+	
+	input[type='range']::-moz-range-thumb {
+		width: 16px;
+		height: 16px;
+		background: #3b82f6;
+		border-radius: 50%;
+		cursor: pointer;
+		border: none;
+	}
+</style>
