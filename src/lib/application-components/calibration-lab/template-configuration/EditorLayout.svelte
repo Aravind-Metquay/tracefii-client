@@ -16,9 +16,9 @@
 	}
 </script>
 
-<div class="editor-layout flex h-screen w-full overflow-hidden">
+<div class="editor-layout flex h-screen w-full overflow-hidden bg-gray-100">
 	<!-- Left Panel -->
-	<div class="w-64 shrink-0 border-r border-gray-200 bg-gray-50">
+	<div class="w-80 shrink-0 border-r border-gray-200 bg-white">
 		<ContainerPanel
 			bind:selectedType={appState.uiState.selectedType}
 			onTypeChange={appState.setSelectedType}
@@ -30,10 +30,10 @@
 	</div>
 
 	<!-- Main Content -->
-	<div class="flex min-w-0 flex-1 flex-col">
+	<div class="flex min-w-0 flex-1 flex-col bg-gray-50">
 		<!-- Component Toolbar -->
 		{#if appState.canAddComponents}
-			<div class="border-b border-gray-200 bg-white p-4">
+			<div class="shrink-0 border-b border-gray-200 bg-white p-4 shadow-sm">
 				<ComponentToolbar
 					availableComponents={appState.availableComponents}
 					onSelectComponent={handleComponentSelect}
@@ -43,15 +43,15 @@
 		{/if}
 
 		<!-- Canvas Area -->
-		<div class="flex-1 overflow-auto p-4">
-			<div class="h-full w-full rounded-lg bg-white shadow-sm">
+		<div class="flex-1 overflow-hidden p-6">
+			<div class="h-full w-full rounded-lg bg-white shadow-lg border border-gray-200">
 				<CanvasEditor editor={appState.editor} />
 			</div>
 		</div>
 	</div>
 
 	<!-- Right Panel -->
-	<div class="w-64 shrink-0 border-l border-gray-200 bg-gray-50">
+	<div class="w-80 shrink-0 border-l border-gray-200 bg-white">
 		<ConfigPanel
 			editor={appState.editor}
 			selectedComponentType={appState.uiState.selectedComponentType}
