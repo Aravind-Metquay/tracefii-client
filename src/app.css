@@ -36,6 +36,7 @@
   --ring-checkbox:oklch(0.953 0.0282 306.05);
   --unchecked-focus:oklch(0.8365 0.0923 303.74);
   --checkbox-disabled:oklch(0.9366 0.0017 247.84);
+  --select-trigger:oklch(0.565 0.0165 264.43);
   --border: oklch(0.923 0.003 48.717);
   --input: oklch(0.2304 0.0209 264.04);
   --hint:oklch(0.4596 0.0174 264.39);

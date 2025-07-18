@@ -16,26 +16,28 @@
 <CheckboxPrimitive.Root
 	bind:ref
 	data-slot="checkbox"
-	class={cn(
-		"w-[16px] h-[16px] cursor-pointer" ,
+	class={cn([
+	"min-w-[1rem] min-h-[1rem] cursor-pointer",
 
-		// Default 
-		" border border-[var(--unchecked-default)] rounded-[4px]",
+	// Default 
+	"border border-[var(--unchecked-default)] rounded-[0.25rem]",
 
-		// Hover 
-		"hover:bg-[var(--unchecked-hover)] hover:border-primary",
+	// Hover 
+	"hover:bg-[var(--unchecked-hover)] hover:border-primary",
 
-		// Focus 
-		"focus:ring-2 focus:ring-[var(--ring-checkbox)] data-[state=unchecked]:focus:border-[var(--unchecked-focus)]",
+	// Focus 
+	"focus:ring-2 focus:ring-[var(--ring-checkbox)] data-[state=unchecked]:focus:border-[var(--unchecked-focus)]",
 
-		// Disabled 
-		" disabled:border-[var(--checkbox-disabled)] disabled:cursor-not-allowed disabled:opacity-50",
+	// Disabled 
+	"disabled:border-[var(--checkbox-disabled)] disabled:cursor-not-allowed disabled:opacity-50",
 
-		// Checked State
-		"data-[state=checked]:bg-[var(--checkbox-checked-bg)] data-[state=checked]:border-primary data-[state=checked]:text-primary",
+	// Checked State
+	"data-[state=checked]:bg-[var(--checkbox-checked-bg)] data-[state=checked]:border-primary data-[state=checked]:text-primary",
 
-		// Indeterminate State
-		"data-[state=indeterminate]:text-primary data-[state=indeterminate]:border-primary",
+	// Indeterminate State
+	"data-[state=indeterminate]:text-primary data-[state=indeterminate]:border-primary"
+]
+,
 
 		className
 	)}
