@@ -3,6 +3,9 @@
   import FunctionsPanel from "./functions-panel/functions-panel.svelte";
 	import CanvasPanel from "./canvas-panel/canvas-panel.svelte";
 	import TopPanel from "./top-panel/top-panel.svelte";
+	import { getContext } from "svelte";
+	import type { WorksheetManager } from "./store.svelte";
+  
 </script>
 
 
@@ -21,7 +24,7 @@
     </main>
 
     <aside class="w-72 bg-white border rounded-md overflow-auto">
-
+      <ConfigurationPanel/>
     </aside>
   </div>
 </div>

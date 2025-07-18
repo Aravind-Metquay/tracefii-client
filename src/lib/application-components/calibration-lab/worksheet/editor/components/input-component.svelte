@@ -6,8 +6,7 @@
 	import type { WorksheetManager } from '../store.svelte';
 
     export let component: Component;
-
-      const worksheetManager = getContext<WorksheetManager>("worksheetManager");
+    const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
 
   // Access the current function ID directly from the store

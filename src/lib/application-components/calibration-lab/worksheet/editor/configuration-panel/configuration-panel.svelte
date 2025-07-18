@@ -6,8 +6,16 @@
 	import InputConfiguration from './input-configuration.svelte';
 	import SelectConfiguration from './select-configuration.svelte';
 	import TextConfiguration from './text-configuration.svelte';
+	import { getContext } from 'svelte';
+	import type { WorksheetManager } from '../store.svelte';
 
-  let { currentComponent, currentFunction, currentColumn, currentActiveFunction, currentActiveComponent, currentActiveColumn, components, functions } = $props();
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
+  const currentActiveColumn = worksheetManager.getCurrentActiveColumn();
+  const currentActiveFunction = worksheetManager.getCurrentActiveFunction();
+  const currentActiveComponent = worksheetManager.getCurrentActiveComponent();
+  const components = worksheetManager.getAllComponents();
+  const functions = worksheetManager.getAllFunctions();
+  
 
   let type = $state<'valueExpression' | 'disableExpression' | 'validationExpression' | 'certificateVisibleExpression' | 'tableRowExpression' | 'repeatExpression'>('valueExpression');
   let isOpen = $state(false);
@@ -28,16 +36,16 @@
         subtitle: currentActiveColumn.columnId || 'No Column ID'
       };
     }
-    if (currentComponent) {
+    if (currentActiveComponent) {
       return {
-        title: currentComponent.componentType === 'Table' ? currentComponent.tableComponent?.tableName : currentComponent.label,
-        subtitle: currentComponent.componentId || 'No Component ID'
+        title: currentActiveComponent.componentType === 'Table' ? currentActiveComponent.tableComponent?.tableName : currentActiveComponent.label,
+        subtitle: currentActiveComponent.componentId || 'No Component ID'
       };
     }
-    if (currentFunction) {
+    if (worksheetManager.getCurrentActiveFunction()) {
       return {
-        title: currentFunction.functionName || 'Function Configuration',
-        subtitle: currentFunction.functionId || 'No Function ID'
+        title:  worksheetManager.getCurrentActiveFunction()?.functionName || 'Function Configuration',
+        subtitle:  worksheetManager.getCurrentActiveFunction()?.functionId || 'No Function ID'
       };
     }
     return {
@@ -55,10 +63,10 @@
       <h2 class="font-medium text-sm">{titleInfo.title}</h2>
       <p class="text-xs text-gray-500">{titleInfo.subtitle}</p>
     </div>
-    {#if currentComponent}
+    {#if currentActiveComponent}
       <button
         class="p-2 text-red-500 hover:text-red-700"
-        on:click={() => handleRemoveComponent(currentComponent.componentId)}
+        onclick={() => worksheetManager.removeComponent(currentActiveComponent.componentId)}
       >
         <Trash2 size={16} />
       </button>
@@ -67,30 +75,30 @@
 
   <!-- <ExpressionModal
     type={type}
-    componentId={currentComponent?.componentId}
+    componentId={currentActiveComponent?.componentId}
     isOpen={isOpen}
     onClose={() => (isOpen = false)}
     onOpenChange={(v) => (isOpen = v)}
   />  -->
 
   <div class="flex-1 overflow-y-auto">
-    {#if currentFunction && !currentComponent}
-      <FunctionConfiguration function={currentFunction} onExpressionModal={handleExpressionModal} />
-    {:else if currentComponent}
-      {#if currentComponent.componentType === 'Table' && currentColumn && currentActiveColumn}
+    {#if currentActiveFunction && !currentActiveComponent}
+      <FunctionConfiguration function={currentActiveFunction} onExpressionModal={handleExpressionModal} />
+    {:else if currentActiveComponent}
+      {#if currentActiveComponent.componentType === 'Table' && currentActiveColumn && currentActiveColumn}
         <ColumnConfiguration
-          currentColumn={currentColumn}
-          currentComponent={currentComponent}
+          currentColumn={currentActiveColumn}
+          currentComponent={currentActiveComponent}
           onExpressionModal={handleExpressionModal}
         />
-      {:else if currentComponent.componentType === 'Table'}
-        <TableConfiguration component={currentComponent} onExpressionModal={handleExpressionModal} />
-      {:else if currentComponent.componentType === 'Input'}
-        <InputConfiguration component={currentComponent} onExpressionModal={handleExpressionModal} />
-      {:else if currentComponent.componentType === 'Select'}
-        <SelectConfiguration component={currentComponent} onExpressionModal={handleExpressionModal} />
-      {:else if currentComponent.componentType === 'Text'}
-        <TextConfiguration component={currentComponent} />
+      {:else if currentActiveComponent.componentType === 'Table'}
+        <TableConfiguration component={currentActiveComponent} onExpressionModal={handleExpressionModal} />
+      {:else if currentActiveComponent.componentType === 'Input'}
+        <InputConfiguration component={currentActiveComponent} onExpressionModal={handleExpressionModal} />
+      {:else if currentActiveComponent.componentType === 'Select'}
+        <SelectConfiguration component={currentActiveComponent} onExpressionModal={handleExpressionModal} />
+      {:else if currentActiveComponent.componentType === 'Text'}
+        <TextConfiguration component={currentActiveComponent} />
       {/if}
     {/if}
   </div>
