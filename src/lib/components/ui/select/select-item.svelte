@@ -18,21 +18,22 @@
 	{value}
 	data-slot="select-item"
 	class={cn(
-		"data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground outline-hidden *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2 relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-1.5 pl-2 pr-8 text-sm data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+		"w-[20rem] h-[2.75rem] px-[0.875rem] py-[0.625rem] text-[var(--input)] font-medium text-base hover:bg-[var(--secondary-hover)]",
+		"flex items-center justify-between",
 		className
 	)}
 	{...restProps}
 >
 	{#snippet children({ selected, highlighted })}
-		<span class="absolute right-2 flex size-3.5 items-center justify-center">
-			{#if selected}
-				<CheckIcon class="size-4" />
+		<span class="truncate">{#if childrenProp}
+			{@render childrenProp({ selected, highlighted })}
+			{:else}
+			{label || value}
 			{/if}
 		</span>
-		{#if childrenProp}
-			{@render childrenProp({ selected, highlighted })}
-		{:else}
-			{label || value}
+		{#if selected}
+			<CheckIcon class="w-[1.25rem] h-[1.25rem] text-primary" />
 		{/if}
 	{/snippet}
 </SelectPrimitive.Item>
+
