@@ -2,6 +2,8 @@
 	import type { Component } from "@/Types";
 	import { currentActiveStore, setCurrentActiveComponent } from "../store/currentActiveElements-store.svelte";
 	import { dataStore, setComponentValue } from "../store/data-store.svelte";
+	import { getContext } from "svelte";
+	import type { WorksheetManager } from "../store.svelte";
 
 
     export let component: Component;
@@ -9,9 +11,10 @@
     // Simulate API data fetching (replace with your own logic)
     // let user = ...; // assign user as per your Svelte store/data system
     let assets : any = []; // assign assets as per your Svelte store/data system
+    const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
     // Store value logic
-    var currentActiveFunctionId = currentActiveStore.function?.functionId;
+    const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
     var dataSnapshot = dataStore;
     var currentValue = currentActiveFunctionId
         ? (dataSnapshot[currentActiveFunctionId]?.[component.componentId] ?? "")
