@@ -21,7 +21,7 @@
   const radius = center - strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = $derived(circumference - (progress / 100) * circumference);
-  const progressFontSize = $derived((() => {
+  const progressFontSize = $derived.by(() => {
   switch (outerSize) {
     case 64: return '14px';
     case 160: return '24px';
@@ -29,8 +29,7 @@
     case 280: return '36px';
     case 320: return '48px';
     default: return '24px';
-  }
-})());
+}});
 
 
 </script>
