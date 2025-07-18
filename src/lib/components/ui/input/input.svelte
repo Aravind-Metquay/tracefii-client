@@ -27,7 +27,7 @@
 </script>
 
 <div 
-	class="flex flex-col gap-1 w-fit group"
+	class="flex flex-col gap-1 group"
 	aria-invalid={restProps['aria-invalid']}>
 
 	{#if label}
@@ -40,7 +40,7 @@
 			bind:this={ref}
 			data-slot="input"
 			class={cn(
-				"w-[320px] h-[44px] cursor-pointer border border-[var(--unchecked-default)] rounded-[8px] px-[14px] py-[10px] disabled:cursor-not-allowed disabled:opacity-30",
+				"min-w-[320px] h-[44px] cursor-pointer border border-[var(--unchecked-default)] rounded-[8px] px-[14px] py-[10px] disabled:cursor-not-allowed disabled:opacity-30",
 				"focus:outline-4 focus:outline-[var(--ring-checkbox)] focus:border-[var(--unchecked-focus)]",
 				"hover:placeholder:text-[var(--input)]",
 				"group-aria-invalid:border-[var(--destructive-border)] group-aria-invalid:focus:outline-[var(--ring-destructive)] group-aria-invalid:focus:border-[var(--destructive-border)]",
