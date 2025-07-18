@@ -1,9 +1,9 @@
 <script lang="ts">
 	import TextConfig from './Text/textPanel.svelte';
-	// import ImageConfig from './Image/imagePanel.svelte';
-	// import BarcodeConfig from './Barcode/barcodePanel.svelte';
-	// import DateConfig from './Date/datePanel.svelte';
-	// import QRCodeConfig from './QRcode/qrcodePanel.svelte';
+	import ImageConfig from './Image/imagePanel.svelte';
+	import BarcodeConfig from './Barcode/barcodePanel.svelte';
+	import DateConfig from './Date/datePanel.svelte';
+	import QRCodeConfig from './QRcode/qrcodePanel.svelte';
 	import Toolbar from './toolbarPanel.svelte';
 
 	let { editor, selectedComponentType } = $props();
@@ -45,14 +45,14 @@
 
 			{#if selectedComponentType === 'Text'}
 				<TextConfig {editor} />
-			<!-- {:else if selectedComponentType === 'Image'}
+			{:else if selectedComponentType === 'Image'}
 				<ImageConfig {editor} />
 			{:else if selectedComponentType === 'Barcode'}
 				<BarcodeConfig {editor} />
 			{:else if selectedComponentType === 'Date'}
 				<DateConfig {editor} />
 			{:else if selectedComponentType === 'QR Code'}
-				<QRCodeConfig {editor} /> -->
+				<QRCodeConfig {editor} />
 			{/if}
 
 			<!-- Opacity Control -->
