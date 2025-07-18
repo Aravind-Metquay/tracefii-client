@@ -5,7 +5,7 @@ export class AppState {
 	// UI State
 	uiState = $state({
 		selectedType: '' as TemplateType,
-		selectedComponentType: null as ComponentType,
+		selectedComponentType: null as ComponentType | null,
 		unit: 'cm' as UnitType,
 		dimensions: { width: '', height: '' } as Dimensions,
 		backgroundColor: { r: 255, g: 255, b: 255 } as Color
@@ -18,7 +18,9 @@ export class AppState {
 	canAddComponents = $derived(['Label', 'Certificate'].includes(this.uiState.selectedType));
 
 	availableComponents = $derived(
-		this.canAddComponents ? ['Text', 'Date', 'Image', 'Barcode', 'QR Code'] : []
+		this.canAddComponents
+			? (['Text', 'Date', 'Image', 'Barcode', 'QR Code'] as ComponentType[])
+			: []
 	);
 
 	// Actions
@@ -26,7 +28,7 @@ export class AppState {
 		this.uiState.selectedType = type;
 	};
 
-	setSelectedComponentType = (type: ComponentType): void => {
+	setSelectedComponentType = (type: ComponentType | null): void => {
 		this.uiState.selectedComponentType = type;
 	};
 
