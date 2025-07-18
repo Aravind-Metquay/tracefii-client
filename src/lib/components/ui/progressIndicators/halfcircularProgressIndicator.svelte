@@ -1,28 +1,28 @@
 
 <script lang="ts">
-  export let progress: number = 40;
-  export let width: number = 180;
-  export let height: number = 180;
-  export let label: string = '';
-  export let showLabel: boolean = true;
-  export let labelOutside: boolean = false;
-
+	import { derived } from "svelte/store";
+  let { width = 180, progress = 40,
+    height = 180, label = '', showLabel = true, labelOutside = false
+   }: { width?: number; progress?: number
+    height?: number; label?: string; showLabel?: boolean; labelOutside?: boolean  } = $props(); 
+  
+ 
   // Calculate radius based on width 
-  $: radius = (width * 0.35); // Adjust this ratio to fit your design
-  $: stroke = Math.max(4, width * 0.06); // Stroke width scales with size
-  $: normalizedRadius = radius - stroke / 2;
-  $: circumference = Math.PI * normalizedRadius; // Half circle circumference
-  $: strokeDashoffset = circumference - (progress / 100) * circumference;
+  const radius = $derived(width * 0.35); // Adjust this ratio to fit your design
+  const stroke = $derived(Math.max(4, width * 0.06)); // Stroke width scales with size
+  const normalizedRadius =$derived(radius - stroke/2);
+  const circumference = $derived(Math.PI * normalizedRadius); // Half circle circumference
+  const strokeDashoffset = $derived(circumference - (progress / 100) * circumference);
   
   // SVG viewBox and positioning
-  $: viewBoxWidth = radius * 2 + stroke;
-  $: viewBoxHeight = radius + stroke;
-  $: centerX = viewBoxWidth / 2;
-  $: centerY = radius + stroke / 2;
+  const viewBoxWidth =$derived(radius * 2 + stroke); 
+  const viewBoxHeight =$derived( radius + stroke);
+  const centerX = $derived(viewBoxWidth / 2);
+  const centerY = $derived(radius + stroke / 2);
   
   // Font sizes
-  $: labelFontSize = Math.max(8, width * 0.08);
-  $: progressFontSize = Math.max(12, width * 0.12);
+  const labelFontSize =$derived( Math.max(8, width * 0.08));
+  const progressFontSize = $derived(Math.max(12, width * 0.12));
 </script>
 
 <div class="relative flex items-center justify-center" style="width: {width}px; height: {height}px;">

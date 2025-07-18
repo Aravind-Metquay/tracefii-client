@@ -11,7 +11,7 @@
   <section class="container mx-auto ">
     <!-- Progress Indicators with different label positions and sizes -->
  
-   <div class="flex space-y-6 space-x-4 flex gap-4 bg-white p-6 justify-center">  
+   <div class="flex space-y-6 space-x-4  gap-4 bg-white p-6 justify-center">  
       <div class="flex flex-col gap-10  "> 
         {#each progressValues as progress}
           <ProgressIndicator {progress} color="brand" labelPosition="none" />
@@ -29,7 +29,7 @@
       </div>
     </div> 
        
-       <div class="flex space-y-6 space-x-4 flex gap-4 bg-white p-6 justify-center"> 
+       <div class="flex space-y-6 space-x-4  gap-4 bg-white p-6 justify-center"> 
         <div class="flex flex-col gap-8">
         {#each progressValues as progress}
           <ProgressIndicator {progress} color="brand" labelPosition="topfloating" />

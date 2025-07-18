@@ -1,12 +1,15 @@
 <script lang="ts">
-  export let progress: number = 0; // Progress value (0-100)
-  export let labelPosition: 'none'| 'right' | 'bottom' | 'topfloating' | 'botomfloating' = 'right'; // Label position
-  export let size: 'sm' | 'md' | 'lg' = 'md'; // Size variant
-  export let color: 'brand' = 'brand'; // Color variant
-  export let width: string = 'w-80'; //  (default: w-80 = 320px)
+  let { width = 320, progress = 0, labelPosition = 'right', size = 'md', color = 'brand' }: {
+    width?: number;
+    progress?: number;
+    labelPosition?: 'none' | 'right' | 'bottom' | 'topfloating' | 'botomfloating';
+    size?: 'sm' | 'md' | 'lg';
+    color?: 'brand';
+  } = $props();
+ 
 
   // Ensure progress is between 0 and 100
-  $: clampedProgress = Math.max(0, Math.min(100, progress));
+  const clampedProgress =$derived(Math.max(0, Math.min(100, progress))) ;
 
   // Size configurations
   const sizes: Record<string, { height: string; text: string; labelGap: string }> = {
@@ -36,8 +39,8 @@
     },
   };
 
-  $: sizeConfig = sizes[size] || sizes.md;
-  $: colorConfig = colors[color] || colors.brand;
+  const sizeConfig = $derived(sizes[size] || sizes.md);
+  const colorConfig =$derived(colors[color] || colors.brand);
 </script>
 
 <!-- Progress Label Component -->
@@ -83,8 +86,6 @@
       </div>
     </div>
   
- 
-
     <!-- Label for bottom position -->
   {:else if labelPosition === 'bottom'}
     <div class="flex flex-col space-y-[2px] {sizeConfig.labelGap}" style="width: 320px;">
@@ -104,9 +105,6 @@
       </div>
     </div>
   {/if}
-
-
-
 
   <!-- No label - just progress bar -->
 {:else}

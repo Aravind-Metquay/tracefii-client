@@ -1,29 +1,36 @@
 <script lang="ts">
-  export let progress: number = 40;
-  export let outerSize: number = 160;
-  export let innerSize: number = 144;
-  export let label: string = '';
-  export let showLabel: boolean = true;
+ 
+  let { 
+  progress = 0, 
+  outerSize = 64, 
+  innerSize = 144,
+  label='' ,
+  showLabel = true
+}: { 
+  progress?: number;
+  outerSize?: number;
+  innerSize?: number;
+  label?: string;
+  showLabel?: boolean;
+} = $props();
 
-  $: isTiny = outerSize === 64 && innerSize === 58;
+  let isTiny =$derived(outerSize === 64 && innerSize === 58);
 
-  
   const strokeWidth = 10;
   const center = 80;
   const radius = center - strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
-  $: strokeDashoffset = circumference - (progress / 100) * circumference;
-
-  $: progressFontSize = (() => {
-    switch (outerSize) {
-      case 64: return '14px';
-      case 160: return '24px';
-      case 200: return '30px';
-      case 280: return '36px';
-      case 320: return '48px';
-      default: return '24px'; 
-    }
-  })();
+  const strokeDashoffset = $derived(circumference - (progress / 100) * circumference);
+  const progressFontSize = $derived((() => {
+  switch (outerSize) {
+    case 64: return '14px';
+    case 160: return '24px';
+    case 200: return '30px';
+    case 280: return '36px';
+    case 320: return '48px';
+    default: return '24px';
+  }
+})());
 
 
 </script>
@@ -32,7 +39,7 @@
   <!-- Circle -->
   <div class="relative" style="width: {outerSize}px; height: {outerSize}px;">
     <div class="absolute inset-0 flex items-center justify-center bg-white rounded-full">
-      <!-- SVG -->
+    
       <svg width={innerSize} height={innerSize} viewBox="0 0 160 160" fill="none">
         <!-- Background Circle -->
         <circle
