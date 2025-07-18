@@ -13,19 +13,16 @@
     sm: {
       height: "h-[8px]",
       text: "text-sm",
-    //   gap: "gap-2",
       labelGap: "gap-1"
     },
     md: {
       height: "h-[8px]",
       text: "text-[14px]",
-    //   gap: "gap-3",
       labelGap: "gap-2"
     },
     lg: {
       height: "h-[8px]",
       text: "text-[14px]",
-    //   gap: "gap-4",
       labelGap: "gap-3"
     }
   };
