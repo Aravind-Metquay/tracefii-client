@@ -3,6 +3,8 @@
 </script>
 
 
-<div class="flex items-center justify-center h-screen">
+<div class="flex flex-col items-center justify-center h-screen gap-4">
     <Switch />
+    <Switch disabled/>
 </div>
+
