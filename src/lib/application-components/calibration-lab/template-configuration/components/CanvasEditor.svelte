@@ -20,48 +20,44 @@
 	});
 
 	function handleZoomIn() {
-		if (editor) editor.zoomIn();
+		if (editor?.zoomIn) editor.zoomIn();
 	}
 
 	function handleZoomOut() {
-		if (editor) editor.zoomOut();
+		if (editor?.zoomOut) editor.zoomOut();
 	}
 
 	function handleZoomReset() {
-		if (editor) editor.autoZoom();
+		if (editor?.setZoom) editor.setZoom(1);
 	}
 
 	function handleUndo() {
-		if (editor?.history) editor.history.undo();
+		if (editor?.history?.undo) editor.history.undo();
 	}
 
 	function handleRedo() {
-		if (editor?.history) editor.history.redo();
+		if (editor?.history?.redo) editor.history.redo();
 	}
 
 	function handleExportPNG() {
-		if (editor) editor.savePng();
+		if (editor?.savePng) editor.savePng();
 	}
 
 	function handleExportJSON() {
-		if (editor) editor.saveJson();
+		if (editor?.saveJson) editor.saveJson();
 	}
 
-	// Reactive zoom percentage
-	let zoomPercentage = $derived(Math.round((editor?.zoom || 1) * 100));
+	let zoomPercentage = $derived(editor?.zoom ? Math.round(editor.zoom * 100) : 100);
 </script>
 
-<div class="flex h-full flex-col">
-	<!-- Main canvas content -->
+<div class="canvas-editor flex h-full flex-col">
 	<div class="w-full flex-1">
 		<div bind:this={containerElement} class="relative h-full w-full overflow-hidden">
 			<canvas bind:this={canvasElement} class="block"></canvas>
 		</div>
 	</div>
 
-	<!-- Footer -->
 	<div class="canvas-footer flex flex-wrap items-center justify-between gap-4 p-4">
-		<!-- Zoom Controls -->
 		<div class="zoom-controls flex items-center gap-2">
 			<Button onclick={handleZoomOut} size="sm">-</Button>
 			<span class="w-12 text-center text-sm">{zoomPercentage}%</span>
@@ -69,7 +65,6 @@
 			<Button onclick={handleZoomReset} size="sm" variant="outline">Reset</Button>
 		</div>
 
-		<!-- Undo/Redo Toolbar -->
 		<div class="main-toolbar flex items-center gap-2">
 			<Button onclick={handleUndo} disabled={!editor?.history?.canUndo} size="sm" variant="outline">
 				↶ Undo
@@ -79,7 +74,6 @@
 			</Button>
 		</div>
 
-		<!-- Export Buttons -->
 		<div class="export-controls flex items-center gap-2">
 			<Button onclick={handleExportPNG} size="sm" variant="outline">PNG</Button>
 			<Button onclick={handleExportJSON} size="sm" variant="outline">JSON</Button>

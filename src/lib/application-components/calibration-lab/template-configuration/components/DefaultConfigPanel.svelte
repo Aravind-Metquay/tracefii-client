@@ -1,10 +1,10 @@
 <script lang="ts">
-	import TextConfig from './Text/textPanel.svelte';
-	import ImageConfig from './Image/imagePanel.svelte';
-	import BarcodeConfig from './Barcode/barcodePanel.svelte';
-	import DateConfig from './Date/datePanel.svelte';
-	import QRCodeConfig from './QRcode/qrcodePanel.svelte';
-	import Toolbar from './toolbarPanel.svelte';
+	import TextConfig from './configPanel/Text/textPanel.svelte';
+	import ImageConfig from './configPanel/Image/imagePanel.svelte';
+	import BarcodeConfig from './configPanel/Barcode/barcodePanel.svelte';
+	import DateConfig from './configPanel/Date/datePanel.svelte';
+	import QRCodeConfig from './configPanel/QRcode/qrcodePanel.svelte';
+	import Toolbar from './configPanel/toolbarPanel.svelte';
 
 	let { editor, selectedComponentType } = $props();
 
@@ -27,12 +27,6 @@
 
 	function handleOpacityInput(event: Event) {
 		const target = event.target as HTMLInputElement;
-		const value = parseInt(target.value, 10);
-		handleOpacityChange(value);
-	}
-
-	function handleOpacityNumberInput(event: Event) {
-		const target = event.target as HTMLInputElement;
 		const value = Number(target.value);
 		handleOpacityChange(value);
 	}
@@ -40,7 +34,7 @@
 
 <div class="h-full w-80 max-w-[320px] min-w-[240px] bg-gray-50">
 	{#if selectedComponentType}
-		<div class="space-y-6 rounded-xl bg-white p-6 shadow-sm">
+		<div class="space-y-6 rounded-xl p-6">
 			<div class="text-lg font-semibold text-gray-900">Config Panel</div>
 
 			{#if selectedComponentType === 'Text'}
@@ -75,7 +69,7 @@
 						max="100"
 						step="1"
 						value={opacity}
-						oninput={handleOpacityNumberInput}
+						oninput={handleOpacityInput}
 						class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm"
 					/>
 				</div>
@@ -95,7 +89,6 @@
 </div>
 
 <style>
-	/* Custom styles for range input to ensure consistency */
 	input[type='range']::-webkit-slider-thumb {
 		appearance: none;
 		width: 16px;
@@ -104,7 +97,6 @@
 		border-radius: 50%;
 		cursor: pointer;
 	}
-	
 	input[type='range']::-moz-range-thumb {
 		width: 16px;
 		height: 16px;

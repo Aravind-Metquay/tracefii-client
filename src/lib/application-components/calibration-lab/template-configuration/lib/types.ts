@@ -1,6 +1,28 @@
-import type * as fabric from 'fabric';
+import type { Canvas, FabricObject, Rect } from 'fabric';
 import type { createHistory } from '../store/history.svelte';
 import type { createCanvasEvents } from '../store/canvas-events.svelte';
+
+// Extended FabricObject types for custom properties
+export interface ExtendedFabricObject extends FabricObject {
+	data?: {
+		template?: string;
+		format?: string;
+		displayValue?: boolean;
+		dateFormat?: string;
+		[key: string]: any;
+	};
+	// Text properties
+	fontSize?: number;
+	fontFamily?: string;
+	fontWeight?: string | number;
+	fontStyle?: string;
+	textAlign?: string;
+	underline?: boolean;
+	linethrough?: boolean;
+	// Date-specific properties
+	customDateFormat?: string;
+	customDateValue?: string;
+}
 
 export type ComponentType = 'Text' | 'Date' | 'Image' | 'Barcode' | 'QR Code' | null;
 export type TemplateType = string;
@@ -44,10 +66,10 @@ export interface AppState {
 }
 
 export interface Editor {
-	canvas: fabric.Canvas | null;
+	canvas: Canvas | null;
 	container: HTMLElement | null;
 	selectedTool: string;
-	selectedObjects: fabric.Object[];
+	selectedObjects: FabricObject[];
 	zoom: number;
 	viewport: { x: number; y: number };
 	fontFamily: string;
@@ -56,9 +78,9 @@ export interface Editor {
 	canvasSize: { width: number; height: number };
 	initializeCanvas: (canvasElement: HTMLCanvasElement, containerElement: HTMLElement) => void;
 	syncCanvasState: () => void;
-	getWorkspace: () => fabric.Rect | undefined;
-	center: (object: fabric.Object) => void;
-	addToCanvas: (object: fabric.Object) => void;
+	getWorkspace: () => Rect | undefined;
+	center: (object: FabricObject) => void;
+	addToCanvas: (object: FabricObject) => void;
 	autoZoom: () => void;
 	addText: (text?: string, textOptions?: any) => void;
 	addDate: () => void;
@@ -70,6 +92,17 @@ export interface Editor {
 	changeText: (text: string) => void;
 	addQRCode: (value?: string | null) => Promise<void>;
 	addBarcode: (value?: string | null) => Promise<void>;
+	changeBarcodeData: (value: string) => void;
+	changeBarcodeType: (value: string) => void;
+	changeBarcodeWidth: (value: number) => void;
+	changeBarcodeHeight: (value: number) => void;
+	changeBarcodeShowText: (value: boolean) => void;
+	changeQRData: (value: string) => void;
+	changeQRSize: (value: number) => void;
+	changeQRErrorLevel: (value: string) => void;
+	changeQRForegroundColor: (value: string) => void;
+	changeQRBackgroundColor: (value: string) => void;
+	changeQRIncludeMargin: (value: boolean) => void;
 	addImage: (fileOrUrl: File | string) => Promise<void>;
 	addCircle: () => void;
 	addRectangle: () => void;

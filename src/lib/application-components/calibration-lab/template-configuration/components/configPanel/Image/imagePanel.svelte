@@ -1,7 +1,28 @@
 <script lang="ts">
-	let { editor } = $props();
+	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
 
+	let { editor } = $props<{ editor: Editor }>();
 	let selectedObject = $derived(editor?.selectedObjects?.[0]);
+
+	function handleImageSrcChange(value: string) {
+		if (editor?.addImage && selectedObject) {
+			editor.addImage(value); // Replaces the image
+		}
+	}
+
+	function handleImageWidthChange(value: number) {
+		if (isNaN(value) || value <= 0) return;
+		if (editor?.changeImageWidth && selectedObject) {
+			editor.changeImageWidth(value);
+		}
+	}
+
+	function handleImageHeightChange(value: number) {
+		if (isNaN(value) || value <= 0) return;
+		if (editor?.changeImageHeight && selectedObject) {
+			editor.changeImageHeight(value);
+		}
+	}
 </script>
 
 <div class="space-y-4">
@@ -14,7 +35,8 @@
 			class="w-full rounded border border-gray-300 p-2 text-sm"
 			value={selectedObject?.src ?? ''}
 			placeholder="Enter image URL or path"
-			oninput={(e) => editor?.changeImageSrc?.((e.target as HTMLInputElement).value)}
+			oninput={(e) => handleImageSrcChange((e.target as HTMLInputElement).value)}
+			disabled={!selectedObject || !editor?.addImage}
 		/>
 	</div>
 
@@ -24,9 +46,11 @@
 			<input
 				id="image-width"
 				type="number"
+				min="1"
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.width ?? 100}
-				oninput={(e) => editor?.changeImageWidth?.(Number((e.target as HTMLInputElement).value))}
+				oninput={(e) => handleImageWidthChange(Number((e.target as HTMLInputElement).value))}
+				disabled={!selectedObject || !editor?.changeImageWidth}
 			/>
 		</div>
 
@@ -35,25 +59,12 @@
 			<input
 				id="image-height"
 				type="number"
+				min="1"
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.height ?? 100}
-				oninput={(e) => editor?.changeImageHeight?.(Number((e.target as HTMLInputElement).value))}
+				oninput={(e) => handleImageHeightChange(Number((e.target as HTMLInputElement).value))}
+				disabled={!selectedObject || !editor?.changeImageHeight}
 			/>
 		</div>
-	</div>
-
-	<div>
-		<label for="image-fit" class="text-xs text-gray-600">Object Fit</label>
-		<select
-			id="image-fit"
-			value={selectedObject?.objectFit ?? 'cover'}
-			onchange={(e) => editor?.changeImageFit?.((e.target as HTMLSelectElement).value)}
-			class="w-full rounded border border-gray-300 p-2 text-sm"
-		>
-			<option value="cover">Cover</option>
-			<option value="contain">Contain</option>
-			<option value="fill">Fill</option>
-			<option value="scale-down">Scale Down</option>
-		</select>
 	</div>
 </div>

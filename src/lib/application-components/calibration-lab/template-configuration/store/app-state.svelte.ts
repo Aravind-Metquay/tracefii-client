@@ -8,11 +8,18 @@ export class AppState {
 		selectedComponentType: null as ComponentType | null,
 		unit: 'cm' as UnitType,
 		dimensions: { width: '', height: '' } as Dimensions,
-		backgroundColor: { r: 255, g: 255, b: 255 } as Color
+		backgroundColor: { r: 255, g: 255, b: 255 } as Color,
+		defaultState: '{}' as string
 	});
 
 	// Editor instance
-	editor = createEditor();
+	editor = createEditor({
+		defaultState: this.uiState.defaultState,
+		defaultWidth: 800,
+		defaultHeight: 600,
+		saveCallback: () => console.log('Saved'),
+		clearSelectionCallback: () => console.log('Selection cleared')
+	});
 
 	// Derived state
 	canAddComponents = $derived(['Label', 'Certificate'].includes(this.uiState.selectedType));
@@ -43,6 +50,27 @@ export class AppState {
 	setBackgroundColor = (color: Color): void => {
 		this.uiState.backgroundColor = color;
 	};
-}
 
+	setDefaultState = (state: string): void => {
+		this.uiState.defaultState = state;
+	};
+
+	loadState = (json: string): void => {
+		const canvas = this.editor.canvas;
+		const autoZoom = this.editor.autoZoom;
+		const canvasHistory = this.editor.history.canvasHistory;
+		const setHistoryIndex = this.editor.history.setHistoryIndex;
+
+		if (!canvas) return;
+		const data = JSON.parse(json);
+		canvas.loadFromJSON(data, () => {
+			canvasHistory.update((history) => {
+				const currentState = JSON.stringify(canvas.toJSON());
+				return [currentState];
+			});
+			setHistoryIndex(0);
+			autoZoom();
+		});
+	};
+}
 export const appState = new AppState();

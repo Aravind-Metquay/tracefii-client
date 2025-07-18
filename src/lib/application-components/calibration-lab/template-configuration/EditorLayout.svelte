@@ -3,11 +3,10 @@
 	import ContainerPanel from './components/ContainerPanel.svelte';
 	import ComponentToolbar from './components/ComponentToolbar.svelte';
 	import CanvasEditor from './components/CanvasEditor.svelte';
-	import ConfigPanel from './components/configPanel/defaultPanel.svelte';
-	import type { AppState } from './store/app-state.svelte';
+	import ConfigPanel from './components/DefaultConfigPanel.svelte';
 	import type { ComponentType } from './lib/types';
 
-	let { appState } = $props<{ appState: AppState }>();
+	let { appState } = $props();
 
 	setContext('appState', appState);
 
@@ -43,15 +42,14 @@
 		{/if}
 
 		<!-- Canvas Area -->
-		<div class="flex-1 overflow-hidden p-6">
-			<div class="h-full w-full rounded-lg bg-white shadow-lg border border-gray-200">
-				<CanvasEditor editor={appState.editor} />
-			</div>
+		<!-- Canvas -->
+		<div class="flex-1">
+			<CanvasEditor editor={appState.editor} />
 		</div>
 	</div>
 
 	<!-- Right Panel -->
-	<div class="w-80 shrink-0 border-l border-gray-200 bg-white">
+	<div class="w-80 shrink-0 border-l border-gray-200 ">
 		<ConfigPanel
 			editor={appState.editor}
 			selectedComponentType={appState.uiState.selectedComponentType}

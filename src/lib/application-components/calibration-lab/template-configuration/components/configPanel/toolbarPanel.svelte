@@ -4,25 +4,26 @@
 	let { editor } = $props();
 
 	function bringToFront() {
-		editor.bringForward();
+		if (editor?.bringForward) editor.bringForward();
 	}
 
 	function sendToBack() {
-		editor.sendBackwards();
+		if (editor?.sendBackwards) editor.sendBackwards();
 	}
 
 	function duplicate() {
-		editor.onCopy();
-		editor.onPaste();
+		if (editor?.onCopy && editor?.onPaste) {
+			editor.onCopy();
+			editor.onPaste();
+		}
 	}
 
 	function deleteElement() {
-		editor.delete();
+		if (editor?.delete) editor.delete();
 	}
 </script>
 
 <div class="space-y-4 pt-0">
-	<!-- Layer Actions -->
 	<div>
 		<h3 class="mb-3 text-xs font-semibold tracking-wide text-gray-500 uppercase">Layer Actions</h3>
 		<div class="flex gap-2">
@@ -46,7 +47,6 @@
 		</div>
 	</div>
 
-	<!-- Edit Actions -->
 	<div>
 		<h3 class="mb-3 text-xs font-semibold tracking-wide text-gray-500 uppercase">Edit Actions</h3>
 		<div class="flex gap-2">

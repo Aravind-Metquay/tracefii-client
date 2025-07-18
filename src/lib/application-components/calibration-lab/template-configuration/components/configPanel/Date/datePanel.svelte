@@ -1,7 +1,36 @@
 <script lang="ts">
-	let { editor } = $props();
+	import type { FabricObject } from 'fabric';
+	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
 
-	let selectedObject = $derived(editor?.selectedObjects?.[0]);
+	let { editor } = $props<{ editor: Editor }>();
+	let selectedObject = $derived<ExtendedFabricObject | undefined>(
+		editor?.selectedObjects?.[0] as ExtendedFabricObject
+	);
+
+	function handleDateFormatChange(value: string) {
+		if (editor?.changeDateFormat && selectedObject) {
+			editor.changeDateFormat(value);
+		}
+	}
+
+	function handleDateValueChange(value: string) {
+		if (editor?.updateDateValue && selectedObject) {
+			editor.updateDateValue(value);
+		}
+	}
+
+	function handleFontSizeChange(value: number) {
+		if (isNaN(value) || value <= 0) return;
+		if (editor?.changeFontSize && selectedObject) {
+			editor.changeFontSize(value);
+		}
+	}
+
+	function handleFontFamilyChange(value: string) {
+		if (editor?.changeFontFamily && selectedObject) {
+			editor.changeFontFamily(value);
+		}
+	}
 </script>
 
 <div class="space-y-4">
@@ -11,9 +40,10 @@
 		<label for="date-format" class="text-xs text-gray-600">Date Format</label>
 		<select
 			id="date-format"
-			value={selectedObject?.dateFormat ?? 'MM/DD/YYYY'}
-			onchange={(e) => editor?.changeDateFormat?.((e.target as HTMLSelectElement).value)}
+			value={selectedObject?.customDateFormat ?? 'MM/DD/YYYY'}
+			onchange={(e) => handleDateFormatChange((e.target as HTMLSelectElement).value)}
 			class="w-full rounded border border-gray-300 p-2 text-sm"
+			disabled={!selectedObject || !editor?.changeDateFormat}
 		>
 			<option value="MM/DD/YYYY">MM/DD/YYYY</option>
 			<option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -30,8 +60,11 @@
 			id="date-value"
 			type="date"
 			class="w-full rounded border border-gray-300 p-2 text-sm"
-			value={selectedObject?.dateValue ?? new Date().toISOString().split('T')[0]}
-			onchange={(e) => editor?.changeDateValue?.((e.target as HTMLInputElement).value)}
+			value={selectedObject?.customDateValue
+				? new Date(selectedObject.customDateValue).toISOString().split('T')[0]
+				: new Date().toISOString().split('T')[0]}
+			onchange={(e) => handleDateValueChange((e.target as HTMLInputElement).value)}
+			disabled={!selectedObject || !editor?.updateDateValue}
 		/>
 	</div>
 
@@ -41,9 +74,11 @@
 			<input
 				id="date-font-size"
 				type="number"
+				min="1"
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.fontSize ?? 16}
-				oninput={(e) => editor?.changeDateFontSize?.(Number((e.target as HTMLInputElement).value))}
+				oninput={(e) => handleFontSizeChange(Number((e.target as HTMLInputElement).value))}
+				disabled={!selectedObject || !editor?.changeFontSize}
 			/>
 		</div>
 
@@ -52,8 +87,9 @@
 			<select
 				id="date-font-family"
 				value={selectedObject?.fontFamily ?? 'Arial'}
-				onchange={(e) => editor?.changeDateFontFamily?.((e.target as HTMLSelectElement).value)}
+				onchange={(e) => handleFontFamilyChange((e.target as HTMLSelectElement).value)}
 				class="w-full rounded border border-gray-300 p-2 text-sm"
+				disabled={!selectedObject || !editor?.changeFontFamily}
 			>
 				<option>Arial</option>
 				<option>Helvetica</option>
@@ -62,16 +98,5 @@
 				<option>Verdana</option>
 			</select>
 		</div>
-	</div>
-
-	<div>
-		<label class="flex items-center gap-2 text-xs text-gray-600">
-			<input
-				type="checkbox"
-				checked={selectedObject?.useCurrentDate ?? false}
-				onchange={(e) => editor?.changeDateUseCurrent?.((e.target as HTMLInputElement).checked)}
-			/>
-			Use Current Date
-		</label>
 	</div>
 </div>
