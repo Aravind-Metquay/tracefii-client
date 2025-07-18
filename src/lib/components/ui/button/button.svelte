@@ -5,7 +5,7 @@
 	
 
 	export const buttonVariants = tv({
-		base: "flex items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer",
+		base: "items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer",
 		variants: {
 			variant: {
 				default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
