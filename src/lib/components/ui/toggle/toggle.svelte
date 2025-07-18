@@ -13,7 +13,8 @@
   bind:checked
   data-slot="switch"
   class={cn(
-    "data-[state=checked]:bg-primary data-[state=unchecked]:bg-[var(--ring-secondary)]   transition-all focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+    "w-[2.25rem] h-[1.25rem] p-[0.125rem]  rounded-[0.75rem] data-[state=checked]:bg-primary data-[state=unchecked]:bg-[var(--ring-secondary)] transition-all focus:ring-[0.1875rem] focus:ring-[var(--ring-checkbox)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
+    "hover:data-[state=unchecked]:bg-[var(--checkbox-disabled)] ",
     className
   )}
   {...restProps}
@@ -21,7 +22,7 @@
   <SwitchPrimitive.Thumb
     data-slot="switch-thumb"
     class={cn(
-      "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+      "bg-background dark:data-[state=unchecked]:bg-[var(--background)] pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
     )}
   />
 </SwitchPrimitive.Root>
