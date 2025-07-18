@@ -1,9 +1,23 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { Button } from '@/components/ui/button';
-	import FabricCanvas from './FabricCanvas.svelte';
 	import type { Editor } from '../lib/types';
 
 	let { editor } = $props<{ editor: Editor }>();
+	let canvasElement = $state<HTMLCanvasElement>();
+	let containerElement = $state<HTMLDivElement>();
+
+	onMount(() => {
+		if (canvasElement && containerElement && editor) {
+			editor.initializeCanvas(canvasElement, containerElement);
+		}
+
+		return () => {
+			if (editor?.canvas) {
+				editor.canvas.dispose();
+			}
+		};
+	});
 
 	function handleZoomIn() {
 		if (editor) editor.zoomIn();
@@ -40,7 +54,9 @@
 <div class="flex h-full flex-col">
 	<!-- Main canvas content -->
 	<div class="w-full flex-1">
-		<FabricCanvas {editor} />
+		<div bind:this={containerElement} class="relative h-full w-full overflow-hidden">
+			<canvas bind:this={canvasElement} class="block"></canvas>
+		</div>
 	</div>
 
 	<!-- Footer -->

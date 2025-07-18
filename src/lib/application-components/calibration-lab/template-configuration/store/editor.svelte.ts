@@ -123,11 +123,16 @@ export function createEditor(options: EditorOptions = {}) {
 	);
 
 	// Global variable values for dynamic content
-	if (typeof window !== 'undefined') {
-		window.variableValues = window.variableValues || {};
+	function initializeVariableValues() {
+		if (typeof window !== 'undefined' && !window.variableValues) {
+			window.variableValues = {};
+		}
 	}
 
+	// Canvas operations
+
 	function initializeCanvas(canvasElement: HTMLCanvasElement, containerElement: HTMLElement) {
+		initializeVariableValues();
 		const canvasWidth = containerElement.offsetWidth;
 		const canvasHeight = containerElement.offsetHeight;
 
@@ -248,47 +253,289 @@ export function createEditor(options: EditorOptions = {}) {
 		zoom = scale;
 	}
 
-	// Text operations
+	// Fixed version of your editor methods
+
 	function addText(text: string = 'Text', textOptions: any = {}) {
-		if (!canvas) return;
+		if (!canvas) {
+			console.error('Canvas not initialized');
+			return;
+		}
 
-		const object = new fabric.Textbox(text, {
-			...TEXT_OPTIONS,
-			fill: fillColor,
-			fontFamily: fontFamily,
-			fontSize: FONT_SIZE,
-			fontWeight: FONT_WEIGHT,
-			variableValues: (typeof window !== 'undefined' && window.variableValues) || {},
-			...textOptions
-		});
+		try {
+			const object = new fabric.Textbox(text, {
+				...TEXT_OPTIONS,
+				fill: fillColor,
+				fontFamily: fontFamily,
+				fontSize: FONT_SIZE,
+				fontWeight: FONT_WEIGHT,
+				left: 100, // Ensure positioning is set
+				top: 100,
+				width: 200,
+				...textOptions
+			});
 
-		const command = new AddElementCommand(canvas, object);
-		history.execute(command);
-		addToCanvas(object);
-		syncCanvasState();
+			// Add to canvas first, then execute command
+			canvas.add(object);
+			canvas.setActiveObject(object);
+			canvas.renderAll();
+
+			const command = new AddElementCommand(canvas, object);
+			history.execute(command);
+			syncCanvasState();
+
+			console.log('Text added successfully');
+		} catch (error) {
+			console.error('Error adding text:', error);
+		}
 	}
 
 	function addDate() {
-		if (!canvas) return;
+		if (!canvas) {
+			console.error('Canvas not initialized');
+			return;
+		}
 
-		const now = new Date();
-		const format = 'MM/DD/YYYY';
-		const dateText = new fabric.Textbox(moment(now).format(format), {
-			...TEXT_OPTIONS,
-			fill: fillColor,
-			fontFamily: fontFamily,
-			fontSize: FONT_SIZE,
-			fontWeight: FONT_WEIGHT,
-			customType: 'date',
-			customDateValue: now.toISOString(),
-			customDateFormat: format,
-			variableValues: (typeof window !== 'undefined' && window.variableValues) || {}
-		});
+		try {
+			const now = new Date();
+			const format = 'MM/DD/YYYY';
+			const dateText = new fabric.Textbox(moment(now).format(format), {
+				...TEXT_OPTIONS,
+				fill: fillColor,
+				fontFamily: fontFamily,
+				fontSize: FONT_SIZE,
+				fontWeight: FONT_WEIGHT,
+				left: 100,
+				top: 100,
+				width: 200,
+				customType: 'date',
+				customDateValue: now.toISOString(),
+				customDateFormat: format,
+				variableValues: (typeof window !== 'undefined' && window.variableValues) || {}
+			});
 
-		const command = new AddElementCommand(canvas, dateText);
-		history.execute(command);
-		addToCanvas(dateText);
-		syncCanvasState();
+			// Add to canvas first, then execute command
+			canvas.add(dateText);
+			canvas.setActiveObject(dateText);
+			canvas.renderAll();
+
+			const command = new AddElementCommand(canvas, dateText);
+			history.execute(command);
+			syncCanvasState();
+
+			console.log('Date added successfully');
+		} catch (error) {
+			console.error('Error adding date:', error);
+		}
+	}
+
+	// QR Code operations - Fixed version
+	async function addQRCode(value: string | null = null) {
+		if (!canvas) {
+			console.error('Canvas not initialized');
+			return;
+		}
+
+		try {
+			const template = '{{default_qrcode}}';
+			const dynamicValue = value || `https://metquay.com/generated/${Date.now()}`;
+			const finalValue = template.replace('{{default_qrcode}}', dynamicValue);
+
+			const dataUrl = await QRCode.toDataURL(finalValue, {
+				errorCorrectionLevel: 'high',
+				width: 100
+			});
+
+			// Check if fabric.FabricImage exists, fallback to fabric.Image
+			const ImageClass = fabric.FabricImage || fabric.Image;
+			const img = await ImageClass.fromURL(dataUrl, {
+				crossOrigin: 'anonymous'
+			});
+
+			img.set({
+				left: 100,
+				top: 100,
+				data: {
+					type: 'QR Code',
+					template,
+					errorCorrectionLevel: 'high'
+				}
+			});
+
+			// Add to canvas first, then execute command
+			canvas.add(img);
+			canvas.setActiveObject(img);
+			canvas.renderAll();
+
+			const command = new AddElementCommand(canvas, img);
+			history.execute(command);
+			syncCanvasState();
+
+			console.log('QR Code added successfully');
+		} catch (error) {
+			console.error('Error adding QR code:', error);
+		}
+	}
+
+	// Barcode operations - Fixed version
+	async function addBarcode(value: string | null = null) {
+		if (!canvas) {
+			console.error('Canvas not initialized');
+			return;
+		}
+
+		try {
+			const template = 'BAR{{date_code}}';
+			const today = new Date();
+			const dynamicValue =
+				value ||
+				`${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
+			const finalValue = template.replace('{{date_code}}', dynamicValue);
+
+			const canvasElement = document.createElement('canvas');
+
+			// Check if JsBarcode is available
+			if (typeof JsBarcode === 'undefined') {
+				console.error('JsBarcode is not available');
+				return;
+			}
+
+			JsBarcode(canvasElement, finalValue, {
+				format: 'CODE128',
+				width: 2,
+				height: 50,
+				displayValue: false
+			});
+
+			const dataUrl = canvasElement.toDataURL();
+
+			// Check if fabric.FabricImage exists, fallback to fabric.Image
+			const ImageClass = fabric.FabricImage || fabric.Image;
+			const img = await ImageClass.fromURL(dataUrl, {
+				crossOrigin: 'anonymous'
+			});
+
+			img.set({
+				left: 100,
+				top: 100,
+				data: {
+					type: 'Barcode',
+					template,
+					format: 'CODE128'
+				}
+			});
+
+			// Add to canvas first, then execute command
+			canvas.add(img);
+			canvas.setActiveObject(img);
+			canvas.renderAll();
+
+			const command = new AddElementCommand(canvas, img);
+			history.execute(command);
+			syncCanvasState();
+
+			console.log('Barcode added successfully');
+		} catch (error) {
+			console.error('Error adding barcode:', error);
+		}
+	}
+
+	// Image operations - Fixed version
+	async function addImage(fileOrUrl: File | string) {
+		if (!canvas) {
+			console.error('Canvas not initialized');
+			return;
+		}
+
+		const handleImage = async (url: string) => {
+			try {
+				// Check if fabric.FabricImage exists, fallback to fabric.Image
+				const ImageClass = fabric.FabricImage || fabric.Image;
+				const image = await ImageClass.fromURL(url, {
+					crossOrigin: 'anonymous'
+				});
+
+				// Set initial positioning
+				image.set({
+					left: 100,
+					top: 100
+				});
+
+				const workspace = getWorkspace();
+				if (workspace) {
+					// Scale image to fit workspace
+					const maxWidth = workspace.width * 0.8;
+					const maxHeight = workspace.height * 0.8;
+
+					if (image.width > maxWidth) {
+						image.scaleToWidth(maxWidth);
+					}
+					if (image.height > maxHeight) {
+						image.scaleToHeight(maxHeight);
+					}
+				}
+
+				// Add to canvas first, then execute command
+				canvas?.add(image);
+				canvas?.setActiveObject(image);
+				canvas?.renderAll();
+
+				const command = new AddElementCommand(canvas, image);
+				history.execute(command);
+				syncCanvasState();
+
+				console.log('Image added successfully');
+			} catch (error) {
+				console.error('Error adding image:', error);
+
+				// Fallback: try without crossOrigin
+				try {
+					const ImageClass = fabric.FabricImage || fabric.Image;
+					const image = await ImageClass.fromURL(url);
+
+					image.set({
+						left: 100,
+						top: 100
+					});
+
+					canvas?.add(image);
+					canvas?.setActiveObject(image);
+					canvas?.renderAll();
+
+					const command = new AddElementCommand(canvas, image);
+					history.execute(command);
+					syncCanvasState();
+
+					console.log('Image added successfully (fallback)');
+				} catch (fallbackError) {
+					console.error('Fallback image loading also failed:', fallbackError);
+				}
+			}
+		};
+
+		if (typeof fileOrUrl === 'string') {
+			await handleImage(fileOrUrl);
+		} else {
+			const reader = new FileReader();
+			reader.onload = async () => {
+				if (typeof reader.result === 'string') {
+					await handleImage(reader.result);
+				}
+			};
+			reader.onerror = () => {
+				console.error('Error reading file');
+			};
+			reader.readAsDataURL(fileOrUrl);
+		}
+	}
+
+	// Helper function to check if addToCanvas is needed
+	function safeAddToCanvas(object: fabric.Object) {
+		if (typeof addToCanvas === 'function') {
+			addToCanvas(object);
+		} else {
+			// If addToCanvas doesn't exist, the object should already be added to canvas
+			console.log('addToCanvas function not available, object added directly to canvas');
+		}
 	}
 
 	function changeDateFormat(format: string) {
@@ -369,126 +616,6 @@ export function createEditor(options: EditorOptions = {}) {
 		) {
 			activeObject.set({ text });
 			canvas.requestRenderAll();
-		}
-	}
-
-	// QR Code operations
-	async function addQRCode(value: string | null = null) {
-		if (!canvas) return;
-
-		try {
-			const template = '{{default_qrcode}}';
-			const dynamicValue = value || `https://metquay.com/generated/${Date.now()}`;
-			const finalValue = template.replace('{{default_qrcode}}', dynamicValue);
-
-			const dataUrl = await QRCode.toDataURL(finalValue, {
-				errorCorrectionLevel: 'high',
-				width: 100
-			});
-
-			const img = await fabric.FabricImage.fromURL(dataUrl, {
-				crossOrigin: 'anonymous'
-			});
-
-			img.set({
-				left: 100,
-				top: 100,
-				data: {
-					type: 'QR Code',
-					template,
-					errorCorrectionLevel: 'high'
-				}
-			});
-
-			const command = new AddElementCommand(canvas, img);
-			history.execute(command);
-			addToCanvas(img);
-			syncCanvasState();
-		} catch (error) {
-			console.error('Error adding QR code:', error);
-		}
-	}
-
-	// Barcode operations
-	async function addBarcode(value: string | null = null) {
-		if (!canvas) return;
-
-		try {
-			const template = 'BAR{{date_code}}';
-			const today = new Date();
-			const dynamicValue =
-				value || `BAR${today.getFullYear()}${today.getMonth() + 1}${today.getDate()}`;
-			const finalValue = template.replace('{{date_code}}', dynamicValue);
-
-			const canvasElement = document.createElement('canvas');
-			JsBarcode(canvasElement, finalValue, {
-				format: 'CODE128',
-				width: 2,
-				height: 50,
-				displayValue: false
-			});
-
-			const dataUrl = canvasElement.toDataURL();
-
-			const img = await fabric.FabricImage.fromURL(dataUrl, {
-				crossOrigin: 'anonymous'
-			});
-
-			img.set({
-				left: 100,
-				top: 100,
-				data: {
-					type: 'Barcode',
-					template,
-					format: 'CODE128'
-				}
-			});
-
-			const command = new AddElementCommand(canvas, img);
-			history.execute(command);
-			addToCanvas(img);
-			syncCanvasState();
-		} catch (error) {
-			console.error('Error adding barcode:', error);
-		}
-	}
-
-	// Image operations
-	async function addImage(fileOrUrl: File | string) {
-		if (!canvas) return;
-
-		const handleImage = async (url: string) => {
-			try {
-				const image = await fabric.FabricImage.fromURL(url, {
-					crossOrigin: 'anonymous'
-				});
-
-				const workspace = getWorkspace();
-				if (workspace) {
-					image.scaleToWidth(workspace.width * 0.8);
-					const aspectRatio = image.height / image.width;
-					image.set({ height: image.width * aspectRatio });
-				}
-
-				const command = new AddElementCommand(canvas, image);
-				history.execute(command);
-				addToCanvas(image);
-				syncCanvasState();
-			} catch (error) {
-				console.error('Error adding image:', error);
-			}
-		};
-
-		if (typeof fileOrUrl === 'string') {
-			await handleImage(fileOrUrl);
-		} else {
-			const reader = new FileReader();
-			reader.onload = async () => {
-				if (typeof reader.result === 'string') {
-					await handleImage(reader.result);
-				}
-			};
-			reader.readAsDataURL(fileOrUrl);
 		}
 	}
 
@@ -592,15 +719,18 @@ export function createEditor(options: EditorOptions = {}) {
 	}
 
 	// Canvas size operations
-	function changeSize(value: { width: number; height: number }) {
+	async function changeSize(value: { width: number; height: number }) {
 		if (!canvas) return;
 		const workspace = getWorkspace();
 		if (workspace) {
 			workspace.set(value);
-			workspace.clone().then((cloned: any) => {
-				canvas!.clipPath = cloned;
-				canvas!.renderAll();
-			});
+			try {
+				const cloned = await workspace.clone();
+				canvas.clipPath = cloned;
+				canvas.renderAll();
+			} catch (error) {
+				console.error('Error cloning workspace:', error);
+			}
 			autoZoom();
 			history.save();
 		}
@@ -695,17 +825,18 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.renderAll();
 	}
 
-	// Layer operations
 	function bringForward() {
 		if (!canvas) return;
 		const canvasRef = canvas;
 		canvasRef.getActiveObjects().forEach((object) => {
-			canvasRef.bringObjectForward?.(object);
+			if (canvasRef.bringObjectForward) {
+				canvasRef.bringObjectForward(object);
+			}
 		});
 		canvasRef.renderAll();
 		const workspace = getWorkspace();
-		if (workspace) {
-			canvasRef.sendObjectToBack?.(workspace);
+		if (workspace && canvasRef.sendObjectToBack) {
+			canvasRef.sendObjectToBack(workspace);
 		}
 	}
 
@@ -713,12 +844,14 @@ export function createEditor(options: EditorOptions = {}) {
 		if (!canvas) return;
 		const canvasRef = canvas;
 		canvasRef.getActiveObjects().forEach((object) => {
-			canvasRef.sendObjectBackwards?.(object);
+			if (canvasRef.sendObjectBackwards) {
+				canvasRef.sendObjectBackwards(object);
+			}
 		});
 		canvasRef.renderAll();
 		const workspace = getWorkspace();
-		if (workspace) {
-			canvasRef.sendObjectToBack?.(workspace);
+		if (workspace && canvasRef.sendObjectToBack) {
+			canvasRef.sendObjectToBack(workspace);
 		}
 	}
 
@@ -877,6 +1010,15 @@ export function createEditor(options: EditorOptions = {}) {
 		return 1.0;
 	}
 
+	function changeFillColor(value: string) {
+		if (!canvas) return;
+		fillColor = value;
+		canvas.getActiveObjects().forEach((object) => {
+			object.set({ fill: value });
+		});
+		canvas.renderAll();
+	}
+
 	return {
 		canvas,
 		container,
@@ -938,6 +1080,8 @@ export function createEditor(options: EditorOptions = {}) {
 		getActiveFontWeight,
 		getActiveFontFamily,
 		getActiveFillColor,
+		fillColor,
+		changeFillColor,
 		getActiveScaleX,
 		getActiveScaleY,
 		history,

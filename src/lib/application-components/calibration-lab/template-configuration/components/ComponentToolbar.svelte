@@ -24,8 +24,10 @@
 				editor.addDate();
 				break;
 			case 'Image':
-				// In real app, open file picker
-				editor.addImage('https://via.placeholder.com/150');
+				// Use the Amazon image URL instead of placeholder
+				editor.addImage(
+					'https://images-eu.ssl-images-amazon.com/images/G/31/sthaneka/Alphonsa/desktop/Unrec/low-res_2._CB789029460_.jpg'
+				);
 				break;
 			case 'QR Code':
 				editor.addQRCode();
