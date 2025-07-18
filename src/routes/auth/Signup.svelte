@@ -2,10 +2,13 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import { SquareCheck, Eye } from '@lucide/svelte';
+	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let passwordMatch = $state(false);
-    let { stage = $bindable() } = $props();
+	import { useAuth } from '@/svelte-auth0';
+	//const { signup } = useAuth();
+	let { stage = $bindable() } = $props();
 
 	const PasswordRules = [
 		{
@@ -36,29 +39,34 @@
 	});
 </script>
 
-<div class="flex h-full w-full items-center justify-center ">
+<div class="flex h-full w-full items-center justify-center bg-gray-50">
 	<div class="flex h-full w-full items-center justify-center p-5 lg:w-1/2">
 		<div class="gap-15 flex h-full w-[400px] flex-col justify-between">
-			<div class="mt-4 flex h-9 w-full justify-center ">
+			<div class="mt-4 flex h-9 w-full justify-center">
 				<img
-					src="https://127.0.0.1:5173/src/assets/Metquay%20logo%20Black.png"
+					src="/Metquay logo Black.png"
 					alt="Logo"
 					class="object-contain"
 				/>
 			</div>
 			<div class="flex flex-col gap-4">
 				<h1 class="text-center text-4xl font-semibold">Create an account</h1>
-				<p class="text-center text-gray-600 text-xs">
+				<p class="text-center text-xs text-gray-600">
 					Already have an account?{' '}
-					<span class="cursor-pointer italic text-blue-500 underline" onclick={() => stage = "Login"} > Log in </span>
+					<span
+						class="cursor-pointer italic text-blue-500 underline"
+						onclick={() => (stage = 'Login')}
+					>
+						Log in
+					</span>
 				</p>
 				<div class="flex flex-col gap-4">
-					<Input class="text-xs" placeholder="Enter your Email Id" />
+					<Input class="text-xs" bind:value={email} placeholder="Enter your email address" />
 					<div>
-						<Input class="text-xs" bind:value={password} placeholder="Enter your Password" />
+						<Input class="text-xs" bind:value={password} placeholder="Enter your password" />
 						<ul class="pt-1 text-xs text-gray-600">
 							{#each PasswordRules as { rule, validate }, index}
-								<li class="flex items-center  text-xs text-gray-500">
+								<li class="flex items-center text-xs text-gray-500">
 									<SquareCheck
 										size="14"
 										strokeWidth="2"
@@ -70,7 +78,7 @@
 						</ul>
 					</div>
 					<div class="flex flex-col">
-						<Input class="text-xs" bind:value={confirmPassword} placeholder="Confirm Password" />
+						<Input class="text-xs" bind:value={confirmPassword} placeholder="Confirm password" />
 						<span
 							class="text-xs text-red-500 transition-opacity duration-200"
 							class:opacity-100={!passwordMatch &&
@@ -84,10 +92,15 @@
 						</span>
 					</div>
 
-					<Button class="text-md  w-full p-6">Sign Up</Button>
+					<!-- <Button class="text-md w-full p-6" onclick={() => signup({ email, password })}
+						>Sign Up</Button
+					> -->
+					<Button class="text-md w-full p-6" 
+						>Sign Up</Button
+					>
 				</div>
 			</div>
-			<p class="text-center text-xs text-gray-500 pb-10">
+			<p class="pb-10 text-center text-xs text-gray-500">
 				By creating an account, you agree to our{' '}
 				<a class="underline">Terms and Conditions</a>
 			</p>
