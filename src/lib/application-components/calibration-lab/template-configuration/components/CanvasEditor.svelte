@@ -32,12 +32,15 @@
 	function handleExportJSON() {
 		if (editor) editor.saveJson();
 	}
+
+	// Reactive zoom percentage
+	let zoomPercentage = $derived(Math.round((editor?.zoom || 1) * 100));
 </script>
 
-<div class=" flex h-full flex-col">
+<div class="flex h-full flex-col">
 	<!-- Main canvas content -->
-	<div class="flex-1">
-		<!-- <FabricCanvas {editor} /> -->
+	<div class="w-full flex-1">
+		<FabricCanvas {editor} />
 	</div>
 
 	<!-- Footer -->
@@ -45,7 +48,7 @@
 		<!-- Zoom Controls -->
 		<div class="zoom-controls flex items-center gap-2">
 			<Button onclick={handleZoomOut} size="sm">-</Button>
-			<span class="w-12 text-center text-sm">{Math.round((editor?.zoom || 1) * 100)}%</span>
+			<span class="w-12 text-center text-sm">{zoomPercentage}%</span>
 			<Button onclick={handleZoomIn} size="sm">+</Button>
 			<Button onclick={handleZoomReset} size="sm" variant="outline">Reset</Button>
 		</div>

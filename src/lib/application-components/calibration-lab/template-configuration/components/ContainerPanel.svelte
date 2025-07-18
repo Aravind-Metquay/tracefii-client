@@ -2,30 +2,40 @@
 	import { Button } from '@/components/ui/button';
 	import ColorPicker from 'svelte-awesome-color-picker';
 	import { Input } from '@/components/ui/input';
+	import type { TemplateType, UnitType, Editor, Color, Dimensions } from '../lib/types';
+
+	interface Props {
+		selectedType?: TemplateType;
+		onTypeChange?: (type: TemplateType) => void;
+		dimensions?: Dimensions;
+		unit?: UnitType;
+		backgroundColor?: Color;
+		editor: Editor;
+	}
 
 	let {
-		selectedType = $bindable(),
+		selectedType = $bindable(''),
 		onTypeChange,
 		dimensions = $bindable({ width: '', height: '' }),
 		unit = $bindable('cm'),
 		backgroundColor = $bindable({ r: 255, g: 255, b: 255 }),
 		editor
-	} = $props();
+	}: Props = $props();
 
-	function handleTypeChange(type: string) {
+	function handleTypeChange(type: TemplateType) {
 		selectedType = type;
 		onTypeChange?.(type);
 	}
 
-	function handleUnitChange(newUnit: string) {
+	function handleUnitChange(newUnit: UnitType) {
 		unit = newUnit;
 	}
 
 	function handleDimensionChange() {
-		if (dimensions.width && dimensions.height && editor.canvas) {
+		if (dimensions.width && dimensions.height && editor?.canvas) {
 			const width = parseFloat(dimensions.width);
 			const height = parseFloat(dimensions.height);
-			
+
 			if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
 				editor.changeSize({ width, height });
 			}
@@ -33,7 +43,7 @@
 	}
 
 	function handleColorChange(color: { hex: string | null }) {
-		if (color.hex && editor.canvas) {
+		if (color.hex && editor?.canvas) {
 			const workspace = editor.getWorkspace();
 			if (workspace) {
 				workspace.set('fill', color.hex);
@@ -55,14 +65,25 @@
 				}
 			: { r: 255, g: 255, b: 255 };
 	}
+
 	function rgbToHex({ r, g, b }: { r: number; g: number; b: number }): string {
-		return [r, g, b]
-			.map((x) => {
-				const hex = x.toString(16);
-				return hex.length === 1 ? '0' + hex : hex;
-			})
-			.join('');
+		return (
+			'#' +
+			[r, g, b]
+				.map((x) => {
+					const hex = x.toString(16);
+					return hex.length === 1 ? '0' + hex : hex;
+				})
+				.join('')
+		);
 	}
+
+	// Watch for dimension changes and apply them
+	$effect(() => {
+		if (dimensions.width || dimensions.height) {
+			handleDimensionChange();
+		}
+	});
 </script>
 
 <div class="container-panel h-full w-80 overflow-y-auto border-r bg-white">
@@ -79,7 +100,7 @@
 				</label>
 				<select
 					bind:value={selectedType}
-					onchange={(e) => handleTypeChange((e.target as HTMLSelectElement).value)}
+					onchange={(e) => handleTypeChange((e.target as HTMLSelectElement).value as TemplateType)}
 					class="w-full rounded border border-gray-300 p-2 text-sm"
 				>
 					<option value="">Select type...</option>
@@ -95,7 +116,7 @@
 				</label>
 				<select
 					bind:value={unit}
-					onchange={(e) => handleUnitChange((e.target as HTMLSelectElement).value)}
+					onchange={(e) => handleUnitChange((e.target as HTMLSelectElement).value as UnitType)}
 					class="w-full rounded border border-gray-300 p-2 text-sm"
 				>
 					<option value="mm">mm</option>
@@ -117,7 +138,7 @@
 			<div class="space-y-1">
 				<label for="background-color" class="block text-xs text-gray-600">Background Color</label>
 				<div class="flex w-full items-center gap-2">
-					<ColorPicker hex={`#${rgbToHex(backgroundColor as { r: number; g: number; b: number })}`} onInput={handleColorChange} />
+					<ColorPicker hex={rgbToHex(backgroundColor)} onInput={handleColorChange} />
 				</div>
 			</div>
 		</div>

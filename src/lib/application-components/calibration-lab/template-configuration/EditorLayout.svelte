@@ -4,13 +4,14 @@
 	import ComponentToolbar from './components/ComponentToolbar.svelte';
 	import CanvasEditor from './components/CanvasEditor.svelte';
 	import ConfigPanel from './components/configPanel/defaultPanel.svelte';
-	import type { AppState } from './lib/types';
+	import type { AppState } from './store/app-state.svelte';
+	import type { ComponentType } from './lib/types';
 
 	let { appState } = $props<{ appState: AppState }>();
 
 	setContext('appState', appState);
 
-	function handleComponentSelect(componentType: string) {
+	function handleComponentSelect(componentType: ComponentType) {
 		appState.setSelectedComponentType(componentType);
 	}
 </script>

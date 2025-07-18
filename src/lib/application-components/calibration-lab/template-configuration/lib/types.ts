@@ -42,6 +42,7 @@ export interface AppState {
 	setSelectedComponentType: (type: string) => void;
 	setSelectedType: (type: string) => void;
 }
+
 export interface Editor {
 	canvas: fabric.Canvas | null;
 	container: HTMLElement | null;
@@ -51,9 +52,6 @@ export interface Editor {
 	viewport: { x: number; y: number };
 	fontFamily: string;
 	fillColor: string;
-	strokeColor: string;
-	strokeWidth: number;
-	strokeDashArray: number[];
 	hasSelection: boolean;
 	canvasSize: { width: number; height: number };
 	initializeCanvas: (canvasElement: HTMLCanvasElement, containerElement: HTMLElement) => void;
@@ -77,20 +75,12 @@ export interface Editor {
 	addRectangle: () => void;
 	addSoftRectangle: () => void;
 	addTriangle: () => void;
-	addInverseTriangle: () => void;
-	addDiamond: () => void;
 	deleteSelected: () => void;
 	setZoom: (newZoom: number) => void;
 	zoomIn: () => void;
 	zoomOut: () => void;
 	changeSize: (value: { width: number; height: number }) => void;
 	changeBackground: (value: string) => void;
-	enableDrawingMode: () => void;
-	disableDrawingMode: () => void;
-	changeFillColor: (value: string) => void;
-	changeStrokeColor: (value: string) => void;
-	changeStrokeWidth: (value: number) => void;
-	changeStrokeDashArray: (value: number[]) => void;
 	changeFontFamily: (value: string) => void;
 	changeFontSize: (value: number) => void;
 	changeFontWeight: (value: string | number) => void;
@@ -101,10 +91,8 @@ export interface Editor {
 	changeOpacity: (value: number) => void;
 	bringForward: () => void;
 	sendBackwards: () => void;
-	changeImageFilter: (value: string) => void;
 	savePng: () => void;
 	saveJpg: () => void;
-	saveSvg: () => void;
 	savePdf: () => void;
 	saveJson: () => Promise<void>;
 	loadJson: (json: string) => void;
@@ -117,9 +105,6 @@ export interface Editor {
 	getActiveFontWeight: () => string | number;
 	getActiveFontFamily: () => string;
 	getActiveFillColor: () => string;
-	getActiveStrokeColor: () => string;
-	getActiveStrokeWidth: () => number;
-	getActiveStrokeDashArray: () => number[];
 	getActiveScaleX: () => number;
 	getActiveScaleY: () => number;
 	history: ReturnType<typeof createHistory>;
