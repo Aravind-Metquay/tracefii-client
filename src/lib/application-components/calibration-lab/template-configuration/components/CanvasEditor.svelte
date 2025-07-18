@@ -34,10 +34,10 @@
 	}
 </script>
 
-<div class="canvas-editor flex h-full flex-col">
+<div class=" flex h-full flex-col">
 	<!-- Main canvas content -->
-	<div class="canvas-content flex-1">
-		<FabricCanvas {editor} />
+	<div class="flex-1">
+		<!-- <FabricCanvas {editor} /> -->
 	</div>
 
 	<!-- Footer -->
@@ -52,20 +52,10 @@
 
 		<!-- Undo/Redo Toolbar -->
 		<div class="main-toolbar flex items-center gap-2">
-			<Button
-				onclick={handleUndo}
-				disabled={!editor?.history?.canUndo}
-				size="sm"
-				variant="outline"
-			>
+			<Button onclick={handleUndo} disabled={!editor?.history?.canUndo} size="sm" variant="outline">
 				↶ Undo
 			</Button>
-			<Button
-				onclick={handleRedo}
-				disabled={!editor?.history?.canRedo}
-				size="sm"
-				variant="outline"
-			>
+			<Button onclick={handleRedo} disabled={!editor?.history?.canRedo} size="sm" variant="outline">
 				↷ Redo
 			</Button>
 		</div>
@@ -77,9 +67,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	.canvas-content {
-		min-height: 400px;
-	}
-</style>
