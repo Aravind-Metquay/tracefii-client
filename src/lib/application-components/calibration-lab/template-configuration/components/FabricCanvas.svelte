@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Editor } from '../lib/types';
 
-	let { editor } = $props();
-	let canvasElement = $state();
-	let containerElement = $state();
+	let { editor } = $props<{ editor: Editor }>();
+	let canvasElement = $state<HTMLCanvasElement>();
+	let containerElement = $state<HTMLDivElement>();
 
 	onMount(() => {
 		if (canvasElement && containerElement && editor) {
@@ -11,17 +12,13 @@
 		}
 
 		return () => {
-			if (editor.canvas) {
+			if (editor?.canvas) {
 				editor.canvas.dispose();
 			}
 		};
 	});
 </script>
 
-<div
-	bind:this={containerElement}
-	class="flex h-full w-full items-center justify-center"
->
-	<canvas bind:this={canvasElement} class="border border-gray-300 shadow-lg"></canvas>
+<div bind:this={containerElement} class="relative h-full w-full overflow-hidden">
+	<canvas bind:this={canvasElement} class="block"></canvas>
 </div>
-

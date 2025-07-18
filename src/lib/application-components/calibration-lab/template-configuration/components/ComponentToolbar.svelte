@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button } from '@/components/ui/button';
-
+	import type { ComponentType } from '../lib/types';
 	let { availableComponents = [], onSelectComponent, editor } = $props();
 
-	const componentIcons = {
+	const componentIcons: Record<string, string> = {
 		Text: '📝',
 		Date: '📅',
 		Image: '🖼️',
@@ -11,8 +11,10 @@
 		'QR Code': '📱'
 	};
 
-	async function handleComponentClick(componentType: String) {
+	async function handleComponentClick(componentType: ComponentType) {
 		onSelectComponent?.(componentType);
+
+		if (!editor) return;
 
 		switch (componentType) {
 			case 'Text':
@@ -41,7 +43,8 @@
 			onclick={() => handleComponentClick(component)}
 			variant="outline"
 			class="flex min-w-[80px] items-center justify-center gap-1 p-3"
-			><span class="text-2xl">{componentIcons[component as keyof typeof componentIcons]}</span>
+		>
+			<span class="text-2xl">{componentIcons[component] || '📄'}</span>
 			<span class="text-xs">{component}</span>
 		</Button>
 	{/each}

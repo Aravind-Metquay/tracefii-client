@@ -1,12 +1,17 @@
+interface Command {
+	execute(): void;
+	undo(): void;
+}
+
 export function createHistory(maxSize: number = 50) {
-	let commands = $state<any[]>([]);
+	let commands = $state<Command[]>([]);
 	let currentIndex = $state(-1);
 
 	let canUndo = $derived(currentIndex >= 0);
 	let canRedo = $derived(currentIndex < commands.length - 1);
 	let currentState = $derived(commands[currentIndex]);
 
-	function execute(command: any) {
+	function execute(command: Command) {
 		// Remove future commands when executing new one
 		commands.splice(currentIndex + 1);
 
