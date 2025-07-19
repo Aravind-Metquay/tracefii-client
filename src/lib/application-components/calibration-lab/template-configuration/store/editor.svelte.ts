@@ -203,16 +203,28 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
+	// Fixed initializeCanvas function in your editor
 	function initializeCanvas(canvasElement: HTMLCanvasElement, containerElement: HTMLElement) {
 		initializeVariableValues();
+
+		// Get container dimensions
+		const containerRect = containerElement.getBoundingClientRect();
+		const width = containerRect.width || options.defaultWidth || 800;
+		const height = containerRect.height || options.defaultHeight || 600;
+
+		// Create canvas with proper dimensions
 		canvas = new Canvas(canvasElement, {
-			width: containerElement.offsetWidth,
-			height: containerElement.offsetHeight,
-			renderOnAddRemove: false,
-			preserveObjectStacking: true
+			width: width,
+			height: height,
+			renderOnAddRemove: true, // Enable automatic rendering
+			preserveObjectStacking: true,
+			selection: true,
+			skipTargetFind: false
 		});
+
 		container = containerElement;
 
+		// Set fabric object defaults
 		FabricObject.prototype.set({
 			cornerColor: '#FFF',
 			cornerStyle: 'circle',
@@ -223,6 +235,7 @@ export function createEditor(options: EditorOptions = {}) {
 			cornerStrokeColor: '#3b82f6'
 		});
 
+		// Create workspace (the white canvas area)
 		const workspace = new Rect({
 			width: options.defaultWidth || 800,
 			height: options.defaultHeight || 600,
@@ -230,28 +243,68 @@ export function createEditor(options: EditorOptions = {}) {
 			fill: 'white',
 			selectable: false,
 			hasControls: false,
+			evented: false, // Prevent workspace from being interactive
 			shadow: new Shadow({
 				color: 'rgba(0,0,0,0.8)',
-				blur: 5
+				blur: 5,
+				offsetX: 2,
+				offsetY: 2
 			})
 		});
 
+		// Add workspace to canvas
 		canvas.add(workspace);
 		canvas.centerObject(workspace);
 		canvas.clipPath = workspace;
 
+		// Set canvas background
+		canvas.backgroundColor = '#f5f5f5';
+
+		// Attach events
 		canvasEvents.attachEvents(canvasElement);
 		hotkeys.attachEvents();
 		autoResize.attachEvents();
 
+		// Force initial render
+		canvas.requestRenderAll();
+
+		// Save initial state
 		history.save();
 
 		return canvas;
 	}
 
+	// Enhanced autoZoom function
+	function autoZoom() {
+		if (!canvas || !container) return;
+
+		const workspace = getWorkspace();
+		if (!workspace) return;
+
+		const containerRect = container.getBoundingClientRect();
+		const containerWidth = containerRect.width;
+		const containerHeight = containerRect.height;
+
+		// Calculate zoom to fit workspace with some padding
+		const padding = 50;
+		const zoomX = (containerWidth - padding) / workspace.width;
+		const zoomY = (containerHeight - padding) / workspace.height;
+		const newZoom = Math.min(zoomX, zoomY, 1); // Don't zoom in beyond 100%
+
+		// Set zoom and center
+		const center = workspace.getCenterPoint();
+		canvas.zoomToPoint(center, newZoom);
+		canvas.centerObject(workspace);
+		canvas.requestRenderAll();
+
+		// Update zoom state
+		zoom = newZoom;
+	}
+
 	function syncCanvasState() {
 		if (!canvas) return;
-		canvas.renderAll();
+		// Force a complete re-render
+		canvas.requestRenderAll();
 	}
 
 	function getWorkspace() {
