@@ -1,0 +1,58 @@
+<script>
+	import Button from '@/components/ui/button/button.svelte';
+	import Input from '@/components/ui/input/input.svelte';
+	let email = $state('');
+	let password = $state('');
+	import { useAuth } from '@/svelte-auth0';
+	//const { login } = useAuth();
+	let { stage = $bindable() } = $props();
+</script>
+
+<div class="flex h-full w-full items-center justify-center bg-gray-50">
+	<div class="flex h-full w-full items-center justify-center p-5 lg:w-1/2">
+		<div class="gap-15 flex h-full w-[400px] flex-col justify-between">
+			<div class="mt-4 flex h-9 w-full justify-center">
+				<img
+					src="/Metquay logo Black.png"
+					alt="Logo"
+					class="object-contain"
+				/>
+			</div>
+			<div class="flex flex-grow items-center justify-center">
+				<div class="flex w-full flex-col gap-6 pb-20">
+					<h1 class="mt-14 text-center text-3xl font-semibold sm:text-4xl">
+						Login to your account
+					</h1>
+					<p class="text-center text-xs text-gray-600">
+						Do not have an account?{' '}
+						<span
+							class="cursor-pointer text-xs italic text-blue-500 underline"
+							onclick={() => (stage = 'Signup')}
+						>
+							Create
+						</span>
+					</p>
+					<div class="flex flex-col gap-4">
+						<Input class="text-xs" bind:value={email} placeholder="Enter your email address " />
+						<div>
+							<Input class="text-xs" bind:value={password} placeholder="Enter your password" />
+							<p
+								class="ml-2 cursor-pointer text-xs text-red-500 hover:underline"
+								onclick={() => (stage = 'Forgotpassword')}
+							>
+								Forgot password?
+							</p>
+						</div>
+						<!-- <Button class="text-md w-full p-6" onclick={() => login({ email, password })}
+							>Log In</Button
+						> -->
+						<Button class="text-md w-full p-6">Log In</Button>
+					</div>
+				</div>
+			</div>
+			<p class="pb-10 text-center text-xs text-gray-500">
+				© 2025 Metquay Inc. All rights reserved{' '}
+			</p>
+		</div>
+	</div>
+</div>
