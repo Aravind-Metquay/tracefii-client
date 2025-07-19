@@ -92,7 +92,7 @@
 </script>
 
 <div class="canvas-editor flex h-full flex-col">
-	<div class="w-full flex-1">
+	<div class="w-full flex-1 min-h-0">
 		<div bind:this={containerElement} class="relative h-full w-full overflow-hidden">
 			<canvas bind:this={canvasElement} class="block" style="width: 100%; height: 100%;"></canvas>
 		</div>

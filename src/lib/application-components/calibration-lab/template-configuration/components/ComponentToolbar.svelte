@@ -52,8 +52,7 @@
 	{#each availableComponents as component}
 		<Button
 			onclick={() => handleComponentClick(component)}
-			variant="outline"
-			class="flex min-w-[80px] items-center justify-center gap-1 border-0 p-3"
+			class="flex min-w-[80px] items-center justify-center gap-1 border-0 p-3 text-black bg-white shadow-lg"
 		>
 			<span class="text-2xl">{componentIcons[component] || '📄'}</span>
 			<span class="text-xs">{component}</span>

@@ -22,7 +22,7 @@ export class AppState {
 	});
 
 	// Derived state
-	canAddComponents = $derived(['Label', 'Certificate'].includes(this.uiState.selectedType));
+	canAddComponents = $derived(true);
 
 	availableComponents = $derived(
 		this.canAddComponents
