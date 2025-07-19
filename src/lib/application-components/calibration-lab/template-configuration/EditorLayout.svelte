@@ -21,14 +21,18 @@
 		class="w-80 max-w-[320px] min-w-[320px] shrink-0 border-r border-slate-200/60 bg-white/95 shadow-lg backdrop-blur-sm"
 	>
 		<div class="scrollbar-hide h-full overflow-y-auto">
-			<ContainerPanel
-				bind:selectedType={appState.uiState.selectedType}
-				onTypeChange={appState.setSelectedType}
-				bind:dimensions={appState.uiState.dimensions}
-				bind:unit={appState.uiState.unit}
-				bind:backgroundColor={appState.uiState.backgroundColor}
-				editor={appState.editor}
-			/>
+			{#if appState.uiState}
+				<ContainerPanel
+					bind:selectedType={appState.uiState.selectedType}
+					onTypeChange={appState.setSelectedType}
+					bind:dimensions={appState.uiState.dimensions}
+					bind:unit={appState.uiState.unit}
+					bind:backgroundColor={appState.uiState.backgroundColor}
+					editor={appState.editor}
+				/>
+			{:else}
+				<div class="p-4 text-center text-gray-500">Loading...</div>
+			{/if}
 		</div>
 	</div>
 
@@ -47,7 +51,7 @@
 
 		<!-- Canvas -->
 		<div class="flex flex-1 items-center justify-center p-6">
-				<CanvasEditor editor={appState.editor} />
+			<CanvasEditor editor={appState.editor} />
 		</div>
 	</div>
 
@@ -56,10 +60,14 @@
 		class="w-80 max-w-[320px] min-w-[320px] shrink-0 border-l border-slate-200/60 bg-white/95 shadow-lg backdrop-blur-sm"
 	>
 		<div class="scrollbar-hide h-full overflow-y-auto">
-			<ConfigPanel
-				editor={appState.editor}
-				selectedComponentType={appState.uiState.selectedComponentType}
-			/>
+			{#if appState.uiState}
+				<ConfigPanel
+					editor={appState.editor}
+					selectedComponentType={appState.uiState.selectedComponentType}
+				/>
+			{:else}
+				<div class="p-4 text-center text-gray-500">Loading...</div>
+			{/if}
 		</div>
 	</div>
 </div>

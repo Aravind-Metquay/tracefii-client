@@ -8,11 +8,52 @@
 	let containerElement = $state<HTMLDivElement>();
 
 	onMount(() => {
+		let resizeObserver: ResizeObserver | null = null;
+
 		if (canvasElement && containerElement && editor) {
-			editor.initializeCanvas(canvasElement, containerElement);
+			// Wait for the container to have proper dimensions
+			const initializeWhenReady = () => {
+				if (!containerElement) return;
+				const width = containerElement.offsetWidth;
+				const height = containerElement.offsetHeight;
+
+				if (width > 0 && height > 0) {
+					editor.initializeCanvas(canvasElement, containerElement);
+
+					// Force canvas to have proper dimensions
+					if (editor.canvas) {
+						editor.canvas.setDimensions({ width, height });
+						editor.syncCanvasState();
+					}
+
+					// Set up resize observer to handle dynamic resizing
+					resizeObserver = new ResizeObserver((entries) => {
+						for (const entry of entries) {
+							const { width: newWidth, height: newHeight } = entry.contentRect;
+							if (editor.canvas && newWidth > 0 && newHeight > 0) {
+								editor.canvas.setDimensions({
+									width: newWidth,
+									height: newHeight
+								});
+								editor.syncCanvasState();
+							}
+						}
+					});
+					resizeObserver.observe(containerElement);
+				} else {
+					// If container still has no dimensions, wait a bit more
+					requestAnimationFrame(initializeWhenReady);
+				}
+			};
+
+			// Use double requestAnimationFrame to ensure layout is complete
+			requestAnimationFrame(() => {
+				requestAnimationFrame(initializeWhenReady);
+			});
 		}
 
 		return () => {
+			resizeObserver?.disconnect();
 			if (editor?.canvas) {
 				editor.canvas.dispose();
 			}
@@ -53,7 +94,7 @@
 <div class="canvas-editor flex h-full flex-col">
 	<div class="w-full flex-1">
 		<div bind:this={containerElement} class="relative h-full w-full overflow-hidden">
-			<canvas bind:this={canvasElement} class="block"></canvas>
+			<canvas bind:this={canvasElement} class="block" style="width: 100%; height: 100%;"></canvas>
 		</div>
 	</div>
 
