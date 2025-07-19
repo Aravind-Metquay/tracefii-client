@@ -1,21 +1,26 @@
-<script>
+<script lang='ts'>
+	import { goto } from '$app/navigation';
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
+	import { auth } from '@/svelte-auth0';
+
 	let email = $state('');
 	let password = $state('');
-	import { auth } from '@/svelte-auth0';
-	let { stage = $bindable() } = $props();
+
+	$effect(()=>{
+		if(auth.isLoading){
+			if(auth.isAuthenticated){
+				goto('/dashboard')
+			}
+		}
+	})
 </script>
 
 <div class="flex h-full w-full items-center justify-center bg-gray-50">
 	<div class="flex h-full w-full items-center justify-center p-5 lg:w-1/2">
-		<div class="gap-15 flex h-full w-[400px] flex-col justify-between">
+		<div class="flex h-full w-[400px] flex-col justify-between gap-15">
 			<div class="mt-4 flex h-9 w-full justify-center">
-				<img
-					src="/Metquay logo Black.png"
-					alt="Logo"
-					class="object-contain"
-				/>
+				<img src="/Metquay logo Black.png" alt="Logo" class="object-contain" />
 			</div>
 			<div class="flex flex-grow items-center justify-center">
 				<div class="flex w-full flex-col gap-6 pb-20">
@@ -25,8 +30,8 @@
 					<p class="text-center text-xs text-gray-600">
 						Do not have an account?{' '}
 						<span
-							class="cursor-pointer text-xs italic text-blue-500 underline"
-							onclick={() => (stage = 'Signup')}
+							class="cursor-pointer text-xs text-blue-500 italic underline"
+							onclick={() => goto('/auth/signup')}
 						>
 							Create
 						</span>
@@ -37,7 +42,7 @@
 							<Input class="text-xs" bind:value={password} placeholder="Enter your password" />
 							<p
 								class="ml-2 cursor-pointer text-xs text-red-500 hover:underline"
-								onclick={() => (stage = 'Forgotpassword')}
+								onclick={() => goto('/auth/forgot-password')}
 							>
 								Forgot password?
 							</p>

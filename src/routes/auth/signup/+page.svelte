@@ -2,12 +2,21 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import { SquareCheck } from '@lucide/svelte';
+
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let passwordMatch = $state(false);
 	import { auth } from '@/svelte-auth0';
-	let { stage = $bindable() } = $props();
+	import { goto } from '$app/navigation';
+
+	$effect(() => {
+		if (auth.isLoading) {
+			if (auth.isAuthenticated) {
+				goto('/dashboard');
+			}
+		}
+	});
 
 	const PasswordRules = [
 		{
@@ -50,7 +59,7 @@
 					Already have an account?{' '}
 					<span
 						class="cursor-pointer text-blue-500 italic underline"
-						onclick={() => (stage = 'Login')}
+						onclick={() => goto('/auth/login')}
 					>
 						Log in
 					</span>
