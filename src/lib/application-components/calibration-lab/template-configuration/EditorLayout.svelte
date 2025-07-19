@@ -40,7 +40,7 @@
 	<div class="flex min-w-0 flex-1 flex-col overflow-hidden bg-gray-50">
 		<!-- Component Toolbar -->
 		{#if appState.canAddComponents}
-			<div class="shrink-0 border-b border-gray-200 bg-white p-4 shadow-sm">
+			<div class="shrink- p-4">
 				<ComponentToolbar
 					availableComponents={appState.availableComponents}
 					onSelectComponent={handleComponentSelect}
@@ -50,7 +50,7 @@
 		{/if}
 
 		<!-- Canvas -->
-		<div class="flex flex-1 items-center justify-center p-6">
+		<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
 			<CanvasEditor editor={appState.editor} />
 		</div>
 	</div>
