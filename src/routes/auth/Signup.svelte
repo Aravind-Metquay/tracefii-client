@@ -1,13 +1,12 @@
 <script lang="ts">
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
-	import { SquareCheck, Eye } from '@lucide/svelte';
+	import { SquareCheck } from '@lucide/svelte';
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let passwordMatch = $state(false);
-	import { useAuth } from '@/svelte-auth0';
-	//const { signup } = useAuth();
+	import { auth } from '@/svelte-auth0';
 	let { stage = $bindable() } = $props();
 
 	const PasswordRules = [
@@ -41,20 +40,16 @@
 
 <div class="flex h-full w-full items-center justify-center bg-gray-50">
 	<div class="flex h-full w-full items-center justify-center p-5 lg:w-1/2">
-		<div class="gap-15 flex h-full w-[400px] flex-col justify-between">
+		<div class="flex h-full w-[400px] flex-col justify-between gap-15">
 			<div class="mt-4 flex h-9 w-full justify-center">
-				<img
-					src="/Metquay logo Black.png"
-					alt="Logo"
-					class="object-contain"
-				/>
+				<img src="/Metquay logo Black.png" alt="Logo" class="object-contain" />
 			</div>
 			<div class="flex flex-col gap-4">
 				<h1 class="text-center text-4xl font-semibold">Create an account</h1>
 				<p class="text-center text-xs text-gray-600">
 					Already have an account?{' '}
 					<span
-						class="cursor-pointer italic text-blue-500 underline"
+						class="cursor-pointer text-blue-500 italic underline"
 						onclick={() => (stage = 'Login')}
 					>
 						Log in
@@ -92,10 +87,7 @@
 						</span>
 					</div>
 
-					<!-- <Button class="text-md w-full p-6" onclick={() => signup({ email, password })}
-						>Sign Up</Button
-					> -->
-					<Button class="text-md w-full p-6" 
+					<Button class="text-md w-full p-6" onclick={() => auth.signup({ email, password })}
 						>Sign Up</Button
 					>
 				</div>

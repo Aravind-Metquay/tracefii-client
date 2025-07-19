@@ -3,8 +3,7 @@
 	import Input from '@/components/ui/input/input.svelte';
 	let email = $state('');
 	let password = $state('');
-	import { useAuth } from '@/svelte-auth0';
-	//const { login } = useAuth();
+	import { auth } from '@/svelte-auth0';
 	let { stage = $bindable() } = $props();
 </script>
 
@@ -43,10 +42,9 @@
 								Forgot password?
 							</p>
 						</div>
-						<!-- <Button class="text-md w-full p-6" onclick={() => login({ email, password })}
-							>Log In</Button
-						> -->
-						<Button class="text-md w-full p-6">Log In</Button>
+						<Button class="text-md w-full p-6" onclick={() => auth.login({ email, password })}>
+							Log In
+						</Button>
 					</div>
 				</div>
 			</div>

@@ -1,28 +1,26 @@
 import auth0 from 'auth0-js';
-import type { 
-  Auth0Config, 
-  Auth0User, 
-  LoginCredentials, 
-  SignupCredentials,
-  Auth0DecodedHash 
-} from './types';
+import type { Auth0Config, Auth0User, LoginCredentials, SignupCredentials } from './types';
 
-export class AuthStore {
+class AuthService {
+  private config = $state<Auth0Config | null>(null);
+  private auth0Client: auth0.WebAuth | null = null;
+  
+  // Public reactive state
   user = $state<Auth0User | null>(null);
   isAuthenticated = $state(false);
   isLoading = $state(true);
   error = $state<Error | null>(null);
-  
-  private auth0Client: auth0.WebAuth;
-  private config: Auth0Config;
 
-  constructor(config: Auth0Config) {
+  // Initialize the auth service
+  init(config: Auth0Config) {
     this.config = config;
     this.auth0Client = new auth0.WebAuth(config);
     this.initializeAuth();
   }
 
   private async initializeAuth() {
+    if (!this.auth0Client) return;
+    
     try {
       if (typeof window !== 'undefined' && window.location.hash) {
         await this.parseHash();
@@ -34,26 +32,41 @@ export class AuthStore {
     }
   }
 
-  private parseHash(): Promise<void> {
+  private async parseHash(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.auth0Client.parseHash((err, authResult) => {
-        if (err) {
-          this.handleError(err);
-          reject(err);
-          return;
+      if (!this.auth0Client) {
+        reject(new Error('Auth0 client not initialized'));
+        return;
+      }
+
+      this.auth0Client.parseHash(async (err, authResult) => {
+        try {
+          if (err) {
+            this.handleError(err);
+            reject(err);
+            return;
+          }
+          
+          if (authResult && authResult.accessToken) {
+            await this.handleAuthResult(authResult);
+          }
+          
+          if (typeof window !== 'undefined') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          
+          this.isLoading = false;
+          resolve();
+        } catch (error) {
+          this.handleError(error);
+          this.isLoading = false;
+          reject(error);
         }
-        
-        if (authResult && authResult.accessToken) {
-          this.handleAuthResult(authResult);
-        }
-        
-        window.history.replaceState({}, document.title, window.location.pathname);
-        resolve();
       });
     });
   }
 
-  private async handleAuthResult(authResult: Auth0DecodedHash) {
+  private async handleAuthResult(authResult: any) {
     try {
       if (authResult.accessToken) {
         const expiresAt = JSON.stringify(
@@ -70,13 +83,17 @@ export class AuthStore {
       }
     } catch (error) {
       this.handleError(error);
-    } finally {
-      this.isLoading = false;
     }
+    // Note: Don't set isLoading = false here, let the calling method handle it
   }
 
   private getUserInfo(accessToken: string): Promise<Auth0User> {
     return new Promise((resolve, reject) => {
+      if (!this.auth0Client) {
+        reject(new Error('Auth0 client not initialized'));
+        return;
+      }
+
       this.auth0Client.client.userInfo(accessToken, (err, user) => {
         if (err) {
           reject(err);
@@ -88,12 +105,16 @@ export class AuthStore {
   }
 
   async login(credentials: LoginCredentials): Promise<void> {
+    if (!this.auth0Client) {
+      throw new Error('Auth0 client not initialized');
+    }
+
     this.isLoading = true;
     this.error = null;
     
     try {
       await new Promise<void>((resolve, reject) => {
-        this.auth0Client.login({
+        this.auth0Client!.login({
           realm: 'Username-Password-Authentication',
           email: credentials.email,
           password: credentials.password
@@ -112,12 +133,16 @@ export class AuthStore {
   }
 
   async signup(credentials: SignupCredentials): Promise<void> {
+    if (!this.auth0Client) {
+      throw new Error('Auth0 client not initialized');
+    }
+
     this.isLoading = true;
     this.error = null;
     
     try {
       await new Promise<void>((resolve, reject) => {
-        this.auth0Client.signup({
+        this.auth0Client!.signup({
           connection: 'Username-Password-Authentication',
           email: credentials.email,
           password: credentials.password,
@@ -139,6 +164,10 @@ export class AuthStore {
   }
 
   logout(): void {
+    if (!this.auth0Client || !this.config) {
+      return;
+    }
+
     localStorage.removeItem('access_token');
     localStorage.removeItem('id_token');
     localStorage.removeItem('expires_at');
@@ -155,19 +184,30 @@ export class AuthStore {
   }
 
   async checkSession(): Promise<void> {
+    if (!this.auth0Client) {
+      this.isLoading = false;
+      return;
+    }
+
     try {
       await new Promise<void>((resolve, reject) => {
-        this.auth0Client.checkSession({}, (err, authResult) => {
+        this.auth0Client!.checkSession({}, async (err, authResult) => {
           if (err) {
             if (err.error !== 'login_required') {
               reject(err);
             } else {
+              // No active session, but not an error
+              this.isAuthenticated = false;
+              this.user = null;
               resolve();
             }
           } else if (authResult) {
-            this.handleAuthResult(authResult);
+            await this.handleAuthResult(authResult);
             resolve();
           } else {
+            // No session found
+            this.isAuthenticated = false;
+            this.user = null;
             resolve();
           }
         });
@@ -199,3 +239,6 @@ export class AuthStore {
     this.isLoading = false;
   }
 }
+
+// Create a singleton instance
+export const auth = new AuthService();
