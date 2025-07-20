@@ -1,20 +1,21 @@
 # Svelte Auth0 Library
 
-A modern Svelte 5 authentication library built on top of Auth0, providing a seamless developer experience with runes-based state management and TypeScript support.
+A modern, Svelte-native authentication library built on top of Auth0. This library provides a clean, reactive approach to authentication using Svelte 5 runes and follows Svelte idioms rather than React patterns.
 
 ## Features
 
-- 🚀 **Svelte 5 Runes**: Uses `$state` and `$effect` for reactive state management
-- 🔒 **Auth0 Integration**: Built on Auth0's robust authentication platform
-- 📱 **Client-Side Only**: No server-side rendering dependencies
-- 🎯 **TypeScript Support**: Full type safety throughout
-- 🔄 **Context-Based**: Uses Svelte context for dependency injection
-- 🛡️ **Route Protection**: Built-in components for protecting routes
-- 🎨 **Customizable**: Flexible configuration options
+- 🚀 **Svelte 5 Native**: Built with `$state` and `$effect` runes
+- 🔒 **Auth0 Integration**: Full Auth0 authentication support
+- 📱 **Client-Side**: No server-side rendering dependencies
+- 🎯 **TypeScript**: Complete type safety
+- 🔄 **Reactive**: Direct access to reactive authentication state
+- 🛡️ **Route Protection**: Simple route guard components
+- 🎨 **Zero Boilerplate**: No context providers or hooks needed
+- ⚡ **Performance**: Direct state access, no context lookups
 
 ## Installation
 
-First, install the required dependencies:
+Install the required dependencies:
 
 ```bash
 npm install auth0-js
@@ -27,7 +28,7 @@ Then copy the library files to your `src/lib/auth/` directory.
 
 ### 1. Configure Auth0
 
-Set up your Auth0 application configuration:
+Create your Auth0 configuration:
 
 ```typescript
 // src/lib/config/auth0.ts
@@ -43,12 +44,10 @@ export const auth0Config: Auth0Config = {
 };
 ```
 
-### 2. Set up the Provider
-
-Wrap your app with the `AuthProvider`:
+### 2. Initialize in Your App
 
 ```svelte
-<!-- src/app.html or src/routes/+layout.svelte -->
+<!-- src/routes/+layout.svelte -->
 <script lang="ts">
   import { AuthProvider } from '$lib/auth';
   import { auth0Config } from '$lib/config/auth0';
@@ -61,15 +60,13 @@ Wrap your app with the `AuthProvider`:
 </AuthProvider>
 ```
 
-### 3. Create a Login Component
+### 3. Use in Components
 
 ```svelte
 <!-- src/routes/login/+page.svelte -->
 <script lang="ts">
-  import { useAuth } from '$lib/auth';
+  import { auth } from '$lib/auth';
   import { goto } from '$app/navigation';
-  
-  const auth = useAuth();
   
   let email = $state('');
   let password = $state('');
@@ -80,15 +77,6 @@ Wrap your app with the `AuthProvider`:
       goto('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
-    }
-  }
-  
-  async function handleSignup() {
-    try {
-      await auth.signup({ email, password });
-      goto('/dashboard');
-    } catch (error) {
-      console.error('Signup failed:', error);
     }
   }
 </script>
@@ -117,7 +105,6 @@ Wrap your app with the `AuthProvider`:
         required 
       />
       <button type="submit">Login</button>
-      <button type="button" onclick={handleSignup}>Sign Up</button>
     </form>
     
     {#if auth.error}
@@ -128,8 +115,6 @@ Wrap your app with the `AuthProvider`:
 ```
 
 ### 4. Protect Routes
-
-Use the `AuthGuard` component to protect routes:
 
 ```svelte
 <!-- src/routes/dashboard/+page.svelte -->
@@ -149,30 +134,48 @@ Use the `AuthGuard` component to protect routes:
 
 ## API Reference
 
-### `useAuth()`
+### Authentication State
 
-The main hook for accessing authentication state and methods.
+The `auth` object provides direct access to reactive authentication state:
 
 ```typescript
-const auth = useAuth();
+import { auth } from '$lib/auth';
 
-// State
-auth.user          // Current user object or null
-auth.isAuthenticated // Boolean indicating if user is authenticated
-auth.isLoading     // Boolean indicating if auth operation is in progress
-auth.error         // Current error object or null
-
-// Methods
-auth.login(credentials)     // Login with email/password
-auth.signup(credentials)    // Sign up new user
-auth.logout()              // Logout current user
-auth.checkSession()        // Check for existing session
-auth.getAccessToken()      // Get current access token
+// Reactive state (automatically updates UI)
+auth.user              // Current user object or null
+auth.isAuthenticated   // Boolean indicating if user is authenticated
+auth.isLoading        // Boolean indicating if auth operation is in progress
+auth.error            // Current error object or null
 ```
 
-### `AuthProvider`
+### Authentication Methods
 
-Provides authentication context to child components.
+```typescript
+// Login with email/password
+await auth.login({ email: 'user@example.com', password: 'password' });
+
+// Sign up new user
+await auth.signup({ 
+  email: 'user@example.com', 
+  password: 'password',
+  name: 'John Doe' // optional
+});
+
+// Logout current user
+auth.logout();
+
+// Check for existing session
+await auth.checkSession();
+
+// Get current access token
+const token = auth.getAccessToken();
+```
+
+### Components
+
+#### `AuthProvider`
+
+Initializes the authentication service.
 
 ```svelte
 <AuthProvider config={auth0Config}>
@@ -185,7 +188,7 @@ Provides authentication context to child components.
 **Props:**
 - `config`: Auth0 configuration object
 
-### `AuthGuard`
+#### `AuthGuard`
 
 Protects routes by redirecting unauthenticated users.
 
@@ -239,75 +242,145 @@ interface SignupCredentials extends LoginCredentials {
 }
 ```
 
-## Advanced Usage
+## Usage Examples
+
+### Reactive State in Components
+
+```svelte
+<script lang="ts">
+  import { auth } from '$lib/auth';
+  
+  // Reactive statements automatically update when auth state changes
+  $: isLoggedIn = auth.isAuthenticated;
+  $: userName = auth.user?.name;
+  
+  // Effects run when auth state changes
+  $effect(() => {
+    if (auth.isAuthenticated) {
+      console.log('User logged in:', auth.user);
+    }
+  });
+</script>
+
+{#if isLoggedIn}
+  <p>Hello, {userName}!</p>
+{:else}
+  <p>Please log in</p>
+{/if}
+```
+
+### API Calls with Authentication
+
+```svelte
+<script lang="ts">
+  import { auth } from '$lib/auth';
+  
+  async function makeApiCall() {
+    const token = auth.getAccessToken();
+    
+    if (!token) {
+      console.error('No access token available');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/protected-data', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('API call failed');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+    }
+  }
+</script>
+```
 
 ### Custom Loading Component
 
 ```svelte
+<!-- CustomLoader.svelte -->
+<div class="spinner">
+  <div class="bounce1"></div>
+  <div class="bounce2"></div>
+  <div class="bounce3"></div>
+</div>
+
+<!-- Usage -->
 <script lang="ts">
   import { AuthGuard } from '$lib/auth';
-  import Spinner from '$lib/components/Spinner.svelte';
+  import CustomLoader from './CustomLoader.svelte';
 </script>
 
-<AuthGuard loadingComponent={Spinner}>
+<AuthGuard loadingComponent={CustomLoader}>
   {#snippet children()}
     <!-- Protected content -->
   {/snippet}
 </AuthGuard>
 ```
 
-### Access Token Usage
+### Error Handling
 
 ```svelte
 <script lang="ts">
-  import { useAuth } from '$lib/auth';
+  import { auth } from '$lib/auth';
   
-  const auth = useAuth();
+  // Watch for authentication errors
+  $effect(() => {
+    if (auth.error) {
+      console.error('Authentication error:', auth.error);
+      // Show toast notification, redirect, etc.
+      showErrorToast(auth.error.message);
+    }
+  });
   
-  async function makeApiCall() {
-    const token = auth.getAccessToken();
-    if (token) {
-      const response = await fetch('/api/data', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      return response.json();
+  async function handleLogin() {
+    try {
+      await auth.login({ email, password });
+      // Success - auth.isAuthenticated will be true
+      goto('/dashboard');
+    } catch (error) {
+      // Error is also available in auth.error
+      console.error('Login failed:', error);
     }
   }
 </script>
 ```
 
-### Error Handling
+### Social Login
 
 ```svelte
 <script lang="ts">
-  import { useAuth } from '$lib/auth';
+  import { auth } from '$lib/auth';
   
-  const auth = useAuth();
-  
-  $effect(() => {
-    if (auth.error) {
-      console.error('Authentication error:', auth.error);
-      // Handle error (show toast, redirect, etc.)
-    }
-  });
+  function loginWithGoogle() {
+    // Redirect to Auth0 with Google connection
+    window.location.href = `https://${auth0Config.domain}/authorize?` +
+      `response_type=code&` +
+      `client_id=${auth0Config.clientID}&` +
+      `redirect_uri=${encodeURIComponent(auth0Config.redirectUri)}&` +
+      `scope=${encodeURIComponent(auth0Config.scope)}&` +
+      `connection=google-oauth2`;
+  }
 </script>
+
+<button onclick={loginWithGoogle}>
+  Login with Google
+</button>
 ```
 
 ## Configuration
 
-### Auth0 Setup
-
-1. Create an Auth0 application
-2. Set allowed callback URLs to include your app's callback route
-3. Configure allowed logout URLs
-4. Set up your audience if using APIs
-5. Configure connection settings (username/password, social, etc.)
-
 ### Environment Variables
 
-Consider using environment variables for configuration:
+Use environment variables for configuration:
 
 ```typescript
 // src/lib/config/auth0.ts
@@ -321,35 +394,37 @@ export const auth0Config: Auth0Config = {
 };
 ```
 
+### Auth0 Setup
+
+1. Create an Auth0 application
+2. Set allowed callback URLs to include your app's callback route
+3. Configure allowed logout URLs
+4. Set up your audience if using APIs
+5. Configure connection settings (database, social, etc.)
+
+
 ## Best Practices
 
 1. **Always use HTTPS in production**
-2. **Store sensitive tokens securely** (the library uses localStorage for simplicity)
+2. **Store sensitive configuration in environment variables**
 3. **Handle errors gracefully** with proper user feedback
 4. **Implement proper loading states** for better UX
 5. **Use TypeScript** for better development experience
 6. **Test authentication flows** thoroughly
+7. **Keep tokens secure** (this library uses localStorage for simplicity)
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Import errors**: Make sure file extensions are correct (.svelte for .svelte.ts files)
-2. **Context not found**: Ensure AuthProvider wraps your app
-3. **Redirect loops**: Check Auth0 configuration and callback URLs
+1. **Module resolution errors**: Ensure file paths are correct
+2. **Auth0 configuration**: Check domain, client ID, and callback URLs
+3. **Redirect loops**: Verify Auth0 settings match your app configuration
 4. **Token expiration**: Implement token refresh logic if needed
 
 ### Debug Mode
 
-Enable debug logging in development:
-
-```typescript
-// Add to your Auth0 config
-const auth0Config = {
-  // ... other config
-  debug: import.meta.env.DEV
-};
-```
+Check the browser console for detailed error messages. The library logs authentication errors to help with debugging.
 
 ## Contributing
 
@@ -362,3 +437,13 @@ const auth0Config = {
 ## License
 
 MIT License - see LICENSE file for details.
+
+## Support
+
+- Check the [Auth0 documentation](https://auth0.com/docs) for Auth0-specific issues
+- Review browser console for error messages
+- Ensure your Auth0 application is configured correctly
+
+---
+
+**Note**: This library is designed for client-side authentication only. For server-side authentication or universal applications, consider additional security measures and token handling strategies.
