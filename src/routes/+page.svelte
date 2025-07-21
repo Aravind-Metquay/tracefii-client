@@ -4,7 +4,6 @@
 	import SimpleTable from '@/application-components/common/data-table/simple-table.svelte';
 	import { goto } from '$app/navigation';
 
-	
 	const mailtoSnippet = createRawSnippet<[string]>((email) => {
 		const emailAddress = email();
 		return {
