@@ -80,6 +80,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
+      vite-plugin-mkcert:
+        specifier: ^1.17.8
+        version: 1.17.8(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1))
     devDependencies:
       '@internationalized/date':
         specifier: ^3.8.1
@@ -150,6 +153,9 @@ importers:
       sveltekit-superforms:
         specifier: ^2.26.1
         version: 2.27.1(@sveltejs/kit@2.22.2(@sveltejs/vite-plugin-svelte@4.0.4(svelte@5.35.2)(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)))(svelte@5.35.2)(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)))(@types/json-schema@7.0.15)(esbuild@0.21.5)(svelte@5.35.2)(typescript@5.8.3)
+      tailwind-scrollbar:
+        specifier: ^4.0.2
+        version: 4.0.2(react@19.1.0)(tailwindcss@4.1.11)
       tailwind-variants:
         specifier: ^1.0.0
         version: 1.0.0(tailwindcss@4.1.11)
@@ -794,6 +800,9 @@ packages:
   '@types/node@24.0.10':
     resolution: {integrity: sha512-ENHwaH+JIRTDIEEbDK6QSQntAYGtbvdDXnMXnZaZ6k13Du1dPMmprkEHIL7ok2Wl2aZevetwTAb5S+7yIF+enA==}
 
+  '@types/prismjs@1.26.5':
+    resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
+
   '@types/qrcode@1.5.5':
     resolution: {integrity: sha512-CdfBi/e3Qk+3Z/fXYShipBT13OJ2fDO2Q2w5CIP5anLTLIndQG9z6P1cnm+8zCWSpm5dnxMFd/uREtb0EXuQzg==}
 
@@ -1002,6 +1011,9 @@ packages:
     hasBin: true
     peerDependencies:
       postcss: ^8.1.0
+
+  axios@1.10.0:
+    resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -1470,6 +1482,15 @@ packages:
 
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
+
+  follow-redirects@1.15.9:
+    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
 
   form-data@4.0.3:
     resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
@@ -2132,8 +2153,16 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prism-react-renderer@2.4.1:
+    resolution: {integrity: sha512-ey8Ls/+Di31eqzUxC46h8MksNuGx/n0AAC8uKpwFau4RPDYLuE3EXTp8N8G2vX2N7UC/+IXeNUnlWBGGcAG+Ig==}
+    peerDependencies:
+      react: '>=16.0.0'
+
   property-expr@2.0.6:
     resolution: {integrity: sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==}
+
+  proxy-from-env@1.1.0:
+    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
   psl@1.15.0:
     resolution: {integrity: sha512-JZd3gMVBAVQkSs6HdNZo9Sdo0LNcQeMNP3CozBJb3JYC/QUYZTnKxP+f8oWRX4rHP5EurWxqAHTSwUCjlNKa1w==}
@@ -2162,6 +2191,10 @@ packages:
 
   raf@3.4.1:
     resolution: {integrity: sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==}
+
+  react@19.1.0:
+    resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
+    engines: {node: '>=0.10.0'}
 
   readable-stream@3.6.2:
     resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
@@ -2419,6 +2452,12 @@ packages:
   tailwind-merge@3.3.1:
     resolution: {integrity: sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g==}
 
+  tailwind-scrollbar@4.0.2:
+    resolution: {integrity: sha512-wAQiIxAPqk0MNTPptVe/xoyWi27y+NRGnTwvn4PQnbvB9kp8QUBiGl/wsfoVBHnQxTmhXJSNt9NHTmcz9EivFA==}
+    engines: {node: '>=12.13.0'}
+    peerDependencies:
+      tailwindcss: 4.x
+
   tailwind-variants@1.0.0:
     resolution: {integrity: sha512-2WSbv4ulEEyuBKomOunut65D8UZwxrHoRfYnxGcQNnHqlSCp2+B7Yz2W+yrNDrxRodOXtGD/1oCcKGNBnUqMqA==}
     engines: {node: '>=16.x', pnpm: '>=7.x'}
@@ -2583,6 +2622,12 @@ packages:
     resolution: {integrity: sha512-AM9aQ/IPrW/6ENLQg3AGY4K1N2TGZdR5e4gu/MmmR2xR3Ll1+dib+nook92g4TV3PXVyeyxdWwtaCAiUL0hMxA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
+
+  vite-plugin-mkcert@1.17.8:
+    resolution: {integrity: sha512-S+4tNEyGqdZQ3RLAG54ETeO2qyURHWrVjUWKYikLAbmhh/iJ+36gDEja4OWwFyXNuvyXcZwNt5TZZR9itPeG5Q==}
+    engines: {node: '>=v16.7.0'}
+    peerDependencies:
+      vite: '>=3'
 
   vite@5.4.19:
     resolution: {integrity: sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==}
@@ -3334,6 +3379,8 @@ snapshots:
     dependencies:
       undici-types: 7.8.0
 
+  '@types/prismjs@1.26.5': {}
+
   '@types/qrcode@1.5.5':
     dependencies:
       '@types/node': 24.0.10
@@ -3604,6 +3651,14 @@ snapshots:
       picocolors: 1.1.1
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
+
+  axios@1.10.0(debug@4.4.1):
+    dependencies:
+      follow-redirects: 1.15.9(debug@4.4.1)
+      form-data: 4.0.3
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
 
   axobject-query@4.1.0: {}
 
@@ -4133,6 +4188,10 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.3.3: {}
+
+  follow-redirects@1.15.9(debug@4.4.1):
+    optionalDependencies:
+      debug: 4.4.1
 
   form-data@4.0.3:
     dependencies:
@@ -4724,8 +4783,16 @@ snapshots:
 
   prettier@3.6.2: {}
 
+  prism-react-renderer@2.4.1(react@19.1.0):
+    dependencies:
+      '@types/prismjs': 1.26.5
+      clsx: 2.1.1
+      react: 19.1.0
+
   property-expr@2.0.6:
     optional: true
+
+  proxy-from-env@1.1.0: {}
 
   psl@1.15.0:
     dependencies:
@@ -4756,6 +4823,8 @@ snapshots:
     dependencies:
       performance-now: 2.1.0
     optional: true
+
+  react@19.1.0: {}
 
   readable-stream@3.6.2:
     dependencies:
@@ -5082,6 +5151,13 @@ snapshots:
 
   tailwind-merge@3.3.1: {}
 
+  tailwind-scrollbar@4.0.2(react@19.1.0)(tailwindcss@4.1.11):
+    dependencies:
+      prism-react-renderer: 2.4.1(react@19.1.0)
+      tailwindcss: 4.1.11
+    transitivePeerDependencies:
+      - react
+
   tailwind-variants@1.0.0(tailwindcss@4.1.11):
     dependencies:
       tailwind-merge: 3.0.2
@@ -5250,6 +5326,15 @@ snapshots:
       - sugarss
       - supports-color
       - terser
+
+  vite-plugin-mkcert@1.17.8(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)):
+    dependencies:
+      axios: 1.10.0(debug@4.4.1)
+      debug: 4.4.1
+      picocolors: 1.1.1
+      vite: 5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)
+    transitivePeerDependencies:
+      - supports-color
 
   vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1):
     dependencies:

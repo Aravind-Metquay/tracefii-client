@@ -56,22 +56,22 @@
 </script>
 
 {#if currentActiveFunctionId && component.componentType === "Select" && component.selectComponent}
-  <div class="flex flex-col w-[220px]" on:click={() => setCurrentActiveComponent(component)}>
+  <div class="flex flex-col w-[13.75rem]" on:click={() => setCurrentActiveComponent(component)}>
     <label
-      class="text-xs mx-1"
+      class="text-xs mx-[0.0625rem]"
       for={component.componentId}
     >
       {component.label || 'Select'}
       {#if component.isRequired}
-        <span class="text-red-500 ml-1">*</span>
+        <span class="text-red-500 ml-[0.0625rem]">*</span>
       {/if}
       {#if component.isReadOnly}
-        <span class="text-gray-500 text-xs ml-1">(Read-only)</span>
+        <span class="text-gray-500 text-xs ml-[0.0625rem]">(Read-only)</span>
       {/if}
     </label>
     <select
       id={component.componentId}
-      class={`bg-transparent border border-black p-1 rounded-md mx-1
+      class={`bg-transparent border border-black p-[0.25rem] rounded-[0.375rem] mx-[0.0625rem]
         ${isDisabled ? 'bg-gray-100 cursor-not-allowed' : ''}
         ${!currentValue ? 'text-gray-500' : ''}
       `}
@@ -97,3 +97,4 @@
     </select>
   </div>
 {/if}
+
