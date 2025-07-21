@@ -20,58 +20,25 @@ import moment from 'moment';
 import { createClipboard } from './clipboard.svelte';
 import { createHotkeys } from './hotkeys.svelte';
 import { createAutoResize } from './auto-resize.svelte';
+import {
+	FONT_FAMILY,
+	FILL_COLOR,
+	STROKE_COLOR,
+	STROKE_WIDTH,
+	STROKE_DASH_ARRAY,
+	TEXT_OPTIONS,
+	FONT_SIZE,
+	FONT_WEIGHT,
+	CIRCLE_OPTIONS,
+	DIAMOND_OPTIONS,
+	RECTANGLE_OPTIONS,
+	TRIANGLE_OPTIONS
+} from '../lib/types';
 
-// Constants
-const FILL_COLOR = '#000000';
-const STROKE_COLOR = '#000000';
-const STROKE_WIDTH = 1;
-const STROKE_DASH_ARRAY: number[] = [];
-const FONT_FAMILY = 'Times New Roman';
-const FONT_SIZE = 24;
-const FONT_WEIGHT = 400;
+// ================================
+// TYPE EXTENSIONS
+// ================================
 
-// Default options for objects
-const TEXT_OPTIONS = {
-	type: 'textbox',
-	left: 100,
-	top: 100,
-	fontSize: FONT_SIZE,
-	fontWeight: FONT_WEIGHT,
-	fontFamily: FONT_FAMILY,
-	fill: FILL_COLOR,
-	width: 200,
-	height: 50,
-	minWidth: 200
-};
-
-const RECTANGLE_OPTIONS = {
-	width: 100,
-	height: 100,
-	left: 100,
-	top: 100
-};
-
-const CIRCLE_OPTIONS = {
-	radius: 50,
-	left: 100,
-	top: 100
-};
-
-const TRIANGLE_OPTIONS = {
-	width: 100,
-	height: 100,
-	left: 100,
-	top: 100
-};
-
-const DIAMOND_OPTIONS = {
-	width: 100,
-	height: 100,
-	left: 100,
-	top: 100
-};
-
-// Extend fabric objects for custom properties
 declare module 'fabric' {
 	interface FabricObject {
 		name?: string;
@@ -81,18 +48,21 @@ declare module 'fabric' {
 		variableValues?: { [key: string]: string };
 		text?: string;
 	}
+
 	interface Textbox {
 		customType?: string;
 		customDateValue?: string;
 		customDateFormat?: string;
 		variableValues?: { [key: string]: string };
 	}
+
 	interface ITextboxOptions {
 		customType?: string;
 		customDateValue?: string;
 		customDateFormat?: string;
 		variableValues?: { [key: string]: string };
 	}
+
 	interface FabricImage {
 		data?: any;
 	}
@@ -104,62 +74,9 @@ declare global {
 	}
 }
 
-// Utility functions
-function downloadFile(dataUrl: string, format: string) {
-	const link = document.createElement('a');
-	link.download = `canvas.${format}`;
-	link.href = dataUrl;
-	link.click();
-}
-
-function isTextType(type: string | undefined): boolean {
-	return type === 'text' || type === 'textbox';
-}
-
-declare module 'fabric' {
-	interface FabricObject {
-		name?: string;
-		customType?: string;
-		customDateValue?: string;
-		customDateFormat?: string;
-		variableValues?: { [key: string]: string };
-		text?: string;
-	}
-	interface Textbox {
-		customType?: string;
-		customDateValue?: string;
-		customDateFormat?: string;
-		variableValues?: { [key: string]: string };
-	}
-	interface ITextboxOptions {
-		customType?: string;
-		customDateValue?: string;
-		customDateFormat?: string;
-		variableValues?: { [key: string]: string };
-	}
-	interface FabricImage {
-		data?: any;
-	}
-}
-
-declare global {
-	interface Window {
-		variableValues?: { [key: string]: string };
-	}
-}
-
-async function transformText(objects: any[]): Promise<void> {
-	for (const obj of objects) {
-		if (obj.type === 'textbox' && obj.customType === 'date') {
-			const dateValue = obj.customDateValue;
-			const format = obj.customDateFormat || 'MM/DD/YYYY';
-			const isDynamic = /{{[^{}]+}}/.test(dateValue);
-			if (!isDynamic && moment(dateValue).isValid()) {
-				obj.text = moment(dateValue).format(format);
-			}
-		}
-	}
-}
+// ================================
+// INTERFACES
+// ================================
 
 interface EditorOptions {
 	defaultState?: string;
@@ -172,10 +89,47 @@ interface EditorOptions {
 	strokeColor?: string;
 	strokeWidth?: number;
 	strokeDashArray?: number[];
-	lockWorkspaceBounds?: boolean; // New option to enable/disable workspace locking
+	lockWorkspaceBounds?: boolean;
 }
 
+// ================================
+// UTILITY FUNCTIONS
+// ================================
+
+function downloadFile(dataUrl: string, format: string): void {
+	const link = document.createElement('a');
+	link.download = `canvas.${format}`;
+	link.href = dataUrl;
+	link.click();
+}
+
+function isTextType(type: string | undefined): boolean {
+	return type === 'text' || type === 'textbox';
+}
+
+async function transformText(objects: any[]): Promise<void> {
+	for (const obj of objects) {
+		if (obj.type === 'textbox' && obj.customType === 'date') {
+			const dateValue = obj.customDateValue;
+			const format = obj.customDateFormat || 'MM/DD/YYYY';
+			const isDynamic = /{{[^{}]+}}/.test(dateValue);
+
+			if (!isDynamic && moment(dateValue).isValid()) {
+				obj.text = moment(dateValue).format(format);
+			}
+		}
+	}
+}
+
+// ================================
+// MAIN EDITOR FUNCTION
+// ================================
+
 export function createEditor(options: EditorOptions = {}) {
+	// ================================
+	// STATE VARIABLES
+	// ================================
+
 	let canvas = $state<Canvas | null>(null);
 	let container = $state<HTMLElement | null>(null);
 	let selectedTool = $state('select');
@@ -189,14 +143,24 @@ export function createEditor(options: EditorOptions = {}) {
 	let strokeDashArray = $state(options.strokeDashArray || STROKE_DASH_ARRAY);
 	let workspaceSize = $state({ width: 500, height: 500 });
 
-	const history = createHistory({ canvas, saveCallback: options.saveCallback });
+	// ================================
+	// COMPOSABLES
+	// ================================
+
+	const history = createHistory({
+		canvas,
+		saveCallback: options.saveCallback
+	});
+
 	const canvasEvents = createCanvasEvents({
 		canvas,
 		setSelectedObjects: (objects) => (selectedObjects = objects),
 		clearSelectionCallback: options.clearSelectionCallback,
 		save: history.save
 	});
+
 	const clipboard = createClipboard({ canvas });
+
 	const hotkeys = createHotkeys({
 		undo: history.undo,
 		redo: history.redo,
@@ -205,24 +169,41 @@ export function createEditor(options: EditorOptions = {}) {
 		save: history.save,
 		canvas
 	});
+
 	const autoResize = createAutoResize({ canvas, container });
 
-	// Derived state
+	// ================================
+	// DERIVED STATE
+	// ================================
+
 	let hasSelection = $derived(selectedObjects.length > 0);
 	let canvasSize = $derived(
 		canvas
 			? { width: canvas.width, height: canvas.height }
-			: { width: options.defaultWidth || 800, height: options.defaultHeight || 600 }
+			: {
+					width: options.defaultWidth || 800,
+					height: options.defaultHeight || 600
+				}
 	);
 
-	function initializeVariableValues() {
+	// ================================
+	// WORKSPACE MANAGEMENT
+	// ================================
+
+	function initializeVariableValues(): void {
 		if (typeof window !== 'undefined' && !window.variableValues) {
 			window.variableValues = {};
 		}
 	}
 
-	// Function to constrain objects within workspace bounds
-	function constrainObjectToWorkspace(obj: FabricObject, workspace: Rect) {
+	function getWorkspace(): Rect | undefined {
+		if (!canvas) return undefined;
+		return canvas.getObjects().find((object) => (object as any).name === 'clip') as
+			| Rect
+			| undefined;
+	}
+
+	function constrainObjectToWorkspace(obj: FabricObject, workspace: Rect): void {
 		if (!obj || !workspace || obj.name === 'clip') return;
 
 		const objBounds = obj.getBoundingRect();
@@ -251,45 +232,28 @@ export function createEditor(options: EditorOptions = {}) {
 
 		// Update position if changed
 		if (newLeft !== obj.left || newTop !== obj.top) {
-			obj.set({
-				left: newLeft,
-				top: newTop
-			});
+			obj.set({ left: newLeft, top: newTop });
 		}
 	}
 
-	// Function to setup workspace boundary constraints
-	function setupWorkspaceBoundaryConstraints() {
+	function setupWorkspaceBoundaryConstraints(): void {
 		if (!canvas || !options.lockWorkspaceBounds) return;
 
 		const workspace = getWorkspace();
 		if (!workspace) return;
 
-		// Constraint during object movement
-		canvas.on('object:moving', (e) => {
+		// Event handlers for workspace constraints
+		const constraintHandler = (e: any) => {
 			const obj = e.target;
 			if (obj) {
 				constrainObjectToWorkspace(obj, workspace);
 			}
-		});
+		};
 
-		// Constraint during object scaling
-		canvas.on('object:scaling', (e) => {
-			const obj = e.target;
-			if (obj) {
-				constrainObjectToWorkspace(obj, workspace);
-			}
-		});
+		canvas.on('object:moving', constraintHandler);
+		canvas.on('object:scaling', constraintHandler);
+		canvas.on('object:rotating', constraintHandler);
 
-		// Constraint during object rotation
-		canvas.on('object:rotating', (e) => {
-			const obj = e.target;
-			if (obj) {
-				constrainObjectToWorkspace(obj, workspace);
-			}
-		});
-
-		// Constraint after object modification
 		canvas.on('object:modified', (e) => {
 			const obj = e.target;
 			if (obj && canvas) {
@@ -298,7 +262,6 @@ export function createEditor(options: EditorOptions = {}) {
 			}
 		});
 
-		// Prevent objects from being added outside workspace
 		canvas.on('object:added', (e) => {
 			const obj = e.target;
 			if (obj && obj.name !== 'clip' && canvas) {
@@ -308,8 +271,7 @@ export function createEditor(options: EditorOptions = {}) {
 		});
 	}
 
-	// Function to limit pan to keep workspace visible
-	function constrainViewport() {
+	function constrainViewport(): void {
 		if (!canvas) return;
 
 		const workspace = getWorkspace();
@@ -318,11 +280,8 @@ export function createEditor(options: EditorOptions = {}) {
 		const zoom = canvas.getZoom();
 		const canvasWidth = canvas.getWidth();
 		const canvasHeight = canvas.getHeight();
-
 		const workspaceBounds = workspace.getBoundingRect();
-		const workspaceCenter = workspace.getCenterPoint();
 
-		// Calculate the maximum pan limits
 		const maxPanX = Math.max(0, (workspaceBounds.width * zoom - canvasWidth) / 2);
 		const maxPanY = Math.max(0, (workspaceBounds.height * zoom - canvasHeight) / 2);
 
@@ -338,6 +297,29 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.setViewportTransform(vpt);
 	}
 
+	function resizeWorkspace(width: number, height: number): void {
+		if (!canvas) return;
+
+		const workspace = getWorkspace();
+		if (!workspace) return;
+
+		workspace.set({ width, height });
+		workspaceSize = { width, height };
+
+		canvas.centerObject(workspace);
+
+		if (options.lockWorkspaceBounds !== false) {
+			canvas.clipPath = workspace;
+		}
+
+		canvas.requestRenderAll();
+		history.save();
+	}
+
+	// ================================
+	// CANVAS INITIALIZATION
+	// ================================
+
 	function initializeCanvas(
 		canvasElement: HTMLCanvasElement,
 		containerElement: HTMLElement
@@ -345,13 +327,11 @@ export function createEditor(options: EditorOptions = {}) {
 		try {
 			initializeVariableValues();
 
-			// Canvas dimensions - could be made configurable
 			workspaceSize = {
 				width: options.defaultWidth || 500,
 				height: options.defaultHeight || 500
 			};
 
-			// Create canvas with proper dimensions
 			canvas = new Canvas(canvasElement, {
 				width: workspaceSize.width,
 				height: workspaceSize.height,
@@ -359,7 +339,6 @@ export function createEditor(options: EditorOptions = {}) {
 				preserveObjectStacking: true,
 				selection: true,
 				skipTargetFind: false,
-				// Disable free drawing outside workspace if needed
 				allowTouchScrolling: false
 			});
 
@@ -376,13 +355,13 @@ export function createEditor(options: EditorOptions = {}) {
 				cornerStrokeColor: '#3b82f6'
 			});
 
-			// Create workspace (the white canvas area) with visual boundaries
+			// Create workspace
 			const workspace = new Rect({
 				width: workspaceSize.width,
 				height: workspaceSize.height,
 				name: 'clip',
 				fill: 'white',
-				stroke: '#e5e7eb', // Light gray border
+				stroke: '#e5e7eb',
 				strokeWidth: 2,
 				selectable: false,
 				hasControls: false,
@@ -396,39 +375,34 @@ export function createEditor(options: EditorOptions = {}) {
 				})
 			});
 
-			// Add workspace to canvas
 			canvas.add(workspace);
 			canvas.centerObject(workspace);
 
-			// Set workspace as clipping path to enforce hard boundaries
 			if (options.lockWorkspaceBounds !== false) {
 				canvas.clipPath = workspace;
 			}
 
-			// Set canvas background
 			canvas.backgroundColor = '#f8fafc';
 
-			// Setup workspace boundary constraints
+			// Setup constraints and events
 			if (options.lockWorkspaceBounds !== false) {
 				setupWorkspaceBoundaryConstraints();
 			}
 
-			// Add viewport constraints for panning
 			canvas.on('after:render', () => {
 				if (options.lockWorkspaceBounds !== false) {
 					constrainViewport();
 				}
 			});
 
-			// Override the pan behavior to respect workspace bounds
+			// Mouse wheel zoom handler
 			canvas.on('mouse:wheel', (opt) => {
-				if (!canvas || !opt.e.ctrlKey) return; // Only handle zoom with Ctrl
+				if (!canvas || !opt.e.ctrlKey) return;
 
 				const delta = opt.e.deltaY;
 				let zoom = canvas.getZoom();
 				zoom *= 0.999 ** delta;
 
-				// Limit zoom levels
 				if (zoom > 3) zoom = 3;
 				if (zoom < 0.1) zoom = 0.1;
 
@@ -438,21 +412,17 @@ export function createEditor(options: EditorOptions = {}) {
 				opt.e.preventDefault();
 				opt.e.stopPropagation();
 
-				// Ensure viewport stays within bounds after zoom
 				if (options.lockWorkspaceBounds !== false) {
 					constrainViewport();
 				}
 			});
 
-			// Attach events
+			// Attach event handlers
 			canvasEvents.attachEvents(canvasElement);
 			hotkeys.attachEvents();
 			autoResize.attachEvents();
 
-			// Force initial render
 			canvas.requestRenderAll();
-
-			// Save initial state
 			history.save();
 
 			return canvas;
@@ -462,25 +432,20 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
-	function syncCanvasState() {
+	// ================================
+	// CANVAS UTILITIES
+	// ================================
+
+	function syncCanvasState(): void {
 		if (!canvas) return;
-		// Force a complete re-render
 		canvas.requestRenderAll();
 	}
 
-	function getWorkspace() {
-		if (!canvas) return undefined;
-		return canvas.getObjects().find((object) => (object as any).name === 'clip') as
-			| Rect
-			| undefined;
-	}
-
-	function center(object: FabricObject) {
+	function center(object: FabricObject): void {
 		if (!canvas) return;
-		const workspace = getWorkspace();
 
+		const workspace = getWorkspace();
 		if (workspace) {
-			// Center object within the workspace, not the entire canvas
 			const workspaceCenter = workspace.getCenterPoint();
 			object.set({
 				left: workspaceCenter.x,
@@ -491,38 +456,11 @@ export function createEditor(options: EditorOptions = {}) {
 		} else {
 			canvas.centerObject(object);
 		}
+
 		canvas.requestRenderAll();
 	}
 
-	// Function to resize workspace (if needed)
-	function resizeWorkspace(width: number, height: number) {
-		if (!canvas) return;
-
-		const workspace = getWorkspace();
-		if (!workspace) return;
-
-		// Update workspace size
-		workspace.set({
-			width: width,
-			height: height
-		});
-
-		// Update workspace size state
-		workspaceSize = { width, height };
-
-		// Re-center workspace
-		canvas.centerObject(workspace);
-
-		// Update clipping path if enabled
-		if (options.lockWorkspaceBounds !== false) {
-			canvas.clipPath = workspace;
-		}
-
-		canvas.requestRenderAll();
-		history.save();
-	}
-
-	function addToCanvas(object: FabricObject) {
+	function addToCanvas(object: FabricObject): void {
 		if (!canvas) return;
 		canvas.add(object);
 		center(object);
@@ -530,7 +468,10 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.renderAll();
 	}
 
-	// Export operations
+	// ================================
+	// EXPORT OPERATIONS
+	// ================================
+
 	function generateSaveOptions() {
 		const workspace = getWorkspace();
 		if (!workspace) {
@@ -557,7 +498,7 @@ export function createEditor(options: EditorOptions = {}) {
 		};
 	}
 
-	function savePng() {
+	function savePng(): void {
 		if (!canvas) return;
 		const options = generateSaveOptions();
 		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
@@ -566,7 +507,7 @@ export function createEditor(options: EditorOptions = {}) {
 		autoResize.autoZoom();
 	}
 
-	function saveJpg() {
+	function saveJpg(): void {
 		if (!canvas) return;
 		const options = generateSaveOptions();
 		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
@@ -575,7 +516,7 @@ export function createEditor(options: EditorOptions = {}) {
 		autoResize.autoZoom();
 	}
 
-	function saveSvg() {
+	function saveSvg(): void {
 		if (!canvas) return;
 		const options = generateSaveOptions();
 		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
@@ -584,7 +525,7 @@ export function createEditor(options: EditorOptions = {}) {
 		autoResize.autoZoom();
 	}
 
-	function savePdf() {
+	function savePdf(): void {
 		if (!canvas) return;
 		const options = generateSaveOptions();
 		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
@@ -604,7 +545,7 @@ export function createEditor(options: EditorOptions = {}) {
 		autoResize.autoZoom();
 	}
 
-	async function saveJson() {
+	async function saveJson(): Promise<void> {
 		if (!canvas) return;
 		const data = canvas.toJSON();
 		await transformText(data.objects);
@@ -612,7 +553,7 @@ export function createEditor(options: EditorOptions = {}) {
 		downloadFile(fileString, 'json');
 	}
 
-	function loadJson(json: string) {
+	function loadJson(json: string): void {
 		if (!canvas) return;
 		const data = JSON.parse(json);
 		canvas.loadFromJSON(data, () => {
@@ -620,25 +561,37 @@ export function createEditor(options: EditorOptions = {}) {
 		});
 	}
 
-	// Text and Date operations
-	function addText(text = 'Text', textOptions = {}) {
+	// ================================
+	// TEXT AND DATE OPERATIONS
+	// ================================
+
+	function addText(text = 'Text', textOptions = {}): void {
 		if (!canvas) return;
+
 		const textObj = new Textbox(text, {
 			...TEXT_OPTIONS,
 			fill: fillColor,
 			fontFamily: fontFamily,
+			fontSize: FONT_SIZE,
+			fontWeight: FONT_WEIGHT,
+			width: 200,
+			height: 50,
+			minWidth: 200,
 			variableValues: window.variableValues || {},
 			...textOptions
 		});
+
 		const command = new AddElementCommand(canvas, textObj);
 		history.execute(command);
 		addToCanvas(textObj);
 	}
 
-	function addDate() {
+	function addDate(): void {
 		if (!canvas) return;
+
 		const now = new Date();
 		const format = 'MM/DD/YYYY';
+
 		const dateText = new Textbox(moment(now).format(format), {
 			...TEXT_OPTIONS,
 			fill: fillColor,
@@ -648,17 +601,20 @@ export function createEditor(options: EditorOptions = {}) {
 			customDateFormat: format,
 			variableValues: window.variableValues || {}
 		});
+
 		const command = new AddElementCommand(canvas, dateText);
 		history.execute(command);
 		addToCanvas(dateText);
 	}
 
-	function changeDateFormat(format: string) {
+	function changeDateFormat(format: string): void {
 		if (!canvas) return;
+
 		const active = canvas.getActiveObject();
 		if (active && isTextType(active.type) && (active as any).customType === 'date') {
 			const dateValue = (active as any).customDateValue;
 			const isDynamic = /{{[^{}]+}}/.test(dateValue);
+
 			if (!isDynamic && dateValue && moment(dateValue).isValid()) {
 				(active as any).text = moment(dateValue).format(format);
 				(active as any).customDateFormat = format;
@@ -671,12 +627,14 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
-	function updateDateValue(newDateStr: string) {
+	function updateDateValue(newDateStr: string): void {
 		if (!canvas) return;
+
 		const active = canvas.getActiveObject();
 		if (active && isTextType(active.type) && (active as any).customType === 'date') {
 			const format = (active as any).customDateFormat || 'MM/DD/YYYY';
 			const isDynamic = /{{[^{}]+}}/.test(newDateStr);
+
 			if (!isDynamic && moment(newDateStr, format, true).isValid()) {
 				(active as any).customDateValue = moment(newDateStr, format).toISOString();
 				(active as any).text = moment(newDateStr, format).format(format);
@@ -684,30 +642,36 @@ export function createEditor(options: EditorOptions = {}) {
 				(active as any).customDateValue = newDateStr;
 				(active as any).text = newDateStr;
 			}
+
 			canvas.requestRenderAll();
 		}
 	}
 
-	function getActiveDateValue() {
+	function getActiveDateValue(): string | null {
 		if (!canvas) return null;
+
 		const active = canvas.getActiveObject();
 		if (active && isTextType(active.type) && (active as any).customType === 'date') {
 			return (active as any).customDateValue || null;
 		}
+
 		return null;
 	}
 
-	function getActiveDateFormat() {
+	function getActiveDateFormat(): string | null {
 		if (!canvas) return null;
+
 		const active = canvas.getActiveObject();
 		if (active && isTextType(active.type) && (active as any).customType === 'date') {
 			return (active as any).customDateFormat || 'MM/DD/YYYY';
 		}
+
 		return null;
 	}
 
-	function getActiveText() {
+	function getActiveText(): string | undefined {
 		if (!canvas) return undefined;
+
 		const activeObject = canvas.getActiveObject();
 		if (
 			activeObject &&
@@ -716,11 +680,13 @@ export function createEditor(options: EditorOptions = {}) {
 		) {
 			return (activeObject as Textbox).text || '';
 		}
+
 		return undefined;
 	}
 
-	function changeText(text: string) {
+	function changeText(text: string): void {
 		if (!canvas) return;
+
 		const activeObject = canvas.getActiveObject();
 		if (
 			activeObject &&
@@ -732,9 +698,13 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
-	// Shape operations
-	function addCircle() {
+	// ================================
+	// SHAPE OPERATIONS
+	// ================================
+
+	function addCircle(): void {
 		if (!canvas) return;
+
 		const object = new Circle({
 			...CIRCLE_OPTIONS,
 			fill: fillColor,
@@ -742,13 +712,15 @@ export function createEditor(options: EditorOptions = {}) {
 			strokeWidth: strokeWidth,
 			strokeDashArray: strokeDashArray
 		});
+
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
 		addToCanvas(object);
 	}
 
-	function addRectangle() {
+	function addRectangle(): void {
 		if (!canvas) return;
+
 		const object = new Rect({
 			...RECTANGLE_OPTIONS,
 			fill: fillColor,
@@ -756,13 +728,15 @@ export function createEditor(options: EditorOptions = {}) {
 			strokeWidth: strokeWidth,
 			strokeDashArray: strokeDashArray
 		});
+
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
 		addToCanvas(object);
 	}
 
-	function addSoftRectangle() {
+	function addSoftRectangle(): void {
 		if (!canvas) return;
+
 		const object = new Rect({
 			...RECTANGLE_OPTIONS,
 			rx: 50,
@@ -772,13 +746,15 @@ export function createEditor(options: EditorOptions = {}) {
 			strokeWidth: strokeWidth,
 			strokeDashArray: strokeDashArray
 		});
+
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
 		addToCanvas(object);
 	}
 
-	function addTriangle() {
+	function addTriangle(): void {
 		if (!canvas) return;
+
 		const object = new Triangle({
 			...TRIANGLE_OPTIONS,
 			fill: fillColor,
@@ -786,15 +762,18 @@ export function createEditor(options: EditorOptions = {}) {
 			strokeWidth: strokeWidth,
 			strokeDashArray: strokeDashArray
 		});
+
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
 		addToCanvas(object);
 	}
 
-	function addInverseTriangle() {
+	function addInverseTriangle(): void {
 		if (!canvas) return;
+
 		const HEIGHT = TRIANGLE_OPTIONS.height;
 		const WIDTH = TRIANGLE_OPTIONS.width;
+
 		const object = new Polygon(
 			[
 				{ x: 0, y: 0 },
@@ -809,15 +788,18 @@ export function createEditor(options: EditorOptions = {}) {
 				strokeDashArray: strokeDashArray
 			}
 		);
+
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
 		addToCanvas(object);
 	}
 
-	function addDiamond() {
+	function addDiamond(): void {
 		if (!canvas) return;
+
 		const HEIGHT = DIAMOND_OPTIONS.height;
 		const WIDTH = DIAMOND_OPTIONS.width;
+
 		const object = new Polygon(
 			[
 				{ x: WIDTH / 2, y: 0 },
@@ -833,14 +815,19 @@ export function createEditor(options: EditorOptions = {}) {
 				strokeDashArray: strokeDashArray
 			}
 		);
+
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
 		addToCanvas(object);
 	}
 
-	// QR Code and Barcode operations
-	async function addQRCode(value: string | null = null) {
+	// ================================
+	// QR CODE AND BARCODE OPERATIONS
+	// ================================
+
+	async function addQRCode(value: string | null = null): Promise<void> {
 		if (!canvas) return;
+
 		const template = '{{default_qrcode}}';
 		const dynamicValue = value || `https://metquay.com/generated/${Date.now()}`;
 		const finalValue = template.replace('{{default_qrcode}}', dynamicValue);
@@ -866,8 +853,9 @@ export function createEditor(options: EditorOptions = {}) {
 		addToCanvas(img);
 	}
 
-	async function addBarcode(value: string | null = null) {
+	async function addBarcode(value: string | null = null): Promise<void> {
 		if (!canvas) return;
+
 		const template = 'BAR{{date_code}}';
 		const today = new Date();
 		const dynamicValue =
@@ -882,9 +870,10 @@ export function createEditor(options: EditorOptions = {}) {
 			height: 50,
 			displayValue: false
 		});
-		const dataUrl = canvasElement.toDataURL();
 
+		const dataUrl = canvasElement.toDataURL();
 		const img = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+
 		img.set({
 			left: 100,
 			top: 100,
@@ -900,16 +889,23 @@ export function createEditor(options: EditorOptions = {}) {
 		addToCanvas(img);
 	}
 
-	// Image operations
-	async function addImage(fileOrUrl: File | string) {
+	// ================================
+	// IMAGE OPERATIONS
+	// ================================
+
+	async function addImage(fileOrUrl: File | string): Promise<void> {
 		if (!canvas) return;
+
 		const handleImage = async (url: string) => {
 			const image = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
 			const workspace = getWorkspace();
+
 			image.scaleToWidth((workspace?.width ?? 400) * 0.8);
 			const aspectRatio = (image.height ?? 1) / (image.width ?? 1);
 			image.set({ height: (image.width ?? 1) * aspectRatio });
+
 			if (!canvas) return;
+
 			const command = new AddElementCommand(canvas, image);
 			history.execute(command);
 			addToCanvas(image);
@@ -928,27 +924,37 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
-	// Selection and deletion
-	function deleteSelected() {
+	// ================================
+	// SELECTION AND DELETION
+	// ================================
+
+	function deleteSelected(): void {
 		if (!canvas) return;
+
 		canvas.getActiveObjects().forEach((object) => {
 			if (canvas) canvas.remove(object);
 		});
+
 		canvas.discardActiveObject();
 		canvas.renderAll();
 		history.save();
 	}
 
-	// Zoom operations
-	function setZoom(newZoom: number) {
+	// ================================
+	// ZOOM OPERATIONS
+	// ================================
+
+	function setZoom(newZoom: number): void {
 		if (!canvas) return;
+
 		zoom = Math.max(0.2, Math.min(1, newZoom));
 		const center = canvas.getCenter();
 		canvas.zoomToPoint(new Point(center.left, center.top), zoom);
 	}
 
-	function zoomIn() {
+	function zoomIn(): void {
 		if (!canvas) return;
+
 		let zoomRatio = canvas.getZoom();
 		zoomRatio += 0.05;
 		const center = canvas.getCenter();
@@ -956,8 +962,9 @@ export function createEditor(options: EditorOptions = {}) {
 		zoom = canvas.getZoom();
 	}
 
-	function zoomOut() {
+	function zoomOut(): void {
 		if (!canvas) return;
+
 		let zoomRatio = canvas.getZoom();
 		zoomRatio -= 0.05;
 		const center = canvas.getCenter();
@@ -965,7 +972,10 @@ export function createEditor(options: EditorOptions = {}) {
 		zoom = canvas.getZoom();
 	}
 
-	// Canvas size and background
+	// ================================
+	// CANVAS SIZE AND BACKGROUND
+	// ================================
+
 	function changeSize(value: { width: number; height: number }) {
 		if (!canvas) return;
 		const workspace = getWorkspace();
@@ -1085,15 +1095,8 @@ export function createEditor(options: EditorOptions = {}) {
 		if (!canvas) return;
 		strokeColor = value;
 		canvas.getActiveObjects().forEach((object) => {
-			if (isTextType(object.type)) {
-				object.set({ fill: value });
-			} else {
-				object.set({ stroke: value });
-			}
+			object.set({ stroke: value });
 		});
-		if (canvas.isDrawingMode && canvas.freeDrawingBrush) {
-			canvas.freeDrawingBrush.color = value;
-		}
 		canvas.renderAll();
 	}
 
@@ -1103,9 +1106,6 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.getActiveObjects().forEach((object) => {
 			object.set({ strokeWidth: value });
 		});
-		if (canvas.isDrawingMode && canvas.freeDrawingBrush) {
-			canvas.freeDrawingBrush.width = value;
-		}
 		canvas.renderAll();
 	}
 
