@@ -3,6 +3,7 @@
 	import ColorPicker from 'svelte-awesome-color-picker';
 	import { Input } from '@/components/ui/input';
 	import type { TemplateType, UnitType, Editor, Color, Dimensions } from '../lib/types';
+	import {convert} from '../lib/logic.svelte'
 
 	interface Props {
 		selectedType?: TemplateType;
@@ -22,14 +23,37 @@
 		editor
 	}: Props = $props();
 
+		
 	function handleTypeChange(type: TemplateType) {
 		selectedType = type;
 		onTypeChange?.(type);
 	}
 
-	function handleUnitChange(newUnit: UnitType) {
-		unit = newUnit;
-	}
+	
+		function handleUnitChange(event: Event) {
+			const newUnit = (event.target as HTMLSelectElement).value as UnitType;
+			const oldUnit = unit;
+
+			if (newUnit !== oldUnit) {
+				const w = parseFloat(dimensions.width);
+				const h = parseFloat(dimensions.height);
+
+				if (!isNaN(w)) {
+					const px = convert(w, oldUnit, 'px');
+					dimensions.width = convert(px, 'px', newUnit).toFixed(2);
+				}
+
+				if (!isNaN(h)) {
+					const px = convert(h, oldUnit, 'px');
+					dimensions.height = convert(px, 'px', newUnit).toFixed(2);
+				}
+
+				unit = newUnit; // Update unit only after conversion
+			}
+		}
+
+
+
 
 	function handleDimensionChange() {
 		if (dimensions.width && dimensions.height && editor?.canvas) {
@@ -37,6 +61,8 @@
 			const height = parseFloat(dimensions.height);
 
 			if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+			
+				
 				editor.changeSize({ width, height });
 			}
 		}
@@ -80,7 +106,7 @@
 
 	// Watch for dimension changes and apply them
 	$effect(() => {
-		if (dimensions.width || dimensions.height) {
+		if (dimensions.width && dimensions.height && unit) {
 			handleDimensionChange();
 		}
 	});
@@ -115,13 +141,15 @@
 					Unit of Measurement <span class="text-red-500">*</span>
 				</label>
 				<select
-					bind:value={unit}
-					onchange={(e) => handleUnitChange((e.target as HTMLSelectElement).value as UnitType)}
+					value={unit}
+					onchange={handleUnitChange}
 					class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				>
 					<option value="mm">mm</option>
 					<option value="cm">cm</option>
 					<option value="px">px</option>
+					<option value="in">in</option>
+
 				</select>
 			</div>
 

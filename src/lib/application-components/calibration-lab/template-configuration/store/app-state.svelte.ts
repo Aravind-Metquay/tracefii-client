@@ -16,7 +16,7 @@ export class AppState {
 	editor = createEditor({
 		defaultState: this.uiState.defaultState,
 		defaultWidth: 800,
-		defaultHeight: 600,
+		defaultHeight:400,
 		saveCallback: () => console.log('Saved'),
 		clearSelectionCallback: () => console.log('Selection cleared')
 	});

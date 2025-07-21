@@ -38,7 +38,7 @@ export interface ExtendedFabricObject extends FabricObject {
 
 export type ComponentType = 'Text' | 'Date' | 'Image' | 'Barcode' | 'QR Code' | null;
 export type TemplateType = string;
-export type UnitType = 'cm' | 'mm' | 'in';
+export type UnitType = 'cm' | 'mm' | 'in'|'px';
 export type Dimensions = { width: string; height: string };
 export type Color = { r: number; g: number; b: number };
 
