@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
-	import { auth } from '@/svelte-auth0';
+	import { auth , sendResetPasswordEmail } from '@/svelte-auth0';
 	import { ArrowLeft } from '@lucide/svelte';
 
 
@@ -31,7 +31,7 @@
 					</p>
 					<div class="flex flex-col gap-4">
 						<Input class="text-xs" placeholder="Enter your email address" bind:value={email} />
-						<Button class="text-md w-full p-6" onclick={()=>auth.sendResetPasswordEmail(email)}>Reset Password</Button>
+						<Button class="text-md w-full p-6" onclick={()=>sendResetPasswordEmail(email)}>Reset Password</Button>
 					</div>
 					<p
 						class="mb-10 flex cursor-pointer flex-row items-center justify-center text-center text-xs text-gray-500"
