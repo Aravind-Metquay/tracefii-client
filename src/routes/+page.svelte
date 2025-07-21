@@ -3,7 +3,9 @@
 	import type { ColumnConfig } from '@/application-components/common/data-table/types';
 	import SimpleTable from '@/application-components/common/data-table/simple-table.svelte';
 	import { goto } from '$app/navigation';
+	import { useEditUser } from '@/api/queries/user-query';
 
+	
 	const mailtoSnippet = createRawSnippet<[string]>((email) => {
 		const emailAddress = email();
 		return {
