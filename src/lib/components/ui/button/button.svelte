@@ -21,6 +21,7 @@
 			size: {
 	            default: "min-h-[2.5rem] min-w-[6.875rem] py-[0.625rem] px-[1rem] border rounded-lg",
 	            sm: "min-h-[2.25rem] min-w-[6.625rem] py-[0.5rem] px-[0.875rem] border rounded-lg",
+				md: "min-h-[2.5rem] min-w-[6.875rem] py-[0.625rem] px-[1rem] border rounded-lg",
 	            lg: "min-h-[2.75rem] min-w-[7.8125rem] py-[0.625rem] px-[1.125rem] border rounded-lg",
 	            xl: "min-h-[3rem] min-w-[8.0625rem] py-[0.75rem] px-[1.25rem] border rounded-lg",
 	            icon: "size-9",

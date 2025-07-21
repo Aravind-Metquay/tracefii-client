@@ -11,3 +11,4 @@ export const useUserWithOrg = (email: string | undefined, token: string | undefi
 		staleTime: 1000 * 60 * 5 // 5 minutes
 	});
 };
+	
