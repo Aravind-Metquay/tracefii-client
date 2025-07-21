@@ -56,7 +56,6 @@
 			value={selectedObject?.data?.template ?? ''}
 			placeholder="Enter QR code data (text, URL, etc.)"
 			oninput={(e) => handleQRDataChange((e.target as HTMLTextAreaElement).value)}
-			disabled={!selectedObject || !editor?.changeQRData}
 		></textarea>
 	</div>
 
@@ -70,7 +69,6 @@
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.width ?? 100}
 				oninput={(e) => handleQRSizeChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeQRSize}
 			/>
 		</div>
 
@@ -81,7 +79,6 @@
 				value={selectedObject?.data?.errorCorrectionLevel ?? 'M'}
 				onchange={(e) => handleQRErrorLevelChange((e.target as HTMLSelectElement).value)}
 				class="w-full rounded border border-gray-300 p-2 text-sm"
-				disabled={!selectedObject || !editor?.changeQRErrorLevel}
 			>
 				<option value="L">Low (7%)</option>
 				<option value="M">Medium (15%)</option>
@@ -100,7 +97,6 @@
 				class="w-full rounded border border-gray-300 p-1"
 				value={selectedObject?.fill ?? '#000000'}
 				onchange={(e) => handleQRForegroundColorChange((e.target as HTMLInputElement).value)}
-				disabled={!selectedObject || !editor?.changeQRForegroundColor}
 			/>
 		</div>
 
@@ -112,7 +108,6 @@
 				class="w-full rounded border border-gray-300 p-1"
 				value={selectedObject?.data?.backgroundColor ?? '#ffffff'}
 				onchange={(e) => handleQRBackgroundColorChange((e.target as HTMLInputElement).value)}
-				disabled={!selectedObject || !editor?.changeQRBackgroundColor}
 			/>
 		</div>
 	</div>
@@ -123,7 +118,6 @@
 				type="checkbox"
 				checked={selectedObject?.data?.includeMargin ?? true}
 				onchange={(e) => handleQRIncludeMarginChange((e.target as HTMLInputElement).checked)}
-				disabled={!selectedObject || !editor?.changeQRIncludeMargin}
 			/>
 			Include Margin
 		</label>

@@ -51,7 +51,6 @@
 			value={selectedObject?.data?.template ?? ''}
 			placeholder="Enter barcode data"
 			oninput={(e) => handleBarcodeDataChange((e.target as HTMLInputElement).value)}
-			disabled={!selectedObject || !editor?.changeBarcodeData}
 		/>
 	</div>
 
@@ -62,7 +61,6 @@
 			value={selectedObject?.data?.format ?? 'CODE128'}
 			onchange={(e) => handleBarcodeTypeChange((e.target as HTMLSelectElement).value)}
 			class="w-full rounded border border-gray-300 p-2 text-sm"
-			disabled={!selectedObject || !editor?.changeBarcodeType}
 		>
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
@@ -82,7 +80,6 @@
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.width ?? 200}
 				oninput={(e) => handleBarcodeWidthChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeBarcodeWidth}
 			/>
 		</div>
 
@@ -95,7 +92,6 @@
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.height ?? 50}
 				oninput={(e) => handleBarcodeHeightChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeBarcodeHeight}
 			/>
 		</div>
 	</div>
@@ -106,7 +102,6 @@
 				type="checkbox"
 				checked={selectedObject?.data?.displayValue ?? true}
 				onchange={(e) => handleBarcodeShowTextChange((e.target as HTMLInputElement).checked)}
-				disabled={!selectedObject || !editor?.changeBarcodeShowText}
 			/>
 			Show Text
 		</label>

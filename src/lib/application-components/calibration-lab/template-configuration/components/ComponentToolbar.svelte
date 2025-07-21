@@ -35,7 +35,7 @@
 			case 'Image':
 				if (editor.addImage)
 					editor.addImage(
-						'https://images-eu.ssl-images-amazon.com/images/G/31/sthaneka/Alphonsa/desktop/Unrec/low-res_2._CB789029460_.jpg'
+						'https://cdn.prod.website-files.com/62d84e447b4f9e7263d31e94/6399a4d27711a5ad2c9bf5cd_ben-sweet-2LowviVHZ-E-unsplash-1.jpeg'
 					);
 				break;
 			case 'QR Code':
@@ -52,7 +52,7 @@
 	{#each availableComponents as component}
 		<Button
 			onclick={() => handleComponentClick(component)}
-			class="flex min-w-[80px] items-center justify-center gap-1 border-0 p-3 text-black bg-white shadow-lg"
+			class="flex min-w-[80px] items-center justify-center gap-1 border-0 bg-white p-3 text-black shadow-lg"
 		>
 			<span class="text-2xl">{componentIcons[component] || '📄'}</span>
 			<span class="text-xs">{component}</span>

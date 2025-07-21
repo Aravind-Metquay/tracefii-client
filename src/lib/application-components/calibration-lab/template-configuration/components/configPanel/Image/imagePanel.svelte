@@ -36,7 +36,6 @@
 			value={selectedObject?.src ?? ''}
 			placeholder="Enter image URL or path"
 			oninput={(e) => handleImageSrcChange((e.target as HTMLInputElement).value)}
-			disabled={!selectedObject || !editor?.addImage}
 		/>
 	</div>
 
@@ -50,7 +49,6 @@
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.width ?? 100}
 				oninput={(e) => handleImageWidthChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeImageWidth}
 			/>
 		</div>
 
@@ -63,7 +61,6 @@
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.height ?? 100}
 				oninput={(e) => handleImageHeightChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeImageHeight}
 			/>
 		</div>
 	</div>
