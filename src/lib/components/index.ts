@@ -11,9 +11,6 @@ export { default as Button } from './button/button.svelte';
 // Checkbox
 export {default as Checkbox} from './checkbox/checkbox.svelte'
 
-// Choicebox
-export * as Choicebox from './choicebox/index.js'
-
 // Error
 export { default as Error } from './error/error.svelte';
 

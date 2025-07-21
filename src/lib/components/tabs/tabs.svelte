@@ -112,7 +112,7 @@
 	</button>
 {/snippet}
 
-<div class="w-full flex items-center {contClass}">
+<div class="w-full flex items-center justify-center {contClass}">
 	{#if tabs}
 		{#each tabs as tab}
 			<div class="mb-[-1px]">
