@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import '../app.css';
+	import '../index.css';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { ModeWatcher } from 'mode-watcher';
 	import { browser } from '$app/environment';

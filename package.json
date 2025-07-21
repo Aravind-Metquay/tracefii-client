@@ -66,6 +66,7 @@
 		"clsx": "^2.1.1",
 		"codemirror": "^6.0.2",
 		"fabric": "^6.7.0",
+		"highlight.js": "^11.11.1",
 		"jsbarcode": "^3.12.1",
 		"jspdf": "^3.0.1",
 		"mode-watcher": "^1.1.0",

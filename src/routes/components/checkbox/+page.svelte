@@ -1,10 +1,8 @@
-<script lang="ts">
-	import Checkbox from "$lib/components/ui/checkbox/checkbox.svelte";
+<script>
+	import { Checkbox } from "@/components";
 </script>
 
-<div class="flex items-center justify-center gap-2 h-screen">
-	<Checkbox checked={true}/>
-	<Checkbox checked={false}/>
-	<Checkbox checked={false} indeterminate={true} />
-	<Checkbox disabled={true} />
+
+<div class="h-full w-full flex items-center justify-center">
+	<Checkbox checked={true}>Hello World!</Checkbox>
 </div>

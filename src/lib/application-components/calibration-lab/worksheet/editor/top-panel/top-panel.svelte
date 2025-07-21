@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '../store.svelte';
-	import AddComponentModal from './AddComponentModal/_add-component-modal.svelte';
 	import { Button } from '@/components/ui/button';
+	import AddComponentDialog from './add-component-dialog.svelte';
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 	let open = $state(false);
 </script>
@@ -25,8 +25,8 @@
 		</div>
 	</div>
 
-	<Button onclick={() => (open = true)}>Add New Component</Button>
-	<AddComponentModal bind:open />
+	<Button size="sm" variant="primary" onclick={() => (open = true)}>Add New Component</Button>
+	<AddComponentDialog bind:open />
 
 	<div class="flex items-center gap-4">
 		<div class="flex items-center rounded-lg bg-gray-200 p-1">

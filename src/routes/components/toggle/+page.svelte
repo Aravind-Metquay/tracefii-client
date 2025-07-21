@@ -1,10 +1,8 @@
-<script lang="ts">
-    import Switch from "@/components/ui/toggle/toggle.svelte"
+<script>
+	import { Toggle } from "@/components";
 </script>
 
 
-<div class="flex flex-col items-center justify-center h-screen gap-4">
-    <Switch />
-    <Switch disabled/>
+<div class="h-full w-full flex items-center justify-center">
+	<Toggle size={"small"} color={"purple"} direction="switch-last">Hello World!</Toggle> 
 </div>
-

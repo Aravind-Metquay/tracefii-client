@@ -12,8 +12,9 @@
     <p class="text-xl">Functions</p>
     <Button
       onclick={() =>worksheetManager.addNewFunction()}
-    >
-      <!-- class="px-3 py-1 text-sm bg-secondary text-black rounded"  -->
+      variant="primary"
+      size="sm"
+      >
       Add
     </Button>
   </div>
