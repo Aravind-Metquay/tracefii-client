@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { setAuthContext } from './auth-context.svelte';
+  import { auth } from './auth.svelte';
   import type { Auth0Config } from './types';
   
   interface Props {
@@ -9,7 +9,9 @@
   
   let { config, children }: Props = $props();
   
-  const authStore = setAuthContext(config);
+  $effect(() => {
+    auth.init(config);
+  });
 </script>
 
 {@render children()}
