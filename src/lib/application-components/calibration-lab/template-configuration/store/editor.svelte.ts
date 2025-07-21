@@ -8,8 +8,7 @@ import {
 	Triangle,
 	Polygon,
 	Point,
-	Shadow,
-	ActiveSelection
+	Shadow
 } from 'fabric';
 import { createHistory } from './history.svelte';
 import { createCanvasEvents } from './canvas-events.svelte';
@@ -30,7 +29,6 @@ const STROKE_DASH_ARRAY: number[] = [];
 const FONT_FAMILY = 'Times New Roman';
 const FONT_SIZE = 24;
 const FONT_WEIGHT = 400;
-const JSON_KEYS = ['version', 'objects', 'background', 'backgroundImage', 'width', 'height'];
 
 // Default options for objects
 const TEXT_OPTIONS = {
@@ -118,17 +116,35 @@ function isTextType(type: string | undefined): boolean {
 	return type === 'text' || type === 'textbox';
 }
 
-function createFilter(value: string): any | null {
-	// Note: Filter implementation depends on fabric.js version
-	// This is a placeholder that should be updated based on your fabric.js version
-	switch (value) {
-		case 'grayscale':
-		case 'invert':
-		case 'sepia':
-		case 'blur':
-			return { type: value };
-		default:
-			return null;
+declare module 'fabric' {
+	interface FabricObject {
+		name?: string;
+		customType?: string;
+		customDateValue?: string;
+		customDateFormat?: string;
+		variableValues?: { [key: string]: string };
+		text?: string;
+	}
+	interface Textbox {
+		customType?: string;
+		customDateValue?: string;
+		customDateFormat?: string;
+		variableValues?: { [key: string]: string };
+	}
+	interface ITextboxOptions {
+		customType?: string;
+		customDateValue?: string;
+		customDateFormat?: string;
+		variableValues?: { [key: string]: string };
+	}
+	interface FabricImage {
+		data?: any;
+	}
+}
+
+declare global {
+	interface Window {
+		variableValues?: { [key: string]: string };
 	}
 }
 
@@ -156,6 +172,7 @@ interface EditorOptions {
 	strokeColor?: string;
 	strokeWidth?: number;
 	strokeDashArray?: number[];
+	lockWorkspaceBounds?: boolean; // New option to enable/disable workspace locking
 }
 
 export function createEditor(options: EditorOptions = {}) {
@@ -170,6 +187,7 @@ export function createEditor(options: EditorOptions = {}) {
 	let strokeColor = $state(options.strokeColor || STROKE_COLOR);
 	let strokeWidth = $state(options.strokeWidth || STROKE_WIDTH);
 	let strokeDashArray = $state(options.strokeDashArray || STROKE_DASH_ARRAY);
+	let workspaceSize = $state({ width: 500, height: 500 });
 
 	const history = createHistory({ canvas, saveCallback: options.saveCallback });
 	const canvasEvents = createCanvasEvents({
@@ -203,102 +221,245 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
-	// Fixed initializeCanvas function in your editor
-	function initializeCanvas(canvasElement: HTMLCanvasElement, containerElement: HTMLElement) {
-		initializeVariableValues();
+	// Function to constrain objects within workspace bounds
+	function constrainObjectToWorkspace(obj: FabricObject, workspace: Rect) {
+		if (!obj || !workspace || obj.name === 'clip') return;
 
-		// Get container dimensions
-		const containerRect = containerElement.getBoundingClientRect();
-		const width = containerRect.width || options.defaultWidth || 800;
-		const height = containerRect.height || options.defaultHeight || 600;
+		const objBounds = obj.getBoundingRect();
+		const workspaceBounds = workspace.getBoundingRect();
 
-		// Create canvas with proper dimensions
-		canvas = new Canvas(canvasElement, {
-			width: width,
-			height: height,
-			renderOnAddRemove: true, // Enable automatic rendering
-			preserveObjectStacking: true,
-			selection: true,
-			skipTargetFind: false
-		});
+		let newLeft = obj.left;
+		let newTop = obj.top;
 
-		container = containerElement;
+		// Constrain horizontal position
+		if (objBounds.left < workspaceBounds.left) {
+			newLeft = obj.left + (workspaceBounds.left - objBounds.left);
+		} else if (objBounds.left + objBounds.width > workspaceBounds.left + workspaceBounds.width) {
+			newLeft =
+				obj.left -
+				(objBounds.left + objBounds.width - (workspaceBounds.left + workspaceBounds.width));
+		}
 
-		// Set fabric object defaults
-		FabricObject.prototype.set({
-			cornerColor: '#FFF',
-			cornerStyle: 'circle',
-			borderColor: '#3b82f6',
-			borderScaleFactor: 1.5,
-			transparentCorners: false,
-			borderOpacityWhenMoving: 1,
-			cornerStrokeColor: '#3b82f6'
-		});
+		// Constrain vertical position
+		if (objBounds.top < workspaceBounds.top) {
+			newTop = obj.top + (workspaceBounds.top - objBounds.top);
+		} else if (objBounds.top + objBounds.height > workspaceBounds.top + workspaceBounds.height) {
+			newTop =
+				obj.top -
+				(objBounds.top + objBounds.height - (workspaceBounds.top + workspaceBounds.height));
+		}
 
-		// Create workspace (the white canvas area)
-		const workspace = new Rect({
-			width: options.defaultWidth || 800,
-			height: options.defaultHeight || 600,
-			name: 'clip',
-			fill: 'white',
-			selectable: false,
-			hasControls: false,
-			evented: false, // Prevent workspace from being interactive
-			shadow: new Shadow({
-				color: 'rgba(0,0,0,0.8)',
-				blur: 5,
-				offsetX: 2,
-				offsetY: 2
-			})
-		});
-
-		// Add workspace to canvas
-		canvas.add(workspace);
-		canvas.centerObject(workspace);
-		canvas.clipPath = workspace;
-
-		// Set canvas background
-		canvas.backgroundColor = '#f5f5f5';
-
-		// Attach events
-		canvasEvents.attachEvents(canvasElement);
-		hotkeys.attachEvents();
-		autoResize.attachEvents();
-
-		// Force initial render
-		canvas.requestRenderAll();
-
-		// Save initial state
-		history.save();
-
-		return canvas;
+		// Update position if changed
+		if (newLeft !== obj.left || newTop !== obj.top) {
+			obj.set({
+				left: newLeft,
+				top: newTop
+			});
+		}
 	}
 
-	// Enhanced autoZoom function
-	function autoZoom() {
-		if (!canvas || !container) return;
+	// Function to setup workspace boundary constraints
+	function setupWorkspaceBoundaryConstraints() {
+		if (!canvas || !options.lockWorkspaceBounds) return;
 
 		const workspace = getWorkspace();
 		if (!workspace) return;
 
-		const containerRect = container.getBoundingClientRect();
-		const containerWidth = containerRect.width;
-		const containerHeight = containerRect.height;
+		// Constraint during object movement
+		canvas.on('object:moving', (e) => {
+			const obj = e.target;
+			if (obj) {
+				constrainObjectToWorkspace(obj, workspace);
+			}
+		});
 
-		// Calculate zoom to fit workspace with some padding
-		const padding = 50;
-		const zoomX = (containerWidth - padding) / workspace.width;
-		const zoomY = (containerHeight - padding) / workspace.height;
-		const newZoom = Math.min(zoomX, zoomY, 1); // Don't zoom in beyond 100%
+		// Constraint during object scaling
+		canvas.on('object:scaling', (e) => {
+			const obj = e.target;
+			if (obj) {
+				constrainObjectToWorkspace(obj, workspace);
+			}
+		});
 
-		// Set zoom and center
-		const center = workspace.getCenterPoint();
-		canvas.zoomToPoint(center, newZoom);
-		canvas.centerObject(workspace);
-		canvas.requestRenderAll();
+		// Constraint during object rotation
+		canvas.on('object:rotating', (e) => {
+			const obj = e.target;
+			if (obj) {
+				constrainObjectToWorkspace(obj, workspace);
+			}
+		});
 
-		// Update zoom state
-		zoom = newZoom;
+		// Constraint after object modification
+		canvas.on('object:modified', (e) => {
+			const obj = e.target;
+			if (obj && canvas) {
+				constrainObjectToWorkspace(obj, workspace);
+				canvas.requestRenderAll();
+			}
+		});
+
+		// Prevent objects from being added outside workspace
+		canvas.on('object:added', (e) => {
+			const obj = e.target;
+			if (obj && obj.name !== 'clip' && canvas) {
+				constrainObjectToWorkspace(obj, workspace);
+				canvas.requestRenderAll();
+			}
+		});
+	}
+
+	// Function to limit pan to keep workspace visible
+	function constrainViewport() {
+		if (!canvas) return;
+
+		const workspace = getWorkspace();
+		if (!workspace) return;
+
+		const zoom = canvas.getZoom();
+		const canvasWidth = canvas.getWidth();
+		const canvasHeight = canvas.getHeight();
+
+		const workspaceBounds = workspace.getBoundingRect();
+		const workspaceCenter = workspace.getCenterPoint();
+
+		// Calculate the maximum pan limits
+		const maxPanX = Math.max(0, (workspaceBounds.width * zoom - canvasWidth) / 2);
+		const maxPanY = Math.max(0, (workspaceBounds.height * zoom - canvasHeight) / 2);
+
+		const vpt = canvas.viewportTransform;
+		if (!vpt) return;
+
+		// Constrain pan to keep workspace visible
+		if (vpt[4] > maxPanX) vpt[4] = maxPanX;
+		if (vpt[4] < -maxPanX) vpt[4] = -maxPanX;
+		if (vpt[5] > maxPanY) vpt[5] = maxPanY;
+		if (vpt[5] < -maxPanY) vpt[5] = -maxPanY;
+
+		canvas.setViewportTransform(vpt);
+	}
+
+	function initializeCanvas(
+		canvasElement: HTMLCanvasElement,
+		containerElement: HTMLElement
+	): Canvas {
+		try {
+			initializeVariableValues();
+
+			// Canvas dimensions - could be made configurable
+			workspaceSize = {
+				width: options.defaultWidth || 500,
+				height: options.defaultHeight || 500
+			};
+
+			// Create canvas with proper dimensions
+			canvas = new Canvas(canvasElement, {
+				width: workspaceSize.width,
+				height: workspaceSize.height,
+				renderOnAddRemove: true,
+				preserveObjectStacking: true,
+				selection: true,
+				skipTargetFind: false,
+				// Disable free drawing outside workspace if needed
+				allowTouchScrolling: false
+			});
+
+			container = containerElement;
+
+			// Set fabric object defaults
+			FabricObject.prototype.set({
+				cornerColor: '#FFF',
+				cornerStyle: 'circle',
+				borderColor: '#3b82f6',
+				borderScaleFactor: 1.5,
+				transparentCorners: false,
+				borderOpacityWhenMoving: 1,
+				cornerStrokeColor: '#3b82f6'
+			});
+
+			// Create workspace (the white canvas area) with visual boundaries
+			const workspace = new Rect({
+				width: workspaceSize.width,
+				height: workspaceSize.height,
+				name: 'clip',
+				fill: 'white',
+				stroke: '#e5e7eb', // Light gray border
+				strokeWidth: 2,
+				selectable: false,
+				hasControls: false,
+				hoverCursor: 'default',
+				moveCursor: 'default',
+				shadow: new Shadow({
+					color: 'rgba(0,0,0,0.1)',
+					blur: 10,
+					offsetX: 0,
+					offsetY: 2
+				})
+			});
+
+			// Add workspace to canvas
+			canvas.add(workspace);
+			canvas.centerObject(workspace);
+
+			// Set workspace as clipping path to enforce hard boundaries
+			if (options.lockWorkspaceBounds !== false) {
+				canvas.clipPath = workspace;
+			}
+
+			// Set canvas background
+			canvas.backgroundColor = '#f8fafc';
+
+			// Setup workspace boundary constraints
+			if (options.lockWorkspaceBounds !== false) {
+				setupWorkspaceBoundaryConstraints();
+			}
+
+			// Add viewport constraints for panning
+			canvas.on('after:render', () => {
+				if (options.lockWorkspaceBounds !== false) {
+					constrainViewport();
+				}
+			});
+
+			// Override the pan behavior to respect workspace bounds
+			canvas.on('mouse:wheel', (opt) => {
+				if (!canvas || !opt.e.ctrlKey) return; // Only handle zoom with Ctrl
+
+				const delta = opt.e.deltaY;
+				let zoom = canvas.getZoom();
+				zoom *= 0.999 ** delta;
+
+				// Limit zoom levels
+				if (zoom > 3) zoom = 3;
+				if (zoom < 0.1) zoom = 0.1;
+
+				const point = new Point(opt.e.offsetX, opt.e.offsetY);
+				canvas.zoomToPoint(point, zoom);
+
+				opt.e.preventDefault();
+				opt.e.stopPropagation();
+
+				// Ensure viewport stays within bounds after zoom
+				if (options.lockWorkspaceBounds !== false) {
+					constrainViewport();
+				}
+			});
+
+			// Attach events
+			canvasEvents.attachEvents(canvasElement);
+			hotkeys.attachEvents();
+			autoResize.attachEvents();
+
+			// Force initial render
+			canvas.requestRenderAll();
+
+			// Save initial state
+			history.save();
+
+			return canvas;
+		} catch (error) {
+			console.error('Failed to initialize canvas:', error);
+			throw error;
+		}
 	}
 
 	function syncCanvasState() {
@@ -316,7 +477,49 @@ export function createEditor(options: EditorOptions = {}) {
 
 	function center(object: FabricObject) {
 		if (!canvas) return;
-		canvas.centerObject(object);
+		const workspace = getWorkspace();
+
+		if (workspace) {
+			// Center object within the workspace, not the entire canvas
+			const workspaceCenter = workspace.getCenterPoint();
+			object.set({
+				left: workspaceCenter.x,
+				top: workspaceCenter.y,
+				originX: 'center',
+				originY: 'center'
+			});
+		} else {
+			canvas.centerObject(object);
+		}
+		canvas.requestRenderAll();
+	}
+
+	// Function to resize workspace (if needed)
+	function resizeWorkspace(width: number, height: number) {
+		if (!canvas) return;
+
+		const workspace = getWorkspace();
+		if (!workspace) return;
+
+		// Update workspace size
+		workspace.set({
+			width: width,
+			height: height
+		});
+
+		// Update workspace size state
+		workspaceSize = { width, height };
+
+		// Re-center workspace
+		canvas.centerObject(workspace);
+
+		// Update clipping path if enabled
+		if (options.lockWorkspaceBounds !== false) {
+			canvas.clipPath = workspace;
+		}
+
+		canvas.requestRenderAll();
+		history.save();
 	}
 
 	function addToCanvas(object: FabricObject) {
@@ -415,23 +618,6 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.loadFromJSON(data, () => {
 			autoResize.autoZoom();
 		});
-	}
-
-	// Drawing mode
-	function enableDrawingMode() {
-		if (!canvas) return;
-		canvas.discardActiveObject();
-		canvas.renderAll();
-		canvas.isDrawingMode = true;
-		if (canvas.freeDrawingBrush) {
-			canvas.freeDrawingBrush.width = strokeWidth;
-			canvas.freeDrawingBrush.color = strokeColor;
-		}
-	}
-
-	function disableDrawingMode() {
-		if (!canvas) return;
-		canvas.isDrawingMode = false;
 	}
 
 	// Text and Date operations
@@ -932,24 +1118,6 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.renderAll();
 	}
 
-	function changeImageFilter(value: string) {
-		if (!canvas) return;
-		canvas.getActiveObjects().forEach((object) => {
-			if (object.type === 'image') {
-				const imageObject = object as FabricImage;
-				const effect = createFilter(value);
-				// Note: Filter implementation may vary based on fabric.js version
-				if (effect && (imageObject as any).filters) {
-					(imageObject as any).filters = [effect];
-					if ((imageObject as any).applyFilters) {
-						(imageObject as any).applyFilters();
-					}
-				}
-				if (canvas) canvas.renderAll();
-			}
-		});
-	}
-
 	// Layer operations
 	function bringForward() {
 		if (!canvas) return;
@@ -1030,24 +1198,6 @@ export function createEditor(options: EditorOptions = {}) {
 		return selectedObject.get('fill') || fillColor;
 	}
 
-	function getActiveStrokeColor() {
-		const selectedObject = selectedObjects[0];
-		if (!selectedObject) return strokeColor;
-		return selectedObject.get('stroke') || strokeColor;
-	}
-
-	function getActiveStrokeWidth() {
-		const selectedObject = selectedObjects[0];
-		if (!selectedObject) return strokeWidth;
-		return selectedObject.get('strokeWidth') || strokeWidth;
-	}
-
-	function getActiveStrokeDashArray() {
-		const selectedObject = selectedObjects[0];
-		if (!selectedObject) return strokeDashArray;
-		return selectedObject.get('strokeDashArray') || strokeDashArray;
-	}
-
 	function getActiveScaleX() {
 		if (!canvas) return 1.0;
 		const activeObject = canvas.getActiveObject();
@@ -1121,7 +1271,6 @@ export function createEditor(options: EditorOptions = {}) {
 		changeStrokeColor,
 		changeStrokeWidth,
 		changeStrokeDashArray,
-		changeImageFilter,
 		bringForward,
 		sendBackwards,
 		savePng,
@@ -1139,13 +1288,8 @@ export function createEditor(options: EditorOptions = {}) {
 		getActiveFontWeight,
 		getActiveFontFamily,
 		getActiveFillColor,
-		getActiveStrokeColor,
-		getActiveStrokeWidth,
-		getActiveStrokeDashArray,
 		getActiveScaleX,
 		getActiveScaleY,
-		enableDrawingMode,
-		disableDrawingMode,
 		onUndo: history.undo,
 		onRedo: history.redo,
 		onCopy: clipboard.copy,
