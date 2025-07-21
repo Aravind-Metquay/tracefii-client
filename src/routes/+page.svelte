@@ -81,3 +81,5 @@
 {/snippet}
 
 <SimpleTable data={users} {columns} />
+
+<button onclick={()=>goto('/auth/login')}>Go to Login</button>
