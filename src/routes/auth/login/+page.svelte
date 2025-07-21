@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
-	import { auth } from '@/svelte-auth0';
+	import { auth , login } from '@/svelte-auth0';
 
 	let email = $state('');
 	let password = $state('');
@@ -47,7 +47,7 @@
 								Forgot password?
 							</p>
 						</div>
-						<Button class="text-md w-full p-6" onclick={() => auth.login({ email, password })}>
+						<Button class="text-md w-full p-6" onclick={() => login({ email, password })}>
 							Log In
 						</Button>
 					</div>

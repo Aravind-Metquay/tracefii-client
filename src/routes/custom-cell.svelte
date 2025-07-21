@@ -8,14 +8,3 @@
 	{/if}
 	<span>{value}</span>
 </div>
-
-<style>
-	.custom-cell {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-	.icon {
-		font-size: 0.875rem;
-	}
-</style>

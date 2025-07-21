@@ -1,15 +1,14 @@
 <script lang='ts'>
-	import { auth } from "@/svelte-auth0";
+	import { useUserWithOrg } from "@/api/queries/user-query";
+    import {auth} from '@/svelte-auth0'
 
-    // console.log(auth.user)
-
-    $effect(()=>{
-        if(!auth.isLoading){
-            if(auth.isAuthenticated){
-                console.log(auth.user)
-            }else{
-                console.log("Not authenticated")
-            }
-        }
-    })
+    const userQuery = useUserWithOrg(auth.user?.email , '')
 </script>
+
+{#if $userQuery.isLoading}
+    <p>Loading user data...</p>
+{:else if $userQuery.isError}
+    <p>Error loading data!</p>
+{:else if $userQuery.data}
+    <p>Welcome, {$userQuery.data.firstName}!</p>
+{/if}
