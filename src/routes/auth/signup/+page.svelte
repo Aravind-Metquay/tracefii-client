@@ -7,7 +7,7 @@
 	let password = $state('');
 	let confirmPassword = $state('');
 	let passwordMatch = $state(false);
-	import { auth } from '@/svelte-auth0';
+	import { auth, signup } from '@/svelte-auth0';
 	import { goto } from '$app/navigation';
 
 	$effect(() => {
@@ -96,7 +96,7 @@
 						</span>
 					</div>
 
-					<Button class="text-md w-full p-6" onclick={() => auth.signup({ email, password })}
+					<Button class="text-md w-full p-6" onclick={() => signup({ email, password })}
 						>Sign Up</Button
 					>
 				</div>

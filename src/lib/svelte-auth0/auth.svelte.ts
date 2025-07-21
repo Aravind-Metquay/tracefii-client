@@ -1,281 +1,295 @@
 import auth0 from 'auth0-js';
 import type { Auth0Config, Auth0User, LoginCredentials, SignupCredentials } from './types';
 
-class AuthService {
-	private config = $state<Auth0Config | null>(null);
-	private auth0Client: auth0.WebAuth | null = null;
+// #region --- Module-level State ---
 
-	// Public reactive state
-	user = $state<Auth0User | null>(null);
-	isAuthenticated = $state(false);
-	isLoading = $state(true);
-	error = $state<Error | null>(null);
+/**
+ * A single, exportable state object that holds all reactive authentication state.
+ * This pattern is required by Svelte 5 to prevent reassignment of exported state variables.
+ * Components will import this object to react to changes in auth state.
+ */
+export const auth = $state({
+	user: null as Auth0User | null,
+	isAuthenticated: false,
+	isLoading: true,
+	error: null as Error | null
+});
 
-	// Initialize the auth service
-	init(config: Auth0Config) {
-		this.config = config;
-		this.auth0Client = new auth0.WebAuth(config);
-		this.initializeAuth();
-	}
+// Internal state for the service that doesn't need to be reactive.
+let auth0Client: auth0.WebAuth | null = null;
+let config: Auth0Config | null = null;
 
-	private async initializeAuth() {
-		if (!this.auth0Client) return;
+// #endregion
 
-		try {
-			if (typeof window !== 'undefined' && window.location.hash) {
-				await this.parseHash();
-			} else {
-				await this.checkSession();
-			}
-		} catch (error) {
-			this.handleError(error);
+// #region --- Helper Functions (Internal) ---
+
+/**
+ * Sets the global error state and resets authentication status.
+ * @param err The error object.
+ */
+function handleError(err: any): void {
+	auth.error =
+		err instanceof Error
+			? err
+			: new Error(err?.errorDescription || err?.error || 'Authentication failed');
+	auth.isAuthenticated = false;
+	auth.isLoading = false;
+}
+
+/**
+ * Fetches user profile information from Auth0's /userinfo endpoint.
+ * @param accessToken The user's access token.
+ * @returns A promise that resolves with the user's profile.
+ */
+function getUserInfo(accessToken: string): Promise<Auth0User> {
+	return new Promise((resolve, reject) => {
+		if (!auth0Client) {
+			return reject(new Error('Auth0 client not initialized'));
 		}
-	}
-
-	private async parseHash(): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (!this.auth0Client) {
-				reject(new Error('Auth0 client not initialized'));
-				return;
+		auth0Client.client.userInfo(accessToken, (err, userInfo) => {
+			if (err) {
+				return reject(err);
 			}
-
-			this.auth0Client.parseHash(async (err, authResult) => {
-				try {
-					if (err) {
-						this.handleError(err);
-						reject(err);
-						return;
-					}
-
-					if (authResult && authResult.accessToken) {
-						await this.handleAuthResult(authResult);
-					}
-
-					if (typeof window !== 'undefined') {
-						window.history.replaceState({}, document.title, window.location.pathname);
-					}
-
-					this.isLoading = false;
-					resolve();
-				} catch (error) {
-					this.handleError(error);
-					this.isLoading = false;
-					reject(error);
-				}
-			});
+			resolve(userInfo as Auth0User);
 		});
-	}
+	});
+}
 
-	private async handleAuthResult(authResult: any) {
-		try {
-			if (authResult.accessToken) {
-				const expiresAt = JSON.stringify((authResult.expiresIn || 0) * 1000 + new Date().getTime());
+/**
+ * Handles the authentication result from Auth0, sets tokens, and updates state.
+ * @param authResult The result object from an Auth0 authentication flow.
+ */
+async function handleAuthResult(authResult: auth0.Auth0DecodedHash): Promise<void> {
+	try {
+		if (authResult.accessToken && authResult.idToken) {
+			const expiresAt = JSON.stringify((authResult.expiresIn || 0) * 1000 + new Date().getTime());
+			localStorage.setItem('access_token', authResult.accessToken);
+			localStorage.setItem('id_token', authResult.idToken);
+			localStorage.setItem('expires_at', expiresAt);
 
-				localStorage.setItem('access_token', authResult.accessToken);
-				localStorage.setItem('id_token', authResult.idToken || '');
-				localStorage.setItem('expires_at', expiresAt);
-
-				const user = await this.getUserInfo(authResult.accessToken);
-				this.user = user;
-				this.isAuthenticated = true;
-			}
-		} catch (error) {
-			this.handleError(error);
+			auth.user = await getUserInfo(authResult.accessToken);
+			auth.isAuthenticated = true;
+			auth.error = null; // Clear any previous errors on success
 		}
-		// Note: Don't set isLoading = false here, let the calling method handle it
-	}
-
-	private getUserInfo(accessToken: string): Promise<Auth0User> {
-		return new Promise((resolve, reject) => {
-			if (!this.auth0Client) {
-				reject(new Error('Auth0 client not initialized'));
-				return;
-			}
-
-			this.auth0Client.client.userInfo(accessToken, (err, user) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(user);
-				}
-			});
-		});
-	}
-
-	async login(credentials: LoginCredentials): Promise<void> {
-		if (!this.auth0Client) {
-			throw new Error('Auth0 client not initialized');
-		}
-
-		this.isLoading = true;
-		this.error = null;
-
-		try {
-			await new Promise<void>((resolve, reject) => {
-				this.auth0Client!.login(
-					{
-						realm: 'Username-Password-Authentication',
-						email: credentials.email,
-						password: credentials.password
-					},
-					(err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve();
-						}
-					}
-				);
-			});
-		} catch (error) {
-			this.handleError(error);
-			this.isLoading = false;
-		}
-	}
-
-	async signup(credentials: SignupCredentials): Promise<void> {
-		if (!this.auth0Client) {
-			throw new Error('Auth0 client not initialized');
-		}
-
-		this.isLoading = true;
-		this.error = null;
-
-		try {
-			await new Promise<void>((resolve, reject) => {
-				this.auth0Client!.signup(
-					{
-						connection: 'Username-Password-Authentication',
-						email: credentials.email,
-						password: credentials.password,
-						username: credentials.name
-					},
-					(err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve();
-						}
-					}
-				);
-			});
-
-			await this.login(credentials);
-		} catch (error) {
-			this.handleError(error);
-			this.isLoading = false;
-		}
-	}
-
-	logout(): void {
-		if (!this.auth0Client || !this.config) {
-			return;
-		}
-
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('id_token');
-		localStorage.removeItem('expires_at');
-
-		this.auth0Client.logout({
-			returnTo: window.location.origin,
-			clientID: this.config.clientID
-		});
-
-		this.user = null;
-		this.isAuthenticated = false;
-		this.error = null;
-		this.isLoading = false;
-	}
-
-	async checkSession(): Promise<void> {
-		if (!this.auth0Client) {
-			this.isLoading = false;
-			return;
-		}
-
-		try {
-			await new Promise<void>((resolve, reject) => {
-				this.auth0Client!.checkSession({}, async (err, authResult) => {
-					if (err) {
-						if (err.error !== 'login_required') {
-							reject(err);
-						} else {
-							// No active session, but not an error
-							this.isAuthenticated = false;
-							this.user = null;
-							resolve();
-						}
-					} else if (authResult) {
-						await this.handleAuthResult(authResult);
-						resolve();
-					} else {
-						// No session found
-						this.isAuthenticated = false;
-						this.user = null;
-						resolve();
-					}
-				});
-			});
-		} catch (error) {
-			this.handleError(error);
-		} finally {
-			this.isLoading = false;
-		}
-	}
-
-	getAccessToken(): string | null {
-		const accessToken = localStorage.getItem('access_token');
-		const expiresAt = localStorage.getItem('expires_at');
-
-		if (expiresAt && accessToken) {
-			const isValid = new Date().getTime() < JSON.parse(expiresAt);
-			return isValid ? accessToken : null;
-		}
-
-		return null;
-	}
-
-	async sendResetPasswordEmail(email: string): Promise<void> {
-		if (!this.auth0Client) {
-			throw new Error('Auth0 client not initialized');
-		}
-
-		this.isLoading = true;
-		this.error = null;
-
-		try {
-			await new Promise<void>((resolve, reject) => {
-				this.auth0Client!.changePassword(
-					{
-						connection: 'Username-Password-Authentication',
-						email: email
-					},
-					(err, resp) => {
-						if (err) {
-							reject(new Error(err.errorDescription || err.error || 'Password reset failed'));
-						} else {
-              console.log(resp)
-							resolve();
-						}
-					}
-				);
-			});
-		} catch (error) {
-			this.handleError(error);
-			throw error; 
-		} finally {
-			this.isLoading = false;
-		}
-	}
-
-	private handleError(error: any) {
-		this.error =
-			error instanceof Error
-				? error
-				: new Error(error?.errorDescription || error?.error || 'Authentication failed');
-		this.isAuthenticated = false;
-		this.isLoading = false;
+	} catch (err) {
+		handleError(err);
 	}
 }
 
-export const auth = new AuthService();
+/**
+ * Parses the authentication hash from the URL after a redirect from Auth0.
+ */
+function parseHash(): Promise<void> {
+	return new Promise((resolve, reject) => {
+		if (!auth0Client) {
+			return reject(new Error('Auth0 client not initialized'));
+		}
+		auth0Client.parseHash(async (err, authResult) => {
+			try {
+				if (err) {
+					handleError(err);
+					return reject(err);
+				}
+				if (authResult) {
+					await handleAuthResult(authResult);
+				}
+				if (typeof window !== 'undefined') {
+					// Clean the hash from the URL
+					window.history.replaceState({}, document.title, window.location.pathname);
+				}
+				auth.isLoading = false;
+				resolve();
+			} catch (e) {
+				handleError(e);
+				reject(e);
+			}
+		});
+	});
+}
+
+// #endregion
+
+// #region --- Public API Functions ---
+
+/**
+ * Initializes the Auth0 client and checks for an existing session.
+ * This should be called once when your application loads.
+ * @param authConfig The Auth0 configuration object.
+ */
+export async function initAuth(authConfig: Auth0Config): Promise<void> {
+	config = authConfig;
+	auth0Client = new auth0.WebAuth(config);
+	auth.isLoading = true;
+	auth.error = null;
+
+	try {
+		if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+			await parseHash();
+		} else {
+			await checkSession();
+		}
+	} catch (err) {
+		handleError(err);
+	}
+}
+
+/**
+ * Silently checks for an active session with Auth0.
+ */
+export async function checkSession(): Promise<void> {
+	if (!auth0Client) {
+		auth.isLoading = false;
+		return;
+	}
+	try {
+		await new Promise<void>((resolve, reject) => {
+			auth0Client!.checkSession({}, async (err, authResult) => {
+				if (err) {
+					if (err.error !== 'login_required') {
+						return reject(err); // A real error occurred
+					}
+					// No active session is normal, not an error
+					auth.isAuthenticated = false;
+					auth.user = null;
+					return resolve();
+				}
+				if (authResult) {
+					await handleAuthResult(authResult);
+				}
+				resolve();
+			});
+		});
+	} catch (err) {
+		handleError(err);
+	} finally {
+		auth.isLoading = false;
+	}
+}
+
+/**
+ * Logs in a user with email and password. This will redirect to Auth0.
+ * @param credentials The user's email and password.
+ */
+export async function login(credentials: LoginCredentials): Promise<void> {
+	if (!auth0Client) throw new Error('Auth0 client not initialized');
+	auth.isLoading = true;
+	auth.error = null;
+
+	await new Promise<void>((resolve, reject) => {
+		auth0Client!.login(
+			{
+				realm: 'Username-Password-Authentication',
+				email: credentials.email,
+				password: credentials.password
+			},
+			(err) => {
+				if (err) {
+					handleError(err);
+					return reject(err);
+				}
+				resolve();
+			}
+		);
+	});
+}
+
+/**
+ * Signs up a new user and then automatically logs them in.
+ * @param credentials The new user's name, email, and password.
+ */
+export async function signup(credentials: SignupCredentials): Promise<void> {
+	if (!auth0Client) throw new Error('Auth0 client not initialized');
+	auth.isLoading = true;
+	auth.error = null;
+
+	try {
+		await new Promise<void>((resolve, reject) => {
+			auth0Client!.signup(
+				{
+					connection: 'Username-Password-Authentication',
+					email: credentials.email,
+					password: credentials.password,
+					username: credentials.name
+				},
+				(err) => {
+					if (err) return reject(err);
+					resolve();
+				}
+			);
+		});
+		// After successful signup, log the user in
+		await login(credentials);
+	} catch (err) {
+		handleError(err);
+	}
+}
+
+/**
+ * Logs the user out by clearing local tokens and redirecting to Auth0 logout endpoint.
+ */
+export function logout(): void {
+	if (!auth0Client || !config) return;
+
+	localStorage.removeItem('access_token');
+	localStorage.removeItem('id_token');
+	localStorage.removeItem('expires_at');
+
+	auth.user = null;
+	auth.isAuthenticated = false;
+	auth.error = null;
+
+	auth0Client.logout({
+		returnTo: window.location.origin,
+		clientID: config.clientID
+	});
+}
+
+/**
+ * Sends a password reset email to the user.
+ * @param email The user's email address.
+ * @returns A promise that resolves with the success message from Auth0.
+ */
+export async function sendResetPasswordEmail(email: string): Promise<string> {
+	if (!auth0Client) throw new Error('Auth0 client not initialized');
+	auth.isLoading = true;
+	auth.error = null;
+
+	try {
+		return await new Promise<string>((resolve, reject) => {
+			auth0Client!.changePassword(
+				{
+					connection: 'Username-Password-Authentication',
+					email: email
+				},
+				(err, resp) => {
+					if (err) {
+						return reject(new Error(err.errorDescription || err.error || 'Password reset failed'));
+					}
+					resolve(resp);
+				}
+			);
+		});
+	} catch (err) {
+		handleError(err);
+		throw err; // Re-throw so the UI can catch it
+	} finally {
+		auth.isLoading = false;
+	}
+}
+
+/**
+ * Retrieves the current valid access token from localStorage.
+ * @returns The access token string, or null if it's missing or expired.
+ */
+export function getAccessToken(): string | null {
+	const accessToken = localStorage.getItem('access_token');
+	const expiresAt = localStorage.getItem('expires_at');
+
+	if (expiresAt && accessToken) {
+		const isValid = new Date().getTime() < JSON.parse(expiresAt);
+		return isValid ? accessToken : null;
+	}
+	return null;
+}
+
+// #endregion

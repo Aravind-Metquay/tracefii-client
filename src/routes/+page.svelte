@@ -2,6 +2,7 @@
 	import { createRawSnippet } from 'svelte';
 	import type { ColumnConfig } from '@/application-components/common/data-table/types';
 	import SimpleTable from '@/application-components/common/data-table/simple-table.svelte';
+	import { goto } from '$app/navigation';
 
 	const mailtoSnippet = createRawSnippet<[string]>((email) => {
 		const emailAddress = email();
@@ -79,3 +80,5 @@
 {/snippet}
 
 <SimpleTable data={users} {columns} />
+
+<button onclick={()=>goto('/auth/login')}>Go to Login</button>
