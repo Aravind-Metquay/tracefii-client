@@ -1,73 +1,81 @@
 <script lang="ts">
 	import ColorPicker from 'svelte-awesome-color-picker';
 	import { colord, type Colord } from 'colord';
-	import type { FabricObject } from 'fabric';
 	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
 
+	// Import icons for a better UI
+	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
+
 	let { editor } = $props<{ editor: Editor }>();
-	let selectedObject = $derived<ExtendedFabricObject | undefined>(
+
+	// --- Derived State ---
+	// Get the currently selected object from the editor
+	const selectedObject = $derived<ExtendedFabricObject | undefined>(
 		editor?.selectedObjects?.[0] as ExtendedFabricObject
 	);
+
+	// Derive all properties from the selected object.
+	// This makes the template cleaner and automatically updates the UI when the selection changes.
+	const textContent = $derived<string>(selectedObject?.text ?? '');
+	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 32);
+	const fontFamily = $derived<string>(selectedObject?.fontFamily ?? 'Arial');
+	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	const fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
+	const underline = $derived<boolean>(selectedObject?.underline ?? false);
+	const textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
 	let color = $derived<Colord>(
 		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
 	);
 
+	// --- Event Handlers ---
+	// All handlers call methods on the main 'editor' object to apply changes.
+
 	function handleTextChange(value: string) {
-		if (editor?.changeText && selectedObject) {
-			editor.changeText(value);
-		}
+		editor?.changeText?.(value);
 	}
 
-	function handleFontSizeChange(value: number) {
-		if (isNaN(value) || value <= 0) return;
-		if (editor?.changeFontSize && selectedObject) {
-			editor.changeFontSize(value);
-		}
+	function handleFontSizeChange(size: number) {
+		// Prevent invalid values
+		if (isNaN(size) || size <= 0) return;
+		editor?.changeFontSize?.(size);
 	}
 
-	function handleFontFamilyChange(value: string) {
-		if (editor?.changeFontFamily && selectedObject) {
-			editor.changeFontFamily(value);
-		}
+	function handleFontFamilyChange(family: string) {
+		editor?.changeFontFamily?.(family);
 	}
 
 	function handleFontWeightChange() {
-		if (editor?.changeFontWeight && selectedObject) {
-			editor.changeFontWeight(selectedObject.fontWeight === 'bold' ? 'normal' : 'bold');
-		}
+		// Toggle between normal (400) and bold (700)
+		editor?.changeFontWeight?.(fontWeight >= 700 ? 400 : 700);
 	}
 
 	function handleFontStyleChange() {
-		if (editor?.changeFontStyle && selectedObject) {
-			editor.changeFontStyle(selectedObject.fontStyle === 'italic' ? 'normal' : 'italic');
-		}
+		editor?.changeFontStyle?.(fontStyle === 'italic' ? 'normal' : 'italic');
 	}
 
 	function handleFontUnderlineChange() {
-		if (editor?.changeFontUnderline && selectedObject) {
-			editor.changeFontUnderline(!selectedObject.underline);
-		}
+		editor?.changeFontUnderline?.(!underline);
 	}
 
-	function handleColorChange(colorData: { hex: string | null }) {
-		if (colorData.hex && editor?.changeFillColor && selectedObject) {
-			editor.changeFillColor(colorData.hex);
-		}
+	function handleTextAlignChange(alignment: string) {
+		editor?.changeTextAlign?.(alignment);
+	}
+
+	function handleColorChange({ hex }: { hex: string | null }) {
+		if (hex) editor?.changeFillColor?.(hex);
 	}
 </script>
 
 <div class="space-y-4">
-	<h4 class="text-sm font-medium text-gray-700">Text Properties</h4>
-
-	<div>
-		<label for="content" class="text-xs text-gray-600">Content</label>
-		<input
+	<div class="flex flex-col gap-1">
+		<label for="content" class="text-sm text-gray-700">Content</label>
+		<textarea
 			id="content"
+			rows="3"
 			class="w-full rounded border border-gray-300 p-2 text-sm"
-			value={selectedObject?.text ?? ''}
-			oninput={(e) => handleTextChange((e.target as HTMLInputElement).value)}
-			disabled={!selectedObject || !editor?.changeText}
-		/>
+			value={textContent}
+			oninput={(e) => handleTextChange((e.target as HTMLTextAreaElement).value)}
+		></textarea>
 	</div>
 
 	<div class="grid grid-cols-2 gap-2">
@@ -78,9 +86,8 @@
 				type="number"
 				min="1"
 				class="w-full rounded border border-gray-300 p-2 text-sm"
-				value={selectedObject?.fontSize ?? 32}
+				value={fontSize}
 				oninput={(e) => handleFontSizeChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeFontSize}
 			/>
 		</div>
 
@@ -88,10 +95,9 @@
 			<label for="font-family" class="text-xs text-gray-600">Font Family</label>
 			<select
 				id="font-family"
-				value={selectedObject?.fontFamily ?? 'Arial'}
-				onchange={(e) => handleFontFamilyChange((e.target as HTMLSelectElement).value)}
 				class="w-full rounded border border-gray-300 p-2 text-sm"
-				disabled={!selectedObject || !editor?.changeFontFamily}
+				value={fontFamily}
+				onchange={(e) => handleFontFamilyChange((e.target as HTMLSelectElement).value)}
 			>
 				<option>Arial</option>
 				<option>Helvetica</option>
@@ -102,36 +108,66 @@
 		</div>
 	</div>
 
-	<div class="flex items-center gap-4">
-		<button
-			onclick={handleFontWeightChange}
-			class={`rounded-md border border-gray-300 p-2 ${selectedObject?.fontWeight === 'bold' ? 'bg-gray-200' : ''}`}
-			disabled={!selectedObject || !editor?.changeFontWeight}
-		>
-			B
-		</button>
-
-		<button
-			onclick={handleFontStyleChange}
-			class={`rounded-md border border-gray-300 p-2 ${selectedObject?.fontStyle === 'italic' ? 'bg-gray-200' : ''}`}
-			disabled={!selectedObject || !editor?.changeFontStyle}
-		>
-			I
-		</button>
-
-		<button
-			onclick={handleFontUnderlineChange}
-			class={`rounded-md border border-gray-300 p-2 ${selectedObject?.underline ? 'bg-gray-200' : ''}`}
-			disabled={!selectedObject || !editor?.changeFontUnderline}
-		>
-			U
-		</button>
+	<div class="flex flex-col gap-1">
+		<label for="text-color" class="text-sm text-gray-700">Text Color</label>
+		<ColorPicker bind:color onInput={handleColorChange} />
 	</div>
 
-	<div class="flex flex-col gap-2">
-		<label for="fill-color" class="text-xs text-gray-600">Fill Color</label>
-		<div class="w-full">
-			<ColorPicker bind:color onInput={handleColorChange} />
+	<div class="flex items-center gap-2">
+		<button
+			class="rounded border p-2"
+			class:bg-gray-200={fontWeight >= 700}
+			onclick={handleFontWeightChange}
+			title="Bold"
+		>
+			<Bold size={16} />
+		</button>
+
+		<button
+			class="rounded border p-2"
+			class:bg-gray-200={fontStyle === 'italic'}
+			onclick={handleFontStyleChange}
+			title="Italic"
+		>
+			<Italic size={16} />
+		</button>
+
+		<button
+			class="rounded border p-2"
+			class:bg-gray-200={underline}
+			onclick={handleFontUnderlineChange}
+			title="Underline"
+		>
+			<Underline size={16} />
+		</button>
+
+		<div class="ml-auto flex items-center gap-2">
+			<button
+				class="rounded border p-2"
+				class:bg-gray-200={textAlign === 'left'}
+				onclick={() => handleTextAlignChange('left')}
+				title="Align Left"
+			>
+				<AlignLeft size={16} />
+			</button>
+
+			<button
+				class="rounded border p-2"
+				class:bg-gray-200={textAlign === 'center'}
+				onclick={() => handleTextAlignChange('center')}
+				title="Align Center"
+			>
+				<AlignCenter size={16} />
+			</button>
+
+			<button
+				class="rounded border p-2"
+				class:bg-gray-200={textAlign === 'right'}
+				onclick={() => handleTextAlignChange('right')}
+				title="Align Right"
+			>
+				<AlignRight size={16} />
+			</button>
 		</div>
 	</div>
 </div>
