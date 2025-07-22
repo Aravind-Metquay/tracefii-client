@@ -2,7 +2,7 @@
 	import { getContext } from "svelte";
 	import Function from "./function.svelte";
 	import type { WorksheetManager } from "../store.svelte";
-	import { Button } from "@/components/ui/button";
+	import { Button } from "@/components";
   
   const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 </script>
@@ -13,7 +13,7 @@
     <Button
       onclick={() =>worksheetManager.addNewFunction()}
       variant="primary"
-      size="sm"
+      size="small"
       >
       Add
     </Button>

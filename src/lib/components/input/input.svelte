@@ -7,7 +7,7 @@
 	interface Props extends HTMLAttributes<HTMLInputElement> {
 		id?: string | undefined;
 		name?: string | undefined;
-		value?: string | undefined;
+		value?: string | number | undefined;
 		label?: string | undefined;
 		error?: string | undefined;
 		size?: 'small' | 'medium' | 'large';

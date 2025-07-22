@@ -29,7 +29,7 @@ export * as Modal from './modal/index.js';
 export { default as Progress } from './progress/progress.svelte';
 
 // Select
-export * as Select from './select/index.js';
+export { default as Select } from './select/select.svelte';
 
 // Spinner
 export { default as Spinner } from './spinner/spinner.svelte';
