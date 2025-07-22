@@ -4,6 +4,7 @@
 	import { Input } from '@/components/ui/input';
 	import type { TemplateType, UnitType, Editor, Color, Dimensions } from '../lib/types';
 	import {convert} from '../lib/logic.svelte'
+	import { CircleArrowLeft } from '@lucide/svelte';
 
 	interface Props {
 		selectedType?: TemplateType;
@@ -118,7 +119,8 @@
 
 <div class="container-panel h-full w-full max-w-[320px] overflow-y-auto border-r bg-white">
 	<div class="space-y-6 p-4">
-		<Button variant="outline" size="sm" class="flex items-center gap-2">← Back</Button>
+	
+		 <CircleArrowLeft class="flex-shrink-0 h-7 w-7 text-black cursor-pointer "  />
 
 		<h1 class="text-2xl font-semibold">Untitled Design</h1>
 
