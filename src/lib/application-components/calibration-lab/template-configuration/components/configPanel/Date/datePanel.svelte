@@ -3,107 +3,126 @@
 	import { colord, type Colord } from 'colord';
 	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
 
+	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
+
 	let { editor } = $props<{ editor: Editor }>();
-	let selectedObject = $derived<ExtendedFabricObject | undefined>(
+
+	const selectedObject = $derived<ExtendedFabricObject | undefined>(
 		editor?.selectedObjects?.[0] as ExtendedFabricObject
 	);
+
+	const dateValue = $derived<string>(
+		selectedObject?.customDateValue
+			? new Date(selectedObject.customDateValue).toISOString().split('T')[0]
+			: ''
+	);
+
+	const dateFormat = $derived<string>(selectedObject?.customDateFormat ?? 'MM/DD/YYYY');
+
+	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 16);
+	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	const fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
+	const underline = $derived<boolean>(selectedObject?.underline ?? false);
+	const textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
+
 	let color = $derived<Colord>(
 		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
 	);
 
-	function handleDateFormatChange(value: string) {
-		if (editor?.changeDateFormat && selectedObject) {
-			editor.changeDateFormat(value);
-		}
+	const dateFormats = [
+		'MM/DD/YYYY',
+		'DD/MM/YYYY',
+		'YYYY-MM-DD',
+		'MMMM D, YYYY',
+		'MMM DD, YYYY',
+		'DD MMM YYYY'
+	];
+
+
+	function handleDateFormatChange(format: string) {
+		editor?.changeDateFormat?.(format);
+	}
+
+	function handleFontSizeChange(size: number) {
+		editor?.changeFontSize?.(size);
+	}
+
+	function handleFontFamilyChange(family: string) {
+		editor?.changeFontFamily?.(family);
 	}
 
 	function handleDateValueChange(value: string) {
-		if (editor?.updateDateValue && selectedObject) {
-			editor.updateDateValue(value);
+		try {
+			const iso = new Date(value).toISOString();
+			editor?.updateDateValue?.(iso);
+		} catch {
+			editor?.updateDateValue?.(value);
 		}
 	}
 
-	function handleFontSizeChange(value: number) {
-		if (isNaN(value) || value <= 0) return;
-		if (editor?.changeFontSize && selectedObject) {
-			editor.changeFontSize(value);
-		}
+	function getActiveFontUnderline(): boolean {
+		if (!selectedObject) return false;
+		return selectedObject.underline || false;
 	}
 
-	function handleFontFamilyChange(value: string) {
-		if (editor?.changeFontFamily && selectedObject) {
-			editor.changeFontFamily(value);
-		}
+	function getActiveFontStyle(): string {
+		if (!selectedObject) return 'normal';
+		return selectedObject.fontStyle || 'normal';
+	}
+
+	function getActiveFontWeight(): number {
+		if (!selectedObject) return 400;
+		return Number(selectedObject.fontWeight) || 400;
 	}
 
 	function handleFontWeightChange() {
-		if (editor?.changeFontWeight && selectedObject) {
-			editor.changeFontWeight(selectedObject.fontWeight === 'bold' ? 'normal' : 'bold');
-		}
+		const weight = Number(selectedObject?.fontWeight) || 400;
+		editor?.changeFontWeight?.(weight >= 700 ? 400 : 700);
 	}
 
 	function handleFontStyleChange() {
-		if (editor?.changeFontStyle && selectedObject) {
-			editor.changeFontStyle(selectedObject.fontStyle === 'italic' ? 'normal' : 'italic');
-		}
+		const style = selectedObject?.fontStyle ?? 'normal';
+		editor?.changeFontStyle?.(style === 'italic' ? 'normal' : 'italic');
 	}
 
 	function handleFontUnderlineChange() {
-		if (editor?.changeFontUnderline && selectedObject) {
-			editor.changeFontUnderline(!selectedObject.underline);
-		}
+		const underline = selectedObject?.underline ?? false;
+		editor?.changeFontUnderline?.(!underline);
 	}
 
-	function handleColorChange(colorData: { hex: string | null }) {
-		if (colorData.hex && editor?.changeFillColor && selectedObject) {
-			editor.changeFillColor(colorData.hex);
-		}
+	function handleColorChange({ hex }: { hex: string | null }) {
+		if (hex) editor?.changeFillColor?.(hex);
 	}
 
-	function handleTextAlignChange(value: string) {
-		if (editor?.changeTextAlign && selectedObject) {
-			editor.changeTextAlign(value);
-		}
-	}
-
-	function handleOpacityChange(value: number) {
-		if (editor?.changeOpacity && selectedObject) {
-			editor.changeOpacity(value / 100);
-		}
+	function handleTextAlignChange(alignment: string) {
+		editor?.changeTextAlign?.(alignment);
 	}
 </script>
 
 <div class="space-y-4">
-	<h4 class="text-sm font-medium text-gray-700">Date Properties</h4>
-
-	<div>
-		<label for="date-format" class="text-xs text-gray-600">Date Format</label>
-		<select
-			id="date-format"
-			value={selectedObject?.customDateFormat ?? 'MM/DD/YYYY'}
-			onchange={(e) => handleDateFormatChange((e.target as HTMLSelectElement).value)}
-			class="w-full rounded border border-gray-300 p-2 text-sm"
-		>
-			<option value="MM/DD/YYYY">MM/DD/YYYY</option>
-			<option value="DD/MM/YYYY">DD/MM/YYYY</option>
-			<option value="YYYY-MM-DD">YYYY-MM-DD</option>
-			<option value="MMM DD, YYYY">MMM DD, YYYY</option>
-			<option value="DD MMM YYYY">DD MMM YYYY</option>
-			<option value="MMMM DD, YYYY">MMMM DD, YYYY</option>
-		</select>
-	</div>
-
-	<div>
-		<label for="date-value" class="text-xs text-gray-600">Date Value</label>
+	<!-- Date Value -->
+	<div class="flex flex-col gap-1">
+		<label for="date-label" class="text-sm text-gray-700">Date Value</label>
 		<input
-			id="date-value"
 			type="date"
 			class="w-full rounded border border-gray-300 p-2 text-sm"
-			value={selectedObject?.customDateValue
-				? new Date(selectedObject.customDateValue).toISOString().split('T')[0]
-				: new Date().toISOString().split('T')[0]}
+			value={dateValue}
 			onchange={(e) => handleDateValueChange((e.target as HTMLInputElement).value)}
 		/>
+	</div>
+
+	<!-- Date Format -->
+	<div class="flex flex-col gap-1">
+		<label for="date-format" class="text-sm text-gray-700">Date Format</label>
+		<select
+			class="w-full rounded border border-gray-300 p-2 text-sm"
+			value={dateFormat}
+			onchange={(e) => handleDateFormatChange((e.target as HTMLSelectElement).value)}
+		>
+			{#each dateFormats as format}
+				<option value={format}>{format}</option>
+			{/each}
+		</select>
 	</div>
 
 	<div class="grid grid-cols-2 gap-2">
@@ -116,7 +135,6 @@
 				class="w-full rounded border border-gray-300 p-2 text-sm"
 				value={selectedObject?.fontSize ?? 16}
 				oninput={(e) => handleFontSizeChange(Number((e.target as HTMLInputElement).value))}
-				disabled={!selectedObject || !editor?.changeFontSize}
 			/>
 		</div>
 
@@ -127,7 +145,6 @@
 				value={selectedObject?.fontFamily ?? 'Arial'}
 				onchange={(e) => handleFontFamilyChange((e.target as HTMLSelectElement).value)}
 				class="w-full rounded border border-gray-300 p-2 text-sm"
-				disabled={!selectedObject || !editor?.changeFontFamily}
 			>
 				<option>Arial</option>
 				<option>Helvetica</option>
@@ -138,73 +155,53 @@
 		</div>
 	</div>
 
-	<!-- Font Style Controls -->
-	<div class="flex items-center gap-4">
+	<!-- Fill Color -->
+	<div class="flex flex-col gap-1">
+		<label for="text-color" class="text-sm text-gray-700">Text Color</label>
+		<ColorPicker bind:color onInput={handleColorChange} />
+	</div>
+
+	<!-- Font Styles -->
+	<div class="flex items-center gap-2">
 		<button
+			class={`rounded border p-2 ${getActiveFontWeight() >= 700 ? 'bg-gray-200' : ''}`}
 			onclick={handleFontWeightChange}
-			class={`rounded-md border border-gray-300 p-2 font-bold ${selectedObject?.fontWeight === 'bold' ? 'bg-gray-200' : ''}`}
-			disabled={!selectedObject || !editor?.changeFontWeight}
 		>
-			B
+			<Bold size={16} />
 		</button>
 
 		<button
+			class={`rounded border p-2 italic ${getActiveFontStyle() === 'italic' ? 'bg-gray-200' : ''}`}
 			onclick={handleFontStyleChange}
-			class={`rounded-md border border-gray-300 p-2 italic ${selectedObject?.fontStyle === 'italic' ? 'bg-gray-200' : ''}`}
-			disabled={!selectedObject || !editor?.changeFontStyle}
 		>
-			I
+			<Italic size={16} />
 		</button>
 
 		<button
+			class={`rounded border p-2 underline ${getActiveFontUnderline() ? 'bg-gray-200' : ''}`}
 			onclick={handleFontUnderlineChange}
-			class={`rounded-md border border-gray-300 p-2 underline ${selectedObject?.underline ? 'bg-gray-200' : ''}`}
-			disabled={!selectedObject || !editor?.changeFontUnderline}
 		>
-			U
+			<Underline size={16} />
 		</button>
-	</div>
-
-	<!-- Text Alignment -->
-	<div>
-		<label for="text-align" class="text-xs text-gray-600">Text Alignment</label>
-		<select
-			id="text-align"
-			value={selectedObject?.textAlign ?? 'left'}
-			onchange={(e) => handleTextAlignChange((e.target as HTMLSelectElement).value)}
-			class="w-full rounded border border-gray-300 p-2 text-sm"
-			disabled={!selectedObject || !editor?.changeTextAlign}
+		<button
+			class={`rounded border p-2 ${textAlign === 'left' ? 'bg-gray-200' : ''}`}
+			onclick={() => handleTextAlignChange('left')}
 		>
-			<option value="left">Left</option>
-			<option value="center">Center</option>
-			<option value="right">Right</option>
-			<option value="justify">Justify</option>
-		</select>
-	</div>
+			<AlignLeft size={16} />
+		</button>
 
-	<!-- Color Picker -->
-	<div class="flex flex-col gap-2">
-		<label for="fill-color" class="text-xs text-gray-600">Fill Color</label>
-		<div class="w-full">
-			<ColorPicker bind:color onInput={handleColorChange} />
-		</div>
-	</div>
+		<button
+			class={`rounded border p-2 ${textAlign === 'center' ? 'bg-gray-200' : ''}`}
+			onclick={() => handleTextAlignChange('center')}
+		>
+			<AlignCenter size={16} />
+		</button>
 
-	<!-- Opacity Control -->
-	<div>
-		<label for="opacity" class="text-xs text-gray-600">Opacity</label>
-		<input
-			id="opacity"
-			type="range"
-			min="0"
-			max="100"
-			class="w-full"
-			value={selectedObject?.opacity ? selectedObject.opacity * 100 : 100}
-			oninput={(e) => handleOpacityChange(Number((e.target as HTMLInputElement).value))}
-			disabled={!selectedObject || !editor?.changeOpacity}
-		/>
-		<div class="text-xs text-gray-500 text-center">
-			{selectedObject?.opacity ? Math.round(selectedObject.opacity * 100) : 100}%
-		</div>
+		<button
+			class={`rounded border p-2 ${textAlign === 'right' ? 'bg-gray-200' : ''}`}
+			onclick={() => handleTextAlignChange('right')}
+		>
+			<AlignRight size={16} />
+		</button>
 	</div>
 </div>

@@ -10,7 +10,6 @@ import {
 	Point,
 	Shadow
 } from 'fabric';
-
 import { createHistory } from './history.svelte';
 import { createCanvasEvents } from './canvas-events.svelte';
 import { AddElementCommand } from '../commands/commands.svelte';
@@ -37,7 +36,7 @@ import {
 } from '../lib/types';
 
 // ================================
-// TYPE EXTENSIONS
+// Type Extensions
 // ================================
 
 declare module 'fabric' {
@@ -76,7 +75,7 @@ declare global {
 }
 
 // ================================
-// INTERFACES
+// Interfaces
 // ================================
 
 interface EditorOptions {
@@ -94,7 +93,7 @@ interface EditorOptions {
 }
 
 // ================================
-// UTILITY FUNCTIONS
+// Utility Functions
 // ================================
 
 function downloadFile(dataUrl: string, format: string): void {
@@ -123,14 +122,22 @@ async function transformText(objects: any[]): Promise<void> {
 }
 
 // ================================
-// MAIN EDITOR FUNCTION
+// Main Editor Function
 // ================================
 
 export function createEditor(options: EditorOptions = {}) {
-	// ================================
-	// STATE VARIABLES
-	// ================================
+	// Default date format
+	const DEFAULT_DATE_FORMAT = 'MM/DD/YYYY';
 
+	// Extended textbox type
+	interface CustomDateTextbox extends Textbox {
+		customType?: 'date';
+		customDateValue?: string;
+		customDateFormat?: string;
+		variableValues?: Record<string, string>;
+	}
+
+	// State variables
 	let canvas = $state<Canvas | null>(null);
 	let container = $state<HTMLElement | null>(null);
 	let selectedTool = $state('select');
@@ -144,10 +151,7 @@ export function createEditor(options: EditorOptions = {}) {
 	let strokeDashArray = $state(options.strokeDashArray || STROKE_DASH_ARRAY);
 	let workspaceSize = $state({ width: 500, height: 500 });
 
-	// ================================
-	// COMPOSABLES
-	// ================================
-
+	// Composables
 	const history = createHistory({
 		canvas,
 		saveCallback: options.saveCallback
@@ -173,10 +177,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 	const autoResize = createAutoResize({ canvas, container });
 
-	// ================================
-	// DERIVED STATE
-	// ================================
-
+	// Derived state
 	let hasSelection = $derived(selectedObjects.length > 0);
 	let canvasSize = $derived(
 		canvas
@@ -188,7 +189,7 @@ export function createEditor(options: EditorOptions = {}) {
 	);
 
 	// ================================
-	// WORKSPACE MANAGEMENT
+	// Workspace Management
 	// ================================
 
 	function initializeVariableValues(): void {
@@ -231,7 +232,6 @@ export function createEditor(options: EditorOptions = {}) {
 				(objBounds.top + objBounds.height - (workspaceBounds.top + workspaceBounds.height));
 		}
 
-		// Update position if changed
 		if (newLeft !== obj.left || newTop !== obj.top) {
 			obj.set({ left: newLeft, top: newTop });
 		}
@@ -243,7 +243,6 @@ export function createEditor(options: EditorOptions = {}) {
 		const workspace = getWorkspace();
 		if (!workspace) return;
 
-		// Event handlers for workspace constraints
 		const constraintHandler = (e: any) => {
 			const obj = e.target;
 			if (obj) {
@@ -289,7 +288,6 @@ export function createEditor(options: EditorOptions = {}) {
 		const vpt = canvas.viewportTransform;
 		if (!vpt) return;
 
-		// Constrain pan to keep workspace visible
 		if (vpt[4] > maxPanX) vpt[4] = maxPanX;
 		if (vpt[4] < -maxPanX) vpt[4] = -maxPanX;
 		if (vpt[5] > maxPanY) vpt[5] = maxPanY;
@@ -318,47 +316,12 @@ export function createEditor(options: EditorOptions = {}) {
 	}
 
 	// ================================
-	// CANVAS INITIALIZATION
+	// Canvas Initialization
 	// ================================
-	
-
-	// Move updateWorkspaceBackground to top-level scope
-	function updateWorkspaceBackground(color: string) {
-		const workspace = getWorkspace();
-		if (workspace) {
-			workspace.set('fill', color);
-			canvas?.requestRenderAll();
-		}
-	}
-	// Add this new method at the top level
-function updateBackgroundColor(color: string) {
-	if (!canvas) return;
-	
-	// Update canvas background
-	canvas.backgroundColor = color;
-	
-	// Update workspace fill
-	updateWorkspaceBackground(color);
-}
-
-// // Add getWorkspace method at top level
-// function getWorkspace() {
-// 	if (!canvas) return null;
-// 	return canvas.getObjects().find(obj => obj.name === 'clip') as Rect | undefined;
-// }
 
 	function initializeCanvas(
 		canvasElement: HTMLCanvasElement,
-		containerElement: HTMLElement,
-		 options: {
-			 defaultWidth?: number;
-	defaultHeight?: number;
-  
-	backgroundColor?: string;
-	lockWorkspaceBounds?: boolean;
-   
-  } = {}
-
+		containerElement: HTMLElement
 	): Canvas {
 		try {
 			initializeVariableValues();
@@ -375,13 +338,11 @@ function updateBackgroundColor(color: string) {
 				preserveObjectStacking: true,
 				selection: true,
 				skipTargetFind: false,
-				allowTouchScrolling: false,
-				backgroundColor: options.backgroundColor || '#f8fafc'
+				allowTouchScrolling: false
 			});
 
 			container = containerElement;
 
-			// Set fabric object defaults
 			FabricObject.prototype.set({
 				cornerColor: '#FFF',
 				cornerStyle: 'circle',
@@ -392,17 +353,14 @@ function updateBackgroundColor(color: string) {
 				cornerStrokeColor: '#3b82f6'
 			});
 
-			// Create workspace
 			const workspace = new Rect({
 				width: workspaceSize.width,
 				height: workspaceSize.height,
 				name: 'clip',
-				fill:options.backgroundColor || '#f8fafc',
-				//  options.backgroundColor || '#f8fafc',
+				fill: 'white',
 				stroke: '#e5e7eb',
 				strokeWidth: 2,
 				selectable: false,
-				evented: false,
 				hasControls: false,
 				hoverCursor: 'default',
 				moveCursor: 'default',
@@ -415,19 +373,6 @@ function updateBackgroundColor(color: string) {
 			});
 
 			canvas.add(workspace);
-
-			// canvas.sendObjectToBack(workspace);
-
-			
-					
-			// function updateWorkspaceBackground(color: string) {
-			// 	const workspace = getWorkspace();
-			// 	if (workspace) {
-			// 		workspace.set('fill', color);
-			// 		canvas?.requestRenderAll();
-			// 	}
-			// }
-
 			canvas.centerObject(workspace);
 
 			if (options.lockWorkspaceBounds !== false) {
@@ -436,7 +381,6 @@ function updateBackgroundColor(color: string) {
 
 			canvas.backgroundColor = '#f8fafc';
 
-			// Setup constraints and events
 			if (options.lockWorkspaceBounds !== false) {
 				setupWorkspaceBoundaryConstraints();
 			}
@@ -447,7 +391,6 @@ function updateBackgroundColor(color: string) {
 				}
 			});
 
-			// Mouse wheel zoom handler
 			canvas.on('mouse:wheel', (opt) => {
 				if (!canvas || !opt.e.ctrlKey) return;
 
@@ -469,7 +412,6 @@ function updateBackgroundColor(color: string) {
 				}
 			});
 
-			// Attach event handlers
 			canvasEvents.attachEvents(canvasElement);
 			hotkeys.attachEvents();
 			autoResize.attachEvents();
@@ -485,7 +427,7 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// CANVAS UTILITIES
+	// Canvas Utilities
 	// ================================
 
 	function syncCanvasState(): void {
@@ -521,237 +463,167 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// EXPORT OPERATIONS
-	// ================================
-
-	function generateSaveOptions() {
-		const workspace = getWorkspace();
-		if (!workspace) {
-			return {
-				multiplier: 1,
-				format: 'png' as const,
-				quality: 1,
-				width: options.defaultWidth || 800,
-				height: options.defaultHeight || 600,
-				left: 0,
-				top: 0
-			};
-		}
-
-		const { width, height, left, top } = workspace;
-		return {
-			multiplier: 1,
-			format: 'png' as const,
-			quality: 1,
-			width,
-			height,
-			left,
-			top
-		};
-	}
-
-	function savePng(): void {
-		if (!canvas) return;
-		const options = generateSaveOptions();
-		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-		const dataUrl = canvas.toDataURL(options);
-		downloadFile(dataUrl, 'png');
-		autoResize.autoZoom();
-	}
-
-	function saveJpg(): void {
-		if (!canvas) return;
-		const options = generateSaveOptions();
-		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-		const dataUrl = canvas.toDataURL({ ...options, format: 'jpeg' });
-		downloadFile(dataUrl, 'jpg');
-		autoResize.autoZoom();
-	}
-
-	function saveSvg(): void {
-		if (!canvas) return;
-		const options = generateSaveOptions();
-		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-		const dataUrl = canvas.toDataURL(options);
-		downloadFile(dataUrl, 'svg');
-		autoResize.autoZoom();
-	}
-
-	function savePdf(): void {
-		if (!canvas) return;
-		const options = generateSaveOptions();
-		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-		const dataUrl = canvas.toDataURL({ ...options, format: 'png' });
-
-		const widthInInches = (canvas.getWidth() || 800) / 72;
-		const heightInInches = (canvas.getHeight() || 600) / 72;
-
-		const pdf = new jsPDF({
-			orientation: widthInInches > heightInInches ? 'landscape' : 'portrait',
-			unit: 'in',
-			format: [widthInInches, heightInInches]
-		});
-
-		pdf.addImage(dataUrl, 'PNG', 0, 0, widthInInches, heightInInches);
-		pdf.save('canvas.pdf');
-		autoResize.autoZoom();
-	}
-
-	async function saveJson(): Promise<void> {
-		if (!canvas) return;
-		const data = canvas.toJSON();
-		await transformText(data.objects);
-		const fileString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, '\t'))}`;
-		downloadFile(fileString, 'json');
-	}
-
-	function loadJson(json: string): void {
-		if (!canvas) return;
-		const data = JSON.parse(json);
-		canvas.loadFromJSON(data, () => {
-			autoResize.autoZoom();
-		});
-	}
-
-	// ================================
-	// TEXT AND DATE OPERATIONS
+	// Text and Date Operations
 	// ================================
 
 	function addText(text = 'Text', textOptions = {}): void {
 		if (!canvas) return;
 
-		const textObj = new Textbox(text, {
-			...TEXT_OPTIONS,
-			fill: fillColor,
-			fontFamily: fontFamily,
-			fontSize: FONT_SIZE,
-			fontWeight: FONT_WEIGHT,
-			width: 200,
-			height: 50,
-			minWidth: 200,
-			variableValues: window.variableValues || {},
-			...textOptions
-		});
+		try {
+			const textObj = new Textbox(text, {
+				...TEXT_OPTIONS,
+				fill: fillColor,
+				fontFamily: fontFamily,
+				fontSize: FONT_SIZE,
+				fontWeight: FONT_WEIGHT,
+				width: 200,
+				height: 50,
+				minWidth: 200,
+				variableValues: (window as any).variableValues || {},
+				...textOptions
+			});
 
-		const command = new AddElementCommand(canvas, textObj);
-		history.execute(command);
-		addToCanvas(textObj);
+			const command = new AddElementCommand(canvas, textObj);
+			history.execute(command);
+			addToCanvas(textObj);
+		} catch (error) {
+			console.error('Failed to add text:', error);
+		}
 	}
 
 	function addDate(): void {
 		if (!canvas) return;
 
-		const now = new Date();
-		const format = 'MM/DD/YYYY';
+		try {
+			const now = new Date();
+			const dateText = new Textbox(moment(now).format(DEFAULT_DATE_FORMAT), {
+				...TEXT_OPTIONS,
+				fill: fillColor,
+				fontFamily: fontFamily,
+				fontSize: FONT_SIZE,
+				fontWeight: FONT_WEIGHT,
+				customType: 'date',
+				customDateValue: now.toISOString(),
+				customDateFormat: DEFAULT_DATE_FORMAT,
+				variableValues: (window as any).variableValues || {}
+			});
 
-		const dateText = new Textbox(moment(now).format(format), {
-			...TEXT_OPTIONS,
-			fill: fillColor,
-			fontFamily: fontFamily,
-			customType: 'date',
-			customDateValue: now.toISOString(),
-			customDateFormat: format,
-			variableValues: window.variableValues || {}
-		});
-
-		const command = new AddElementCommand(canvas, dateText);
-		history.execute(command);
-		addToCanvas(dateText);
+			const command = new AddElementCommand(canvas, dateText);
+			history.execute(command);
+			addToCanvas(dateText);
+		} catch (error) {
+			console.error('Failed to add date:', error);
+		}
 	}
 
 	function changeDateFormat(format: string): void {
 		if (!canvas) return;
 
-		const active = canvas.getActiveObject();
-		if (active && isTextType(active.type) && (active as any).customType === 'date') {
-			const dateValue = (active as any).customDateValue;
-			const isDynamic = /{{[^{}]+}}/.test(dateValue);
+		try {
+			const active = canvas.getActiveObject() as CustomDateTextbox | null;
+			if (active?.type === 'textbox' && active.customType === 'date') {
+				const dateValue = active.customDateValue || new Date().toISOString();
+				const isDynamic = /{{[^{}]+}}/.test(dateValue);
 
-			if (!isDynamic && dateValue && moment(dateValue).isValid()) {
-				(active as any).text = moment(dateValue).format(format);
-				(active as any).customDateFormat = format;
-				canvas.requestRenderAll();
-			} else if (isDynamic) {
-				(active as any).customDateFormat = format;
-				(active as any).text = dateValue;
+				if (!isDynamic && moment(dateValue).isValid()) {
+					active.set({
+						text: moment(dateValue).format(format),
+						customDateFormat: format
+					});
+				} else {
+					active.set({
+						text: dateValue,
+						customDateFormat: format
+					});
+				}
+
 				canvas.requestRenderAll();
 			}
+		} catch (error) {
+			console.error('Failed to change date format:', error);
 		}
 	}
 
 	function updateDateValue(newDateStr: string): void {
 		if (!canvas) return;
 
-		const active = canvas.getActiveObject();
-		if (active && isTextType(active.type) && (active as any).customType === 'date') {
-			const format = (active as any).customDateFormat || 'MM/DD/YYYY';
-			const isDynamic = /{{[^{}]+}}/.test(newDateStr);
+		try {
+			const active = canvas.getActiveObject() as CustomDateTextbox | null;
+			if (active?.type === 'textbox' && active.customType === 'date') {
+				const format = active.customDateFormat || DEFAULT_DATE_FORMAT;
+				const isDynamic = /{{[^{}]+}}/.test(newDateStr);
 
-			if (!isDynamic && moment(newDateStr, format, true).isValid()) {
-				(active as any).customDateValue = moment(newDateStr, format).toISOString();
-				(active as any).text = moment(newDateStr, format).format(format);
-			} else {
-				(active as any).customDateValue = newDateStr;
-				(active as any).text = newDateStr;
+				if (!isDynamic) {
+					const parsed = moment(newDateStr, format);
+					if (parsed.isValid()) {
+						active.set({
+							customDateValue: parsed.toISOString(),
+							text: parsed.format(format)
+						});
+					} else {
+						active.set({
+							customDateValue: newDateStr,
+							text: newDateStr
+						});
+					}
+				} else {
+					active.set({
+						customDateValue: newDateStr,
+						text: newDateStr
+					});
+				}
+
+				canvas.requestRenderAll();
 			}
-
-			canvas.requestRenderAll();
+		} catch (error) {
+			console.error('Failed to update date value:', error);
 		}
 	}
 
 	function getActiveDateValue(): string | null {
 		if (!canvas) return null;
 
-		const active = canvas.getActiveObject();
-		if (active && isTextType(active.type) && (active as any).customType === 'date') {
-			return (active as any).customDateValue || null;
-		}
-
-		return null;
+		const active = canvas.getActiveObject() as CustomDateTextbox | null;
+		return active?.type === 'textbox' && active.customType === 'date'
+			? active.customDateValue || null
+			: null;
 	}
 
 	function getActiveDateFormat(): string | null {
 		if (!canvas) return null;
 
-		const active = canvas.getActiveObject();
-		if (active && isTextType(active.type) && (active as any).customType === 'date') {
-			return (active as any).customDateFormat || 'MM/DD/YYYY';
-		}
-
-		return null;
+		const active = canvas.getActiveObject() as CustomDateTextbox | null;
+		return active?.type === 'textbox' && active.customType === 'date'
+			? active.customDateFormat || DEFAULT_DATE_FORMAT
+			: null;
 	}
 
 	function getActiveText(): string | undefined {
 		if (!canvas) return undefined;
 
-		const activeObject = canvas.getActiveObject();
-		if (
-			activeObject &&
-			isTextType(activeObject.type) &&
-			(activeObject as any).customType !== 'date'
-		) {
-			return (activeObject as Textbox).text || '';
+		const active = canvas.getActiveObject() as CustomDateTextbox | null;
+		if (active?.type === 'textbox' && active.customType !== 'date') {
+			return active.text || '';
 		}
-
 		return undefined;
 	}
 
 	function changeText(text: string): void {
 		if (!canvas) return;
 
-		const activeObject = canvas.getActiveObject();
-		if (
-			activeObject &&
-			isTextType(activeObject.type) &&
-			(activeObject as any).customType !== 'date'
-		) {
-			(activeObject as Textbox).set({ text });
-			canvas.requestRenderAll();
+		try {
+			const active = canvas.getActiveObject() as CustomDateTextbox | null;
+			if (active?.type === 'textbox' && active.customType !== 'date') {
+				active.set({ text });
+				canvas.requestRenderAll();
+			}
+		} catch (error) {
+			console.error('Failed to change text:', error);
 		}
 	}
 
 	// ================================
-	// SHAPE OPERATIONS
+	// Shape Operations
 	// ================================
 
 	function addCircle(): void {
@@ -874,7 +746,7 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// QR CODE AND BARCODE OPERATIONS
+	// QR Code and Barcode Operations
 	// ================================
 
 	async function addQRCode(value: string | null = null): Promise<void> {
@@ -942,7 +814,7 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// IMAGE OPERATIONS
+	// Image Operations
 	// ================================
 
 	async function addImage(fileOrUrl: File | string): Promise<void> {
@@ -977,7 +849,100 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// SELECTION AND DELETION
+	// Export Operations
+	// ================================
+
+	function generateSaveOptions() {
+		const workspace = getWorkspace();
+		if (!workspace) {
+			return {
+				multiplier: 1,
+				format: 'png' as const,
+				quality: 1,
+				width: options.defaultWidth || 800,
+				height: options.defaultHeight || 600,
+				left: 0,
+				top: 0
+			};
+		}
+
+		const { width, height, left, top } = workspace;
+		return {
+			multiplier: 1,
+			format: 'png' as const,
+			quality: 1,
+			width,
+			height,
+			left,
+			top
+		};
+	}
+
+	function savePng(): void {
+		if (!canvas) return;
+		const options = generateSaveOptions();
+		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+		const dataUrl = canvas.toDataURL(options);
+		downloadFile(dataUrl, 'png');
+		autoResize.autoZoom();
+	}
+
+	function saveJpg(): void {
+		if (!canvas) return;
+		const options = generateSaveOptions();
+		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+		const dataUrl = canvas.toDataURL({ ...options, format: 'jpeg' });
+		downloadFile(dataUrl, 'jpg');
+		autoResize.autoZoom();
+	}
+
+	function saveSvg(): void {
+		if (!canvas) return;
+		const options = generateSaveOptions();
+		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+		const dataUrl = canvas.toDataURL(options);
+		downloadFile(dataUrl, 'svg');
+		autoResize.autoZoom();
+	}
+
+	function savePdf(): void {
+		if (!canvas) return;
+		const options = generateSaveOptions();
+		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+		const dataUrl = canvas.toDataURL({ ...options, format: 'png' });
+
+		const widthInInches = (canvas.getWidth() || 800) / 72;
+		const heightInInches = (canvas.getHeight() || 600) / 72;
+
+		const pdf = new jsPDF({
+			orientation: widthInInches > heightInInches ? 'landscape' : 'portrait',
+			unit: 'in',
+			format: [widthInInches, heightInInches]
+		});
+
+		pdf.addImage(dataUrl, 'PNG', 0, 0, widthInInches, heightInInches);
+		pdf.save('canvas.pdf');
+		autoResize.autoZoom();
+	}
+
+	async function saveJson(): Promise<void> {
+		if (!canvas) return;
+		const data = canvas.toJSON();
+		await transformText(data.objects);
+		const fileString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, '\t'))}`;
+		downloadFile(fileString, 'json');
+	}
+
+	function loadJson(json: string): void {
+		if (!canvas) return;
+		const data = JSON.parse(json);
+		canvas.loadFromJSON(data, () => {
+			autoResize.autoZoom();
+		});
+	}
+
+	// ================================
+	// Selection and Deletion
 	// ================================
 
 	function deleteSelected(): void {
@@ -993,7 +958,7 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// ZOOM OPERATIONS
+	// Zoom Operations
 	// ================================
 
 	function setZoom(newZoom: number): void {
@@ -1025,10 +990,10 @@ function updateBackgroundColor(color: string) {
 	}
 
 	// ================================
-	// CANVAS SIZE AND BACKGROUND
+	// Canvas Size and Background
 	// ================================
 
-	function changeSize(value: { width: number; height: number }) {
+	function changeSize(value: { width: number; height: number }): void {
 		if (!canvas) return;
 		const workspace = getWorkspace();
 		if (workspace) {
@@ -1044,7 +1009,7 @@ function updateBackgroundColor(color: string) {
 		}
 	}
 
-	function changeBackground(value: string) {
+	function changeBackground(value: string): void {
 		if (!canvas) return;
 		const workspace = getWorkspace();
 		if (workspace) {
@@ -1054,8 +1019,11 @@ function updateBackgroundColor(color: string) {
 		}
 	}
 
-	// Font and style operations
-	function changeFontFamily(value: string) {
+	// ================================
+	// Font and Style Operations
+	// ================================
+
+	function changeFontFamily(value: string): void {
 		if (!canvas) return;
 		fontFamily = value;
 		canvas.getActiveObjects().forEach((object) => {
@@ -1066,7 +1034,7 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeFontSize(value: number) {
+	function changeFontSize(value: number): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (isTextType(object.type)) {
@@ -1076,47 +1044,52 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeFontWeight(value: number) {
+	function changeFontWeight(value?: number): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (isTextType(object.type)) {
-				(object as Textbox).set({ fontWeight: value });
+				const textObj = object as Textbox;
+				if (value === undefined) {
+					const currentWeight = Number(textObj.fontWeight) || 400;
+					value = currentWeight >= 700 ? 400 : 700;
+				}
+				textObj.set({ fontWeight: value });
 			}
 		});
 		canvas.renderAll();
 	}
 
-	function changeFontStyle(value: 'normal' | 'italic' | 'oblique') {
+	function changeFontStyle(value?: 'normal' | 'italic' | 'oblique'): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (isTextType(object.type)) {
-				(object as Textbox).set({ fontStyle: value });
+				const textObj = object as Textbox;
+				if (value === undefined) {
+					const currentStyle = textObj.fontStyle || 'normal';
+					value = currentStyle === 'italic' ? 'normal' : 'italic';
+				}
+				textObj.set({ fontStyle: value });
 			}
 		});
 		canvas.renderAll();
 	}
 
-	function changeFontUnderline(value: boolean) {
+	function changeFontUnderline(value?: boolean): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (isTextType(object.type)) {
-				(object as Textbox).set({ underline: value });
+				const textObj = object as Textbox;
+				if (value === undefined) {
+					const currentUnderline = textObj.underline || false;
+					value = !currentUnderline;
+				}
+				textObj.set({ underline: value });
 			}
 		});
 		canvas.renderAll();
 	}
 
-	function changeFontLinethrough(value: boolean) {
-		if (!canvas) return;
-		canvas.getActiveObjects().forEach((object) => {
-			if (isTextType(object.type)) {
-				(object as Textbox).set({ linethrough: value });
-			}
-		});
-		canvas.renderAll();
-	}
-
-	function changeTextAlign(value: string) {
+	function changeTextAlign(value: string): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (isTextType(object.type)) {
@@ -1126,7 +1099,7 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeOpacity(value: number) {
+	function changeOpacity(value: number): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			object.set({ opacity: value });
@@ -1134,7 +1107,7 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeFillColor(value: string) {
+	function changeFillColor(value: string): void {
 		if (!canvas) return;
 		fillColor = value;
 		canvas.getActiveObjects().forEach((object) => {
@@ -1143,7 +1116,7 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeStrokeColor(value: string) {
+	function changeStrokeColor(value: string): void {
 		if (!canvas) return;
 		strokeColor = value;
 		canvas.getActiveObjects().forEach((object) => {
@@ -1152,7 +1125,7 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeStrokeWidth(value: number) {
+	function changeStrokeWidth(value: number): void {
 		if (!canvas) return;
 		strokeWidth = value;
 		canvas.getActiveObjects().forEach((object) => {
@@ -1161,7 +1134,7 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	function changeStrokeDashArray(value: number[]) {
+	function changeStrokeDashArray(value: number[]): void {
 		if (!canvas) return;
 		strokeDashArray = value;
 		canvas.getActiveObjects().forEach((object) => {
@@ -1170,8 +1143,11 @@ function updateBackgroundColor(color: string) {
 		canvas.renderAll();
 	}
 
-	// Layer operations
-	function bringForward() {
+	// ================================
+	// Layer Operations
+	// ================================
+
+	function bringForward(): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (canvas) canvas.bringObjectForward(object);
@@ -1183,7 +1159,7 @@ function updateBackgroundColor(color: string) {
 		}
 	}
 
-	function sendBackwards() {
+	function sendBackwards(): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
 			if (canvas) canvas.sendObjectBackwards(object);
@@ -1195,38 +1171,41 @@ function updateBackgroundColor(color: string) {
 		}
 	}
 
-	// Getter functions
-	function getActiveOpacity() {
+	// ================================
+	// Getter Functions
+	// ================================
+
+	function getActiveOpacity(): number {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject) return 1;
 		return selectedObject.get('opacity') || 1;
 	}
 
-	function getActiveFontSize() {
+	function getActiveFontSize(): number {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject || !isTextType(selectedObject.type)) return FONT_SIZE;
 		return (selectedObject as Textbox).fontSize || FONT_SIZE;
 	}
 
-	function getActiveTextAlign() {
+	function getActiveTextAlign(): string {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject || !isTextType(selectedObject.type)) return 'left';
 		return (selectedObject as Textbox).textAlign || 'left';
 	}
 
-	function getActiveFontUnderline() {
+	function getActiveFontUnderline(): boolean {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject || !isTextType(selectedObject.type)) return false;
 		return (selectedObject as Textbox).underline || false;
 	}
 
-	function getActiveFontLinethrough() {
+	function getActiveFontLinethrough(): boolean {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject || !isTextType(selectedObject.type)) return false;
 		return (selectedObject as Textbox).linethrough || false;
 	}
 
-	function getActiveFontStyle() {
+	function getActiveFontStyle(): string {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject || !isTextType(selectedObject.type)) return 'normal';
 		return (selectedObject as Textbox).fontStyle || 'normal';
@@ -1238,19 +1217,19 @@ function updateBackgroundColor(color: string) {
 		return (selectedObject as Textbox).fontWeight || FONT_WEIGHT;
 	}
 
-	function getActiveFontFamily() {
+	function getActiveFontFamily(): string {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject || !isTextType(selectedObject.type)) return fontFamily;
 		return (selectedObject as Textbox).fontFamily || fontFamily;
 	}
 
-	function getActiveFillColor() {
+	function getActiveFillColor(): string {
 		const selectedObject = selectedObjects[0];
 		if (!selectedObject) return fillColor;
 		return selectedObject.get('fill') || fillColor;
 	}
 
-	function getActiveScaleX() {
+	function getActiveScaleX(): number {
 		if (!canvas) return 1.0;
 		const activeObject = canvas.getActiveObject();
 		if (activeObject && 'scaleX' in activeObject) {
@@ -1259,7 +1238,7 @@ function updateBackgroundColor(color: string) {
 		return 1.0;
 	}
 
-	function getActiveScaleY() {
+	function getActiveScaleY(): number {
 		if (!canvas) return 1.0;
 		const activeObject = canvas.getActiveObject();
 		if (activeObject && 'scaleY' in activeObject) {
@@ -1267,6 +1246,10 @@ function updateBackgroundColor(color: string) {
 		}
 		return 1.0;
 	}
+
+	// ================================
+	// Public API
+	// ================================
 
 	return {
 		canvas,
@@ -1283,8 +1266,6 @@ function updateBackgroundColor(color: string) {
 		hasSelection,
 		canvasSize,
 		initializeCanvas,
-		updateBackgroundColor,
-    	updateWorkspaceBackground,
 		syncCanvasState,
 		getWorkspace,
 		center,
@@ -1318,7 +1299,6 @@ function updateBackgroundColor(color: string) {
 		changeFontWeight,
 		changeFontStyle,
 		changeFontUnderline,
-		changeFontLinethrough,
 		changeTextAlign,
 		changeOpacity,
 		changeFillColor,
@@ -1350,7 +1330,6 @@ function updateBackgroundColor(color: string) {
 		onPaste: clipboard.paste,
 		canUndo: history.canUndo,
 		canRedo: history.canRedo,
-	
 		history,
 		canvasEvents
 	};
