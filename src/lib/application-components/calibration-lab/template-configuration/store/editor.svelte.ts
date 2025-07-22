@@ -820,31 +820,53 @@ export function createEditor(options: EditorOptions = {}) {
 	async function addImage(fileOrUrl: File | string): Promise<void> {
 		if (!canvas) return;
 
-		const handleImage = async (url: string) => {
-			const image = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
-			const workspace = getWorkspace();
+		const readFileAsDataURL = (file: File): Promise<string> => {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => {
+					if (typeof reader.result === 'string') {
+						resolve(reader.result);
+					} else {
+						reject(new Error('Failed to read file as data URL'));
+					}
+				};
+				reader.onerror = () => reject(reader.error);
+				reader.readAsDataURL(file);
+			});
+		};
 
-			image.scaleToWidth((workspace?.width ?? 400) * 0.8);
-			const aspectRatio = (image.height ?? 1) / (image.width ?? 1);
-			image.set({ height: (image.width ?? 1) * aspectRatio });
+		const handleImage = async (url: string, crossOrigin?: 'anonymous' | 'use-credentials' | '') => {
+			try {
+				const image = await FabricImage.fromURL(url, { crossOrigin });
 
-			if (!canvas) return;
+				const workspace = getWorkspace();
+				image.scaleToWidth((workspace?.width ?? 400) * 0.8);
 
-			const command = new AddElementCommand(canvas, image);
-			history.execute(command);
-			addToCanvas(image);
+				const aspectRatio = (image.height ?? 1) / (image.width ?? 1);
+				image.set({ height: (image.width ?? 1) * aspectRatio });
+
+				if (!canvas) return;
+
+				const command = new AddElementCommand(canvas, image);
+				history.execute(command);
+				addToCanvas(image);
+			} catch (err) {
+				console.error('Failed to load image:', err);
+				// Optionally notify the user here
+			}
 		};
 
 		if (typeof fileOrUrl === 'string') {
-			await handleImage(fileOrUrl);
+			// External URL - use CORS
+			await handleImage(fileOrUrl, 'anonymous');
 		} else {
-			const reader = new FileReader();
-			reader.onload = async () => {
-				if (typeof reader.result === 'string') {
-					await handleImage(reader.result);
-				}
-			};
-			reader.readAsDataURL(fileOrUrl);
+			// Local file - use Data URL (no CORS needed)
+			try {
+				const dataUrl = await readFileAsDataURL(fileOrUrl);
+				await handleImage(dataUrl); // No crossOrigin needed
+			} catch (err) {
+				console.error('Error reading file:', err);
+			}
 		}
 	}
 

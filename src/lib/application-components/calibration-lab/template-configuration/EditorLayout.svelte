@@ -43,7 +43,7 @@
 			<div class="p-4">
 				<ComponentToolbar
 					availableComponents={appState.availableComponents}
-					onSelectComponent={handleComponentSelect}
+					onSelectComponent={(componentType) => handleComponentSelect(componentType as ComponentType)}
 					editor={appState.editor}
 				/>
 			</div>
