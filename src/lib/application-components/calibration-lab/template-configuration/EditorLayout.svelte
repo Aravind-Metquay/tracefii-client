@@ -51,7 +51,9 @@
 
 		<!-- Canvas -->
 		<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
-			<CanvasEditor editor={appState.editor} />
+			<CanvasEditor editor={appState.editor}
+			backgroundColor={appState.uiState.backgroundColor} 
+			/>
 		</div>
 	</div>
 

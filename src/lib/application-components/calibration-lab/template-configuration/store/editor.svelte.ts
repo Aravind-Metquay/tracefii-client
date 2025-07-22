@@ -10,6 +10,7 @@ import {
 	Point,
 	Shadow
 } from 'fabric';
+
 import { createHistory } from './history.svelte';
 import { createCanvasEvents } from './canvas-events.svelte';
 import { AddElementCommand } from '../commands/commands.svelte';
@@ -319,10 +320,45 @@ export function createEditor(options: EditorOptions = {}) {
 	// ================================
 	// CANVAS INITIALIZATION
 	// ================================
+	
+
+	// Move updateWorkspaceBackground to top-level scope
+	function updateWorkspaceBackground(color: string) {
+		const workspace = getWorkspace();
+		if (workspace) {
+			workspace.set('fill', color);
+			canvas?.requestRenderAll();
+		}
+	}
+	// Add this new method at the top level
+function updateBackgroundColor(color: string) {
+	if (!canvas) return;
+	
+	// Update canvas background
+	canvas.backgroundColor = color;
+	
+	// Update workspace fill
+	updateWorkspaceBackground(color);
+}
+
+// // Add getWorkspace method at top level
+// function getWorkspace() {
+// 	if (!canvas) return null;
+// 	return canvas.getObjects().find(obj => obj.name === 'clip') as Rect | undefined;
+// }
 
 	function initializeCanvas(
 		canvasElement: HTMLCanvasElement,
-		containerElement: HTMLElement
+		containerElement: HTMLElement,
+		 options: {
+			 defaultWidth?: number;
+	defaultHeight?: number;
+  
+	backgroundColor?: string;
+	lockWorkspaceBounds?: boolean;
+   
+  } = {}
+
 	): Canvas {
 		try {
 			initializeVariableValues();
@@ -339,7 +375,8 @@ export function createEditor(options: EditorOptions = {}) {
 				preserveObjectStacking: true,
 				selection: true,
 				skipTargetFind: false,
-				allowTouchScrolling: false
+				allowTouchScrolling: false,
+				backgroundColor: options.backgroundColor || '#f8fafc'
 			});
 
 			container = containerElement;
@@ -360,10 +397,12 @@ export function createEditor(options: EditorOptions = {}) {
 				width: workspaceSize.width,
 				height: workspaceSize.height,
 				name: 'clip',
-				fill: 'white',
+				fill:options.backgroundColor || '#f8fafc',
+				//  options.backgroundColor || '#f8fafc',
 				stroke: '#e5e7eb',
 				strokeWidth: 2,
 				selectable: false,
+				evented: false,
 				hasControls: false,
 				hoverCursor: 'default',
 				moveCursor: 'default',
@@ -376,6 +415,19 @@ export function createEditor(options: EditorOptions = {}) {
 			});
 
 			canvas.add(workspace);
+
+			// canvas.sendObjectToBack(workspace);
+
+			
+					
+			// function updateWorkspaceBackground(color: string) {
+			// 	const workspace = getWorkspace();
+			// 	if (workspace) {
+			// 		workspace.set('fill', color);
+			// 		canvas?.requestRenderAll();
+			// 	}
+			// }
+
 			canvas.centerObject(workspace);
 
 			if (options.lockWorkspaceBounds !== false) {
@@ -1231,6 +1283,8 @@ export function createEditor(options: EditorOptions = {}) {
 		hasSelection,
 		canvasSize,
 		initializeCanvas,
+		updateBackgroundColor,
+    	updateWorkspaceBackground,
 		syncCanvasState,
 		getWorkspace,
 		center,
@@ -1296,6 +1350,7 @@ export function createEditor(options: EditorOptions = {}) {
 		onPaste: clipboard.paste,
 		canUndo: history.canUndo,
 		canRedo: history.canRedo,
+	
 		history,
 		canvasEvents
 	};

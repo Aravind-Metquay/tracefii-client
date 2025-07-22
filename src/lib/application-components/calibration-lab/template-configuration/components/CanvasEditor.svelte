@@ -3,10 +3,38 @@
 	import { onMount } from 'svelte';
 	import Footer from './Footer.svelte';
 	import type { Editor } from '../lib/types';
+	import type { Color } from 'fabric';
+	
+	
 
-	let { editor } = $props<{ editor: Editor }>();
+
+	let {editor,backgroundColor } = $props<{ editor: Editor ,backgroundColor: { r: number; g: number; b: number }}>();
 	let canvasElement = $state<HTMLCanvasElement>();
 	let containerElement = $state<HTMLDivElement>();
+
+	function rgbToHex(rgb: { r: number; g: number; b: number }): string {
+		return '#' + [rgb.r, rgb.g, rgb.b]
+			.map(x => {
+				const hex = x.toString(16);
+				return hex.length === 1 ? '0' + hex : hex;
+			})
+			.join('');
+	}
+		
+	$effect(() => {
+				if (editor?.canvas && backgroundColor) {
+					const hexColor = rgbToHex(backgroundColor);
+					editor.canvas.backgroundColor = hexColor;
+					
+					// Also update workspace fill if it exists
+					const workspace = editor.getWorkspace?.();
+					if (workspace) {
+						workspace.set('fill', hexColor);
+					}
+					
+					editor.canvas.requestRenderAll();
+				}
+	});
 
 	onMount(() => {
 		let resizeObserver: ResizeObserver | null = null;
@@ -30,7 +58,13 @@
 					canvasElement.style.height = height + 'px';
 
 					// Initialize the editor canvas
-					editor.initializeCanvas(canvasElement, containerElement);
+					editor.initializeCanvas(canvasElement, containerElement,{
+						
+						backgroundColor: rgbToHex(backgroundColor)
+						
+					});
+
+	
 
 					// Force canvas to have proper dimensions and render
 					if (editor.canvas) {
@@ -130,7 +164,7 @@
 							}
 						}
 					});
-					resizeObserver.observe(containerElement);
+					 resizeObserver.observe(containerElement);
 				} else {
 					// Retry if container still has no dimensions
 					setTimeout(initializeWhenReady, 10);

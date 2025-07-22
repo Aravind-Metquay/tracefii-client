@@ -70,14 +70,18 @@
 
 	function handleColorChange(color: { hex: string | null }) {
 		if (color.hex && editor?.canvas) {
+			backgroundColor = hexToRgb(color.hex);
+			
 			const workspace = editor.getWorkspace();
 			if (workspace) {
 				workspace.set('fill', color.hex);
-				editor.canvas.renderAll();
-
-				// Update the bound backgroundColor state
-				backgroundColor = hexToRgb(color.hex);
+				
+		
 			}
+
+			editor.canvas.backgroundColor = color.hex;
+			editor.canvas.renderAll();
+
 		}
 	}
 
