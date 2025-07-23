@@ -10,9 +10,9 @@
 	import type { WorksheetManager } from '../store.svelte';
 
   const worksheetManager = getContext<WorksheetManager>("worksheetManager");
-  const currentActiveColumn = worksheetManager.getCurrentActiveColumn();
-  const currentActiveFunction = worksheetManager.getCurrentActiveFunction();
-  const currentActiveComponent = worksheetManager.getCurrentActiveComponent();
+  const currentActiveColumn = $derived(worksheetManager.getCurrentActiveColumn());
+  const currentActiveFunction = $derived(worksheetManager.getCurrentActiveFunction());
+  const currentActiveComponent = $derived(worksheetManager.getCurrentActiveComponent());
   const components = worksheetManager.getAllComponents();
   const functions = worksheetManager.getAllFunctions();
   

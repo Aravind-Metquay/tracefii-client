@@ -25,7 +25,12 @@
 		</div>
 	</div>
 
-	<Button size="small" variant="primary" onclick={() => (open = true)}>Add New Component</Button>
+	<Button 
+		size="small" 
+		variant="primary" 
+		onclick={() => (open = true)} 
+		disabled={worksheetManager.getCurrentActiveFunction()?.functionId ? false : true}
+		>Add New Component</Button>
 	<AddComponentModal bind:open />
 
 	<div class="flex items-center gap-4">

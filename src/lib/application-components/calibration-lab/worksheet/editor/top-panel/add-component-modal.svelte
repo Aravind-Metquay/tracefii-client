@@ -125,8 +125,8 @@
 				tableRowExpression: ''
 			}
 		};
-		console.log('New Component:', component);
-		// worksheetManager.addNewComponent(component);
+		// console.log('New Component:', component);
+		worksheetManager.addNewComponent(component);
 		open = false;
 	};
 </script>

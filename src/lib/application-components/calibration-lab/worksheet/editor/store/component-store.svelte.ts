@@ -7,7 +7,7 @@ import type {
   TableComponent,
   TextComponent
 } from '@/Types';
-import { currentActiveStore } from './currentActiveElements-store.svelte';
+import { currentActiveStore, setCurrentActiveComponent } from './currentActiveElements-store.svelte';
 
 export let componentStore = $state<Component[]>([]);
 
