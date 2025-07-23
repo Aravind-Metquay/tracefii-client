@@ -267,7 +267,7 @@
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="component-mandatory" bind:checked={isRequired} />
-				<label for="component-mandatory" class="cursor-pointer font-normal">Is mandatory?</label>
+				<label for="component-mandatory" class="cursor-pointer font-normal">Is Required?</label>
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="component-readonly" bind:checked={isReadOnly} />

@@ -322,7 +322,6 @@ const createRepeatedFunction = (
         functionId: newFunctionId,
         functionName: `${baseFunction.functionName} ${repeatIndex}`,
         order: baseFunction.order + (repeatIndex * 0.1), // Maintain relative ordering
-        isRepeat: false // Repeated instances aren't themselves repeatable
     };
 };
 

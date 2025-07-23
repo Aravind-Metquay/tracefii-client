@@ -18,8 +18,6 @@ export function addNewFunction(): void {
     functionId: generateComponentId(`Function ${functionStore.length + 1}`),
     order: functionStore.length,
     worksheetId: '1233',
-    isRepeat: false,
-    repeatExpression: ''
   };
 
   functionStore.push(fn);

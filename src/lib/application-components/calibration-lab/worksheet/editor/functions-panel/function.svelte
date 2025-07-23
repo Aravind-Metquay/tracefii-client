@@ -34,9 +34,6 @@
     </span>
   {/if}
 
-  {#if fn.isRepeat}
-    <Repeat size="12" class="mr-2" />
-  {/if}
 
   <a
     onclick={() => worksheetManager.removeFunction(fn.functionId)}

@@ -379,8 +379,6 @@ export interface Function {
   functionId: string;
   order: number;
   worksheetId: string;
-  isRepeat: boolean;
-  repeatExpression: string;
 }
 
 export interface Component {

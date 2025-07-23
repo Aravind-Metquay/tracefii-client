@@ -5,22 +5,22 @@
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '../store.svelte';
 
-    export let component: Component;
-    const worksheetManager = getContext<WorksheetManager>("worksheetManager");
+  const { component } = $props<{ component: Component }>();
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
 
   // Access the current function ID directly from the store
   const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
 
   // Access the current value from the data store reactively
-  let currentValue = '';
+  let currentValue = $state('');
   if (currentActiveFunctionId && dataStore[currentActiveFunctionId]) {
     currentValue = dataStore[currentActiveFunctionId][component.componentId] ?? '';
   } else {
     currentValue = '';
   }
 
-  const isNumberType = component.inputComponent?.type === "Number";
+  const isNumberType = $derived(component.inputComponent?.type === "Number");
   const isDisabled = component.isDisabled || component.isReadOnly;
   const validationError = component.isValidationEnabled && component.validationExpression;
 
@@ -45,7 +45,7 @@
 </script>
 
 {#if currentActiveFunctionId && component.componentType === "Input" && component.inputComponent}
-  <div class="flex flex-col w-56 cursor-pointer" on:click={() => setCurrentActiveComponent(component)}>
+  <div class="flex flex-col w-56 cursor-pointer" onclick={() => setCurrentActiveComponent(component)}>
     <label class="text-xs mx-1" for={component.componentId}>
       {component.label || 'Input'}
       {#if component.isRequired}
@@ -69,7 +69,7 @@
         aria-invalid={validationError ? 'true' : undefined}
         aria-errormessage={validationError ? `${component.componentId}-error` : undefined}
         required={component.isRequired}
-        on:input={handleNumberChange}
+        oninput={handleNumberChange}
       />
     {:else}
       <input
@@ -84,7 +84,7 @@
         aria-invalid={validationError ? 'true' : undefined}
         aria-errormessage={validationError ? `${component.componentId}-error` : undefined}
         required={component.isRequired}
-        on:input={handleTextChange}
+        oninput={handleTextChange}
       />
     {/if}
 

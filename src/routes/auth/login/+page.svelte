@@ -1,7 +1,7 @@
 <script lang='ts'>
 	import { goto } from '$app/navigation';
-	import Button from '@/components/ui/button/button.svelte';
-	import Input from '@/components/ui/input/input.svelte';
+	import Button from '@/components/button/button.svelte';
+	import Input from '@/components/input/input.svelte';
 	import { auth , login } from '@/svelte-auth0';
 
 	let email = $state('');

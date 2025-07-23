@@ -262,8 +262,6 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
                 functionId: functionId,
                 order: worksheet.functions.length,
                 worksheetId: worksheet.metadata.worksheetId,
-                isRepeat: false,
-                repeatExpression: ''
             }
             worksheet.functions.push(fn);
             worksheet.functionIds.push(functionId);

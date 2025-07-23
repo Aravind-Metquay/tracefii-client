@@ -83,7 +83,7 @@
 
   <div class="flex-1 overflow-y-auto">
     {#if currentActiveFunction && !currentActiveComponent}
-      <FunctionConfiguration function={currentActiveFunction} onExpressionModal={handleExpressionModal} />
+      <FunctionConfiguration function={currentActiveFunction} />
     {:else if currentActiveComponent}
       {#if currentActiveComponent.componentType === 'Table' && currentActiveColumn && currentActiveColumn}
         <ColumnConfiguration
