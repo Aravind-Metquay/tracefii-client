@@ -5,7 +5,7 @@
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '../store.svelte';
 
-    export let component: Component;
+    const { component } = $props<{ component: Component }>();
     const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
 
@@ -13,15 +13,15 @@
   const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
 
   // Access the current value from the data store reactively
-  let currentValue = '';
+  let currentValue = $state('');
   if (currentActiveFunctionId && dataStore[currentActiveFunctionId]) {
     currentValue = dataStore[currentActiveFunctionId][component.componentId] ?? '';
   } else {
     currentValue = '';
   }
 
-  const isNumberType = component.inputComponent?.type === "Number";
-  const isDisabled = component.isDisabled || component.isReadOnly;
+  const isNumberType = $derived(component.inputComponent?.type === "Number");
+  const isDisabled = $derived(component.isDisabled || component.isReadOnly);
   const validationError = component.isValidationEnabled && component.validationExpression;
 
   function handleNumberChange(e: Event) {
