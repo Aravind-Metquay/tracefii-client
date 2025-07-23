@@ -28,7 +28,7 @@
     type = modalType;
     isOpen = true;
   }
-
+  
   function getTitleInfo() {
     if (currentActiveColumn) {
       return {
@@ -54,7 +54,7 @@
     };
   }
 
-  const titleInfo = getTitleInfo();
+  const titleInfo = $derived(getTitleInfo());
 </script>
 
 <div class="h-full flex flex-col bg-white rounded-md">
