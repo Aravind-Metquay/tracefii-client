@@ -11,7 +11,7 @@ import {
 	Shadow
 } from 'fabric';
 import { createHistory } from './history.svelte';
-import { createCanvasEvents } from './canvas-events.svelte';
+//import { createCanvasEvents } from './canvas-events.svelte';
 import { AddElementCommand } from '../commands/commands.svelte';
 import JsBarcode from 'jsbarcode';
 import * as QRCode from 'qrcode';
@@ -157,12 +157,6 @@ export function createEditor(options: EditorOptions = {}) {
 		saveCallback: options.saveCallback
 	});
 
-	const canvasEvents = createCanvasEvents({
-		canvas,
-		setSelectedObjects: (objects) => (selectedObjects = objects),
-		clearSelectionCallback: options.clearSelectionCallback,
-		save: history.save
-	});
 
 	const clipboard = createClipboard({ canvas });
 
@@ -319,112 +313,129 @@ export function createEditor(options: EditorOptions = {}) {
 	// Canvas Initialization
 	// ================================
 
+
 	function initializeCanvas(
-		canvasElement: HTMLCanvasElement,
-		containerElement: HTMLElement
-	): Canvas {
-		try {
-			initializeVariableValues();
-
-			workspaceSize = {
+    canvasElement: HTMLCanvasElement,
+    containerElement: HTMLElement
+): Canvas {
+    try {
+        // initializeVariableValues();
+		canvas = new Canvas(canvasElement, {
 				width: options.defaultWidth || 500,
-				height: options.defaultHeight || 500
-			};
-
-			canvas = new Canvas(canvasElement, {
-				width: workspaceSize.width,
-				height: workspaceSize.height,
+				height: options.defaultHeight || 500,
 				renderOnAddRemove: true,
 				preserveObjectStacking: true,
-				selection: true,
-				skipTargetFind: false,
-				allowTouchScrolling: false
+				selection: true
 			});
 
-			container = containerElement;
+      
 
-			FabricObject.prototype.set({
-				cornerColor: '#FFF',
-				cornerStyle: 'circle',
-				borderColor: '#3b82f6',
-				borderScaleFactor: 1.5,
-				transparentCorners: false,
-				borderOpacityWhenMoving: 1,
-				cornerStrokeColor: '#3b82f6'
-			});
+       
+        // The 'canvas' variable now exists, so we can attach listeners.
+        // ==================================================================
+        canvas.on('selection:created', (e) => {
+            if (e.selected) {
+                selectedObjects = e.selected;
+            }
+        });
 
-			const workspace = new Rect({
-				width: workspaceSize.width,
-				height: workspaceSize.height,
-				name: 'clip',
-				fill: 'white',
-				stroke: '#e5e7eb',
-				strokeWidth: 2,
-				selectable: false,
-				hasControls: false,
-				hoverCursor: 'default',
-				moveCursor: 'default',
-				shadow: new Shadow({
-					color: 'rgba(0,0,0,0.1)',
-					blur: 10,
-					offsetX: 0,
-					offsetY: 2
-				})
-			});
+        canvas.on('selection:updated', (e) => {
+            if (e.selected) {
+                selectedObjects = e.selected;
+            }
+        });
 
-			canvas.add(workspace);
-			canvas.centerObject(workspace);
+        canvas.on('selection:cleared', () => {
+            selectedObjects = [];
+        });
+        // ==================================================================
 
-			if (options.lockWorkspaceBounds !== false) {
-				canvas.clipPath = workspace;
-			}
 
-			canvas.backgroundColor = '#f8fafc';
+        container = containerElement;
 
-			if (options.lockWorkspaceBounds !== false) {
-				setupWorkspaceBoundaryConstraints();
-			}
+        FabricObject.prototype.set({
+            cornerColor: '#FFF',
+            cornerStyle: 'circle',
+            borderColor: '#3b82f6',
+            borderScaleFactor: 1.5,
+            transparentCorners: false,
+            borderOpacityWhenMoving: 1,
+            cornerStrokeColor: '#3b82f6'
+        });
 
-			canvas.on('after:render', () => {
-				if (options.lockWorkspaceBounds !== false) {
-					constrainViewport();
-				}
-			});
+        const workspace = new Rect({
+            width: workspaceSize.width,
+            height: workspaceSize.height,
+            name: 'clip',
+            fill: 'white',
+            stroke: '#e5e7eb',
+            strokeWidth: 2,
+            selectable: false,
+            hasControls: false,
+            hoverCursor: 'default',
+            moveCursor: 'default',
+            shadow: new Shadow({
+                color: 'rgba(0,0,0,0.1)',
+                blur: 10,
+                offsetX: 0,
+                offsetY: 2
+            })
+        });
 
-			canvas.on('mouse:wheel', (opt) => {
-				if (!canvas || !opt.e.ctrlKey) return;
+        canvas.add(workspace);
+        canvas.centerObject(workspace);
 
-				const delta = opt.e.deltaY;
-				let zoom = canvas.getZoom();
-				zoom *= 0.999 ** delta;
+        if (options.lockWorkspaceBounds !== false) {
+            canvas.clipPath = workspace;
+        }
 
-				if (zoom > 3) zoom = 3;
-				if (zoom < 0.1) zoom = 0.1;
+        canvas.backgroundColor = '#f8fafc';
 
-				const point = new Point(opt.e.offsetX, opt.e.offsetY);
-				canvas.zoomToPoint(point, zoom);
+        if (options.lockWorkspaceBounds !== false) {
+            setupWorkspaceBoundaryConstraints();
+        }
 
-				opt.e.preventDefault();
-				opt.e.stopPropagation();
+        canvas.on('after:render', () => {
+            if (options.lockWorkspaceBounds !== false) {
+                constrainViewport();
+            }
+        });
 
-				if (options.lockWorkspaceBounds !== false) {
-					constrainViewport();
-				}
-			});
+        canvas.on('mouse:wheel', (opt) => {
+            if (!canvas || !opt.e.ctrlKey) return;
 
-			canvasEvents.attachEvents(canvasElement);
-			hotkeys.attachEvents();
-			autoResize.attachEvents();
+            const delta = opt.e.deltaY;
+            let zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
 
-			canvas.requestRenderAll();
-			history.save();
+            if (zoom > 3) zoom = 3;
+            if (zoom < 0.1) zoom = 0.1;
 
-			return canvas;
-		} catch (error) {
-			console.error('Failed to initialize canvas:', error);
-			throw error;
-		}
-	}
+            const point = new Point(opt.e.offsetX, opt.e.offsetY);
+            canvas.zoomToPoint(point, zoom);
+
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+
+            if (options.lockWorkspaceBounds !== false) {
+                constrainViewport();
+            }
+        });
+
+
+        
+        hotkeys.attachEvents();
+        autoResize.attachEvents();
+
+        canvas.requestRenderAll();
+        history.save();
+
+        return canvas;
+    } catch (error) {
+        console.error('Failed to initialize canvas:', error);
+        throw error;
+    }
+}
 
 	// ================================
 	// Canvas Utilities
@@ -757,7 +768,7 @@ export function createEditor(options: EditorOptions = {}) {
 		const finalValue = template.replace('{{default_qrcode}}', dynamicValue);
 
 		const dataUrl = await QRCode.toDataURL(finalValue, {
-			errorCorrectionLevel: 'high',
+			errorCorrectionLevel: 'H',
 			width: 100
 		});
 
@@ -767,8 +778,8 @@ export function createEditor(options: EditorOptions = {}) {
 			top: 100,
 			data: {
 				type: 'QR Code',
-				template,
-				errorCorrectionLevel: 'high'
+				expression:template,
+				errorCorrectionLevel: 'H'
 			}
 		});
 
@@ -777,41 +788,66 @@ export function createEditor(options: EditorOptions = {}) {
 		addToCanvas(img);
 	}
 
-	async function addBarcode(value: string | null = null): Promise<void> {
-		if (!canvas) return;
+	// Inside editor.svelte
 
-		const template = 'BAR{{date_code}}';
-		const today = new Date();
-		const dynamicValue =
-			value ||
-			`BAR${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
-		const finalValue = template.replace('{{date_code}}', dynamicValue);
+async function addBarcode(): Promise<void> {
+	if (!canvas) return;
 
-		const canvasElement = document.createElement('canvas');
-		JsBarcode(canvasElement, finalValue, {
-			format: 'CODE128',
-			width: 2,
-			height: 50,
-			displayValue: false
-		});
+	const initialExpression = 'BAR##date_code##';
 
-		const dataUrl = canvasElement.toDataURL();
-		const img = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+	// Evaluate the initial expression for the first creation
+	const today = new Date();
+	const dateCode = `${today.getFullYear()}${(today.getMonth() + 1)
+		.toString()
+		.padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
+	const initialValue = initialExpression.replace(/##date_code##/gi, dateCode);
 
-		img.set({
-			left: 100,
-			top: 100,
-			data: {
-				type: 'Barcode',
-				template,
-				format: 'CODE128'
-			}
-		});
+	// Define initial options
+	const barcodeOptions = {
+		format: 'CODE128',
+		width: 2,
+		height: 50,
+		displayValue: true
+	};
 
-		const command = new AddElementCommand(canvas, img);
-		history.execute(command);
-		addToCanvas(img);
-	}
+	// Generate the barcode image
+	const canvasElement = document.createElement('canvas');
+	JsBarcode(canvasElement, initialValue, barcodeOptions);
+	const dataUrl = canvasElement.toDataURL();
+	const img = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+
+	img.set({
+		left: 100,
+		top: 100,
+		// Save all initial settings to the data object for later editing
+		data: {
+			type: 'Barcode',
+			expression: initialExpression, // Store the expression
+			format: barcodeOptions.format,
+			barWidth: barcodeOptions.width,
+			barHeight: barcodeOptions.height,
+			displayValue: barcodeOptions.displayValue
+		}
+	});
+
+	
+	const command = new AddElementCommand(canvas, img);
+	history.execute(command);
+	addToCanvas(img);
+}
+
+	// Replacing previouys QRCODE
+		function replaceObject(oldObject: FabricObject, newObject: FabricObject): void {
+			if (!canvas || !oldObject || !newObject) return;
+
+			// The calling function is responsible for setting the new object's properties.
+			// This function just performs the swap on the canvas.
+			canvas.remove(oldObject);
+			canvas.add(newObject);
+			canvas.setActiveObject(newObject);
+			canvas.requestRenderAll();
+			history.save(); // Save the state after replacement
+		}
 
 	// ================================
 	// Image Operations
@@ -1251,20 +1287,30 @@ export function createEditor(options: EditorOptions = {}) {
 	// Public API
 	// ================================
 
-	return {
-		canvas,
-		container,
-		selectedTool,
-		selectedObjects,
-		zoom,
-		viewport,
-		fontFamily,
-		fillColor,
-		strokeColor,
-		strokeWidth,
-		strokeDashArray,
-		hasSelection,
-		canvasSize,
+	
+	return{
+		get canvas() { return canvas; },
+		get container() { return container; },
+		get selectedTool() { return selectedTool; },
+		set selectedTool(value) { selectedTool = value; },
+		get selectedObjects() { return selectedObjects; },
+		get zoom() { return zoom; },
+		get viewport() { return viewport; },
+		get fontFamily() { return fontFamily; },
+		set fontFamily(value) { fontFamily = value; },
+		get fillColor() { return fillColor; },
+		set fillColor(value) { fillColor = value; },
+		get strokeColor() { return strokeColor; },
+		set strokeColor(value) { strokeColor = value; },
+		get strokeWidth() { return strokeWidth; },
+		set strokeWidth(value) { strokeWidth = value; },
+		get strokeDashArray() { return strokeDashArray; },
+		set strokeDashArray(value) { strokeDashArray = value; },
+		get hasSelection() { return hasSelection; },
+		get canvasSize() { return canvasSize; },
+		get workspaceSize() { return workspaceSize; },
+
+		// Functions
 		initializeCanvas,
 		syncCanvasState,
 		getWorkspace,
@@ -1279,6 +1325,7 @@ export function createEditor(options: EditorOptions = {}) {
 		getActiveDateFormat,
 		getActiveText,
 		changeText,
+		replaceObject,
 		addQRCode,
 		addBarcode,
 		addImage,
@@ -1328,9 +1375,10 @@ export function createEditor(options: EditorOptions = {}) {
 		onRedo: history.redo,
 		onCopy: clipboard.copy,
 		onPaste: clipboard.paste,
-		canUndo: history.canUndo,
-		canRedo: history.canRedo,
+		get canUndo() { return history.canUndo; },
+		get canRedo() { return history.canRedo; },
 		history,
-		canvasEvents
+		//canvasEvents
 	};
 }
+

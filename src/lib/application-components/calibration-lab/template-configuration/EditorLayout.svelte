@@ -6,7 +6,9 @@
 	import ConfigPanel from './components/DefaultConfigPanel.svelte';
 	import type { ComponentType } from './lib/types';
 
-	let { appState } = $props();
+
+	 let { appState= $bindable(null) } = $props();
+	
 
 	setContext('appState', appState);
 
