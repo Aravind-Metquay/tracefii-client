@@ -183,9 +183,13 @@
 				<label for="background-color" class="block text-xs font-medium text-gray-600"
 					>Background Color</label
 				>
-				<div class="flex w-full items-center gap-2">
-					<ColorPicker hex={rgbToHex(backgroundColor)} onInput={handleColorChange} />
+				<div class="items-center gap-3 p-2 rounded-md text-xs">
+					<ColorPicker
+						hex={rgbToHex(backgroundColor)}
+						onInput={handleColorChange}
+					/>
 				</div>
+				
 			</div>
 		</div>
 	</div>

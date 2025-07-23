@@ -16,7 +16,7 @@
 </script>
 
 <div class="editor-layout flex h-screen w-full overflow-hidden bg-gray-100">
-	<!-- Left Panel -->
+	<!-- Left Panel (Container Panel) -->
 	<div
 		class="w-80 max-w-[320px] min-w-[320px] shrink-0 border-r border-slate-200/60 bg-white/95 shadow-lg backdrop-blur-sm"
 	>
@@ -40,7 +40,7 @@
 	<div class="flex min-w-0 flex-1 flex-col overflow-hidden">
 		<!-- Component Toolbar -->
 		{#if appState.canAddComponents}
-			<div class="p-4">
+			<div class="border-b p-4">
 				<ComponentToolbar
 					availableComponents={appState.availableComponents}
 					onSelectComponent={(componentType) =>
@@ -56,8 +56,10 @@
 		</div>
 	</div>
 
-	<!-- Right Panel -->
-	<div class="w-80 max-w-[320px] min-w-[320px] shrink-0 backdrop-blur-sm">
+	<!-- Right Panel (Config Panel) -->
+	<div
+		class="w-80 max-w-[320px] min-w-[320px] shrink-0 border-l border-slate-200/60 bg-white/95 shadow-lg backdrop-blur-sm"
+	>
 		<div class="scrollbar-hide h-full overflow-y-auto">
 			{#if appState.uiState}
 				<ConfigPanel

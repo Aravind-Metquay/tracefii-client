@@ -9,6 +9,7 @@
 	import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 	import { Button } from '@/components/ui/button';
 	import { onMount } from 'svelte';
+	import { FileText, Calendar, Image as ImageIcon, QrCode, Barcode } from '@lucide/svelte';
 
 	registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
 
@@ -25,12 +26,12 @@
 		editor?: any;
 	}>();
 
-	const componentIcons: Record<string, string> = {
-		Text: '📝',
-		Date: '📅',
-		Image: '🖼️',
-		Barcode: '📊',
-		'QR Code': '📱'
+	const componentIconsMap: Record<string, typeof FileText> = {
+		Text: FileText,
+		Date: Calendar,
+		Image: ImageIcon,
+		Barcode: Barcode,
+		'QR Code': QrCode
 	};
 
 	const customerId = 'demo'; // Replace this dynamically as needed
@@ -115,9 +116,14 @@
 	{#each availableComponents as component}
 		<Button
 			onclick={() => handleComponentClick(component)}
-			class="flex min-w-[80px] items-center justify-center gap-1 border-0 bg-white p-3 text-black shadow-lg"
+			class="flex min-w-[80px] items-center justify-center gap-2 border-0 bg-white p-3 text-black shadow-lg"
 		>
-			<span class="text-2xl">{componentIcons[component] || '📄'}</span>
+			{#if componentIconsMap[component]}
+				{@const IconComponent = componentIconsMap[component]}
+				<IconComponent class="h-5 w-5" />
+			{:else}
+				<FileText class="h-5 w-5" />
+			{/if}
 			<span class="text-xs">{component}</span>
 		</Button>
 	{/each}

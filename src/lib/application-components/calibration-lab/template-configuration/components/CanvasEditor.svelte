@@ -190,7 +190,7 @@
 	<div class="min-h-0 w-full flex-1">
 		<div
 			bind:this={containerElement}
-			class="relative flex h-full w-full items-center justify-center overflow-hidden bg-gray-50"
+			class="relative flex h-full w-full items-center justify-center overflow-hidden "
 		>
 			<!-- Canvas takes full container size -->
 			<canvas
