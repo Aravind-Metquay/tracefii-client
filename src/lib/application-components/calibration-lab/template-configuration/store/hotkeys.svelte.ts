@@ -1,4 +1,3 @@
-import { onMount, onDestroy } from 'svelte';
 import type { Canvas } from 'fabric';
 
 interface HotkeysOptions {
@@ -11,6 +10,8 @@ interface HotkeysOptions {
 }
 
 export function createHotkeys({ undo, redo, copy, paste, save, canvas }: HotkeysOptions) {
+	let cleanup: (() => void) | null = null;
+
 	function attachEvents() {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			const isCtrlKey = e.ctrlKey || e.metaKey;
@@ -38,14 +39,19 @@ export function createHotkeys({ undo, redo, copy, paste, save, canvas }: Hotkeys
 
 		if (typeof window !== 'undefined') {
 			window.addEventListener('keydown', handleKeyDown);
-		}
-
-		onDestroy(() => {
-			if (typeof window !== 'undefined') {
+			
+			cleanup = () => {
 				window.removeEventListener('keydown', handleKeyDown);
-			}
-		});
+			};
+		}
 	}
 
-	return { attachEvents };
+	function detachEvents() {
+		if (cleanup) {
+			cleanup();
+			cleanup = null;
+		}
+	}
+
+	return { attachEvents, detachEvents };
 }
