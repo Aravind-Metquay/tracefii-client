@@ -2,16 +2,17 @@
 	import { Code, Plus, X } from '@lucide/svelte';
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '../store.svelte';
+	import type { Component, SelectComponent } from '@/Types';
 
 	let { component, onExpressionModal } = $props();
 
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
-	function handleComponentUpdate(updates: Partial<typeof component>) {
+	function handleComponentUpdate(updates: Partial<Component>) {
 		worksheetManager.updateBaseComponentProperties(component.componentId, updates);
 	}
 
-	function handleSelectUpdate(updates: any) {
+	function handleSelectUpdate(updates: Partial<SelectComponent>) {
 		worksheetManager.updateSelectComponent(component.componentId, updates);
 	}
 
@@ -84,7 +85,7 @@
 				bind:value={component.selectComponent.type}
 				onchange={(e) =>
 					handleSelectUpdate({
-						type: e.currentTarget.value,
+						type: e.currentTarget.value as 'Yes or No' | 'Reference Asset' | 'Custom',
 						values:
 							e.currentTarget.value === 'Yes or No'
 								? [

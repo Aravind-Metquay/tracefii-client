@@ -5,8 +5,7 @@
 
 	let { component, onExpressionModal } = $props();
 
-  const worksheetManager = getContext<WorksheetManager>('worksheetManager')
-
+	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
 	function handleComponentUpdate(updates: Partial<typeof component>) {
 		worksheetManager.updateBaseComponentProperties(component.componentId, updates);
