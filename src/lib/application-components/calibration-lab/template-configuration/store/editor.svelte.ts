@@ -142,6 +142,7 @@ export function createEditor(options: EditorOptions = {}) {
 	let container = $state<HTMLElement | null>(null);
 	let selectedTool = $state('select');
 	let selectedObjects = $state<FabricObject[]>([]);
+	let objectModificationCounter = $state(0); // Reactive trigger for object changes
 	let zoom = $state(1);
 	let viewport = $state({ x: 0, y: 0 });
 	let fontFamily = $state(options.fontFamily || FONT_FAMILY);
@@ -161,7 +162,8 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas,
 		setSelectedObjects: (objects) => (selectedObjects = objects),
 		clearSelectionCallback: options.clearSelectionCallback,
-		save: history.save
+		save: history.save,
+		onObjectModified: () => objectModificationCounter++
 	});
 
 	const clipboard = createClipboard({ canvas });
@@ -817,7 +819,7 @@ export function createEditor(options: EditorOptions = {}) {
 	// Image Operations
 	// ================================
 
-	async function addImage(fileOrUrl: File | string): Promise<void> {
+	async function addImage(fileOrUrl: File | string) {
 		if (!canvas) return;
 
 		const readFileAsDataURL = (file: File): Promise<string> => {
@@ -840,10 +842,10 @@ export function createEditor(options: EditorOptions = {}) {
 				const image = await FabricImage.fromURL(url, { crossOrigin });
 
 				const workspace = getWorkspace();
-				image.scaleToWidth((workspace?.width ?? 400) * 0.8);
+				image.scaleToWidth((workspace?.width ?? 400) * 0.5);
 
-				const aspectRatio = (image.height ?? 1) / (image.width ?? 1);
-				image.set({ height: (image.width ?? 1) * aspectRatio });
+				const aspectRatio = image.height / image.width;
+				image.set({ height: image.width * aspectRatio });
 
 				if (!canvas) return;
 
@@ -852,24 +854,20 @@ export function createEditor(options: EditorOptions = {}) {
 				addToCanvas(image);
 			} catch (err) {
 				console.error('Failed to load image:', err);
-				// Optionally notify the user here
 			}
 		};
 
 		if (typeof fileOrUrl === 'string') {
-			// External URL - use CORS
 			await handleImage(fileOrUrl, 'anonymous');
 		} else {
-			// Local file - use Data URL (no CORS needed)
 			try {
 				const dataUrl = await readFileAsDataURL(fileOrUrl);
-				await handleImage(dataUrl); // No crossOrigin needed
+				await handleImage(dataUrl);
 			} catch (err) {
 				console.error('Error reading file:', err);
 			}
 		}
 	}
-
 	// ================================
 	// Export Operations
 	// ================================
@@ -1251,22 +1249,61 @@ export function createEditor(options: EditorOptions = {}) {
 		return selectedObject.get('fill') || fillColor;
 	}
 
+	// Make these reactive by depending on selectedObjects
+	let activeScaleX = $derived.by(() => {
+		const selectedObject = selectedObjects[0];
+		if (!selectedObject || typeof selectedObject.scaleX !== 'number') return 1.0;
+		return selectedObject.scaleX;
+	});
+
+	let activeScaleY = $derived.by(() => {
+		const selectedObject = selectedObjects[0];
+		if (!selectedObject || typeof selectedObject.scaleY !== 'number') return 1.0;
+		return selectedObject.scaleY;
+	});
+
 	function getActiveScaleX(): number {
-		if (!canvas) return 1.0;
-		const activeObject = canvas.getActiveObject();
-		if (activeObject && 'scaleX' in activeObject) {
-			return activeObject.scaleX ?? 1.0;
-		}
-		return 1.0;
+		return activeScaleX;
 	}
 
 	function getActiveScaleY(): number {
-		if (!canvas) return 1.0;
-		const activeObject = canvas.getActiveObject();
-		if (activeObject && 'scaleY' in activeObject) {
-			return activeObject.scaleY ?? 1.0;
+		return activeScaleY;
+	}
+
+	function updateObjectSize(dimension: 'width' | 'height', pixelValue: number) {
+		if (!canvas || pixelValue <= 0) return false;
+
+		const obj = canvas.getActiveObject();
+		if (!obj || !('width' in obj) || !('height' in obj)) return false;
+
+		const originalSize = dimension === 'width' ? obj.width : obj.height;
+		if (!originalSize) return false;
+
+		const newScale = pixelValue / originalSize;
+
+		// Check if aspect ratio is locked
+		if (obj.lockScalingX) {
+			obj.set({
+				scaleX: newScale,
+				scaleY: newScale
+			});
+		} else {
+			if (dimension === 'width') {
+				obj.set('scaleX', newScale);
+			} else {
+				obj.set('scaleY', newScale);
+			}
 		}
-		return 1.0;
+
+		obj.setCoords(); // Important: Update object coordinates
+		canvas.requestRenderAll();
+
+		// Save to history for undo/redo
+		if (history?.save) {
+			history.save();
+		}
+
+		return true;
 	}
 
 	// ================================
@@ -1353,6 +1390,7 @@ export function createEditor(options: EditorOptions = {}) {
 		canUndo: history.canUndo,
 		canRedo: history.canRedo,
 		history,
-		canvasEvents
+		canvasEvents,
+		updateObjectSize
 	};
 }

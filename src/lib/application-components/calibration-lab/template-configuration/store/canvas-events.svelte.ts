@@ -5,13 +5,15 @@ interface CanvasEventsOptions {
 	setSelectedObjects: (objects: FabricObject[]) => void;
 	clearSelectionCallback?: () => void;
 	save: () => void;
+	onObjectModified?: () => void;
 }
 
 export function createCanvasEvents({
 	canvas,
 	setSelectedObjects,
 	clearSelectionCallback,
-	save
+	save,
+	onObjectModified
 }: CanvasEventsOptions) {
 	function attachEvents(canvasElement: HTMLCanvasElement) {
 		if (!canvas) return;
@@ -33,6 +35,7 @@ export function createCanvasEvents({
 		// History save events
 		canvas.on('object:modified', () => {
 			save();
+			onObjectModified?.();
 		});
 
 		canvas.on('object:added', () => {

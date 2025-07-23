@@ -161,6 +161,7 @@ export interface Editor {
 	canvasSize: { width: number; height: number };
 	history: ReturnType<typeof createHistory>;
 	canvasEvents: ReturnType<typeof createCanvasEvents>;
+	updateObjectSize: (dimension: 'width' | 'height', pixelValue: number) => boolean;
 
 	// ========================================================================
 	// CANVAS MANAGEMENT

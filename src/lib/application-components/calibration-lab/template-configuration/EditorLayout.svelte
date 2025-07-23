@@ -6,7 +6,7 @@
 	import ConfigPanel from './components/DefaultConfigPanel.svelte';
 	import type { ComponentType } from './lib/types';
 
-	let { appState } = $props();
+	let { appState = $bindable() } = $props();
 
 	setContext('appState', appState);
 
@@ -43,7 +43,8 @@
 			<div class="p-4">
 				<ComponentToolbar
 					availableComponents={appState.availableComponents}
-					onSelectComponent={(componentType) => handleComponentSelect(componentType as ComponentType)}
+					onSelectComponent={(componentType) =>
+						handleComponentSelect(componentType as ComponentType)}
 					editor={appState.editor}
 				/>
 			</div>
@@ -51,9 +52,7 @@
 
 		<!-- Canvas -->
 		<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
-			<CanvasEditor editor={appState.editor}
-			backgroundColor={appState.uiState.backgroundColor} 
-			/>
+			<CanvasEditor editor={appState.editor} backgroundColor={appState.uiState.backgroundColor} />
 		</div>
 	</div>
 
