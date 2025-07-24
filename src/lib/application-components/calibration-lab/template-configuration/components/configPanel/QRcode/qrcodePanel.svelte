@@ -65,7 +65,7 @@
  			// 3. Use setSrc() to replace the image content in-place.
  			 await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
 			 objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
-        objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
+        	objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
 			
 			 canvas.requestRenderAll();
  		
