@@ -11,7 +11,7 @@ import {
 	Shadow
 } from 'fabric';
 import { createHistory } from './history.svelte';
-//import { createCanvasEvents } from './canvas-events.svelte';
+import { createCanvasEvents } from './canvas-events.svelte';
 import { AddElementCommand } from '../commands/commands.svelte';
 import JsBarcode from 'jsbarcode';
 import * as QRCode from 'qrcode';
@@ -34,7 +34,6 @@ import {
 	RECTANGLE_OPTIONS,
 	TRIANGLE_OPTIONS
 } from '../lib/types';
-
 // ================================
 // Type Extensions
 // ================================
@@ -160,7 +159,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 	const canvasEvents = createCanvasEvents({
 		canvas,
-		setSelectedObjects: (objects) => (selectedObjects = objects),
+		setSelectedObjects: (objects: FabricObject[]) => (selectedObjects = objects),
 		clearSelectionCallback: options.clearSelectionCallback,
 		save: history.save,
 		onObjectModified: () => objectModificationCounter++
