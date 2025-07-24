@@ -25,12 +25,26 @@
       setComponentValue(currentActiveFunctionId, component.componentId, value);
     }
   }
+  //svelte action function to set the textarea height
+	function autoResize(textarea: HTMLTextAreaElement) {
+		function updateSize() {
+			textarea.style.height = 'auto';
+			textarea.style.height = `${textarea.scrollHeight}px`;
+		}
+		textarea.addEventListener('input', updateSize);
+		updateSize();
+		return {
+			destroy() {
+				textarea.removeEventListener('input', updateSize);
+			}
+		};
+	}
 </script>
 
 {#if currentActiveFunctionId && component.componentType === "Text" && component.textComponent}
   {#if component.textComponent.type === "Heading"}
     <div 
-      class="w-full"
+      class="col-span-3"
       on:click={() => setCurrentActiveComponent(component)}
     >
       <input
@@ -70,8 +84,9 @@
         on:input={handleChange}
         disabled={component.isDisabled}
         readonly={component.isReadOnly}
-        class="w-full border border-black rounded-md mx-1 outline-none min-h-20 p-2 {isDisabled ? 'bg-gray-50 cursor-not-allowed' : ''} {component.isRequired ? 'border-red-500' : ''}"
+        class="w-full border border-black rounded-md mx-1 outline-none min-h-20 p-2 resize-none overflow-y-hidden {isDisabled ? 'bg-gray-50 cursor-not-allowed' : ''} {component.isRequired ? 'border-red-500' : ''}"
         placeholder={component.defaultValue || 'Enter text'}
+        use:autoResize
       />
     </div>
   {/if}

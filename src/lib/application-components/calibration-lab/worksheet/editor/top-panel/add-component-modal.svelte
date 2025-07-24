@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Input, Checkbox, Button, Modal , Select } from '@/components';
+	import { Input, Checkbox, Button, Modal, Select } from '@/components';
 	import type { Component, SelectItem as SelectItemType } from '@/Types';
 	import type { WorksheetManager } from '../store.svelte';
 	import { getContext } from 'svelte';
@@ -12,6 +12,7 @@
 	let showInCertificate = $state(false);
 	let isRequired = $state(false);
 	let isReadOnly = $state(false);
+	let isDisabled = $state(false);
 
 	let inputType = $state<'Number' | 'Text'>('Number');
 	let roundingDigits = $state(0);
@@ -84,13 +85,13 @@
 			showInCertificate,
 			isRequired,
 			isReadOnly,
+			isDisabled,
 			order: 0,
 			defaultValue: '',
 			certificateVisibilityBasedonExpression: false,
 			certificateVisibilityExpression: '',
 			isComponentDisabledOnExpression: false,
 			disableExpression: '',
-			isDisabled: false,
 			isValidationEnabled: false,
 			validationExpression: '',
 			validationMessage: '',
@@ -198,7 +199,12 @@
 				{#if selectedComponent === 'Input' && inputType === 'Number'}
 					<div class="space-y-1">
 						<label for="rounding-digits">Rounding Digits</label>
-						<Input size="small" id="rounding-digits" bind:value={roundingDigits} placeholder="e.g., 2" />
+						<Input
+							size="small"
+							id="rounding-digits"
+							bind:value={roundingDigits}
+							placeholder="e.g., 2"
+						/>
 					</div>
 				{/if}
 
@@ -272,6 +278,10 @@
 			<div class="flex items-center space-x-2">
 				<Checkbox id="component-readonly" bind:checked={isReadOnly} />
 				<label for="component-readonly" class="cursor-pointer font-normal">Is readonly?</label>
+			</div>
+			<div class="flex items-center space-x-2">
+				<Checkbox id="component-disabled" bind:checked={isDisabled} />
+				<label for="component-disabled" class="cursor-pointer font-normal">Is Disabled?</label>
 			</div>
 		</div>
 
