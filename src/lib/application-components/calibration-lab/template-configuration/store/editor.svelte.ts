@@ -207,7 +207,7 @@ export function createEditor(options: EditorOptions = {}) {
 	}
 
 	function constrainObjectToWorkspace(obj: FabricObject, workspace: Rect): void {
-		if (!obj || !workspace || obj.name === 'clip') return;
+		if (!obj || !workspace || obj === workspace) return;
 
 		const objBounds = obj.getBoundingRect();
 		const workspaceBounds = workspace.getBoundingRect();
@@ -612,9 +612,13 @@ export function createEditor(options: EditorOptions = {}) {
 	function getActiveText(): string | undefined {
 		if (!canvas) return undefined;
 
-		const active = canvas.getActiveObject() as CustomDateTextbox | null;
-		if (active?.type === 'textbox' && active.customType !== 'date') {
-			return active.text || '';
+		const activeObject = canvas.getActiveObject();
+		if (
+			activeObject &&
+			(activeObject.type === 'text' || activeObject.type === 'textbox') &&
+			(activeObject as CustomDateTextbox).customType !== 'date'
+		) {
+			return (activeObject as CustomDateTextbox).text || '';
 		}
 		return undefined;
 	}
@@ -906,6 +910,17 @@ export function createEditor(options: EditorOptions = {}) {
 	// ================================
 
 	function generateSaveOptions() {
+		if (!canvas) {
+			return {
+				multiplier: 1,
+				format: 'png' as const,
+				quality: 1,
+				width: options.defaultWidth || 800,
+				height: options.defaultHeight || 600,
+				left: 0,
+				top: 0
+			};
+		}
 		const workspace = getWorkspace();
 		if (!workspace) {
 			return {
@@ -953,7 +968,13 @@ export function createEditor(options: EditorOptions = {}) {
 		if (!canvas) return;
 		const options = generateSaveOptions();
 		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-		const dataUrl = canvas.toDataURL(options);
+		const svgOptions = {
+			...options,
+			width: options.width.toString(),
+			height: options.height.toString()
+		};
+		const svg = canvas.toSVG(svgOptions);
+		const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 		downloadFile(dataUrl, 'svg');
 		autoResize.autoZoom();
 	}
@@ -964,8 +985,8 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
 		const dataUrl = canvas.toDataURL({ ...options, format: 'png' });
 
-		const widthInInches = (canvas.getWidth() || 800) / 72;
-		const heightInInches = (canvas.getHeight() || 600) / 72;
+		const widthInInches = options.width / 72;
+		const heightInInches = options.height / 72;
 
 		const pdf = new jsPDF({
 			orientation: widthInInches > heightInInches ? 'landscape' : 'portrait',
