@@ -52,6 +52,7 @@ interface WorksheetStateType {
 interface UniqueIdGeneratorOptions {
 	maxLength?: number;
 	reservedKeywords?: Set<string>;
+	tableId?: string;
 }
 
 type ExcludeComponentPropsThatCannotBeEdited =
@@ -77,7 +78,7 @@ export type WorksheetManager = {
 	// Utils
 	generateUniqueId(
 		label: string,
-		type: 'function' | 'component',
+		type: 'function' | 'component' | 'column',
 		options?: UniqueIdGeneratorOptions
 	): string;
 
@@ -114,8 +115,7 @@ export type WorksheetManager = {
 	getAllComponents(): void;
 	getComponentsOfCurrentFunction(): Component[];
 
-	// Table Columns
-	createNewColumn(tableId: string, newColumn: TableColumn): void;
+	createNewColumn(newColumn: TableColumn): void;
 	getColumnComponentById(tableId: string, columnId: string): TableColumn | null;
 	updateBaseColumnProperties(
 		tableId: string,
@@ -135,6 +135,8 @@ export type WorksheetManager = {
 	removeTableColumn(tableId: string, columnId: string): void;
 	reorderComponent(): void;
 
+	checkIfColumnIdExistsInTable(tableId: string, columnId: string): boolean;
+
 	// CurrentActiveElements
 	setCurrentActiveFunction(fn: Function | null): void;
 	setCurrentActiveComponent(comp: Component | null): void;
@@ -147,8 +149,14 @@ export type WorksheetManager = {
 	getComponentValue(functionId: string, componentId: string): any;
 	setComponentValue(functionId: string, componentId: string, value: any): void;
 
-	addTableRow(functionId : string , componentId : string , cols : TableColumn[]) : void;
-	updateTableCell(functionId : string , componentId : string , rowKey : string , columnId : string , value : any) : void;
+	addTableRow(functionId: string, componentId: string, cols: TableColumn[]): void;
+	updateTableCell(
+		functionId: string,
+		componentId: string,
+		rowKey: string,
+		columnId: string,
+		value: any
+	): void;
 };
 
 export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetManager {
@@ -228,12 +236,13 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		//Utils
 		generateUniqueId(
 			label: string,
-			type: 'function' | 'component',
+			type: 'function' | 'component' | 'column',
 			options?: UniqueIdGeneratorOptions
 		): string {
 			const DEFAULT_OPTIONS: Required<UniqueIdGeneratorOptions> = {
 				maxLength: 50,
-				reservedKeywords: new Set(['sum', 'avg', 'count', 'min', 'max', 'if', 'then', 'else'])
+				reservedKeywords: new Set(['sum', 'avg', 'count', 'min', 'max', 'if', 'then', 'else']),
+				tableId: ''
 			};
 
 			var { maxLength, reservedKeywords } = {
@@ -257,6 +266,20 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 					newId = `${type}_${counter}`;
 
 					while (this.checkIfFunctionIdExists(newId)) {
+						counter++;
+						newId = `${type}_${counter}`;
+					}
+				} else if (type === 'column') {
+					if (!options?.tableId) {
+						throw new Error('tableId is required when generating column IDs');
+					}
+
+					const tableComponent = this.getComponentById(options.tableId);
+					const existingColumns = tableComponent?.tableComponent?.columns || [];
+					counter = existingColumns.length + 1;
+					newId = `${type}_${counter}`;
+
+					while (this.checkIfColumnIdExistsInTable(options.tableId, newId)) {
 						counter++;
 						newId = `${type}_${counter}`;
 					}
@@ -284,13 +307,19 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			let counter = 2;
 
 			if (type === 'component') {
-				// Fixed: changed = to ===
 				while (this.checkIfComponentIdExists(finalId)) {
 					finalId = `${sanitizedId}_${counter++}`;
 				}
 			} else if (type === 'function') {
-				// Fixed: changed = to ===
 				while (this.checkIfFunctionIdExists(finalId)) {
+					finalId = `${sanitizedId}_${counter++}`;
+				}
+			} else if (type === 'column') {
+				if (!options?.tableId) {
+					throw new Error('tableId is required when generating column IDs');
+				}
+
+				while (this.checkIfColumnIdExistsInTable(options.tableId, finalId)) {
 					finalId = `${sanitizedId}_${counter++}`;
 				}
 			}
@@ -545,9 +574,13 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			this.setCurrentActiveComponent(component);
 		},
 
-		createNewColumn(tableId: string, newColumn: TableColumn) {
-			const tableComponent = this.getComponentById(tableId);
+		createNewColumn(newColumn: TableColumn) {
+			const tableComponent = this.getComponentById(newColumn.tableId);
 			if (!tableComponent) throw new Error('Table not found while creating column');
+			
+			if (!newColumn.columnId) {
+				newColumn.columnId = this.generateUniqueId(newColumn.columnName, 'column', { tableId : newColumn.tableId });
+			}
 
 			if (tableComponent.tableComponent?.columns) {
 				tableComponent.tableComponent.columns.push(newColumn);
@@ -564,6 +597,19 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			}
 
 			this.setCurrentActiveColumn(newColumn);
+		},
+
+		checkIfColumnIdExistsInTable(tableId: string, columnId: string): boolean {
+			const tableComponent = this.getComponentById(tableId);
+			if (!tableComponent || tableComponent.componentType !== 'Table') {
+				return false;
+			}
+
+			if (tableComponent.tableComponent?.columns) {
+				return tableComponent.tableComponent.columns.some((col) => col.columnId === columnId);
+			}
+
+			return false;
 		},
 
 		getColumnComponentById(tableId: string, columnId: string): null | TableColumn {
@@ -720,12 +766,13 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			worksheet.data[functionId][componentId] = value;
 		},
 
-		addTableRow(functionId : string , componentId : string , cols : TableColumn[]){
-
-		},
-		updateTableCell(functionId : string , componentId : string , rowKey : string , columnId : string , value : any) {
-			
-		}
-
+		addTableRow(functionId: string, componentId: string, cols: TableColumn[]) {},
+		updateTableCell(
+			functionId: string,
+			componentId: string,
+			rowKey: string,
+			columnId: string,
+			value: any
+		) {}
 	};
 }

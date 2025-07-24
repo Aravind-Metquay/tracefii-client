@@ -5,6 +5,7 @@
 	import { AlertCircle, Repeat } from '@lucide/svelte';
 	import InputColumnComponent from './column-components/input-column-component.svelte';
 	import SelectColumnComponent from './column-components/select-column-component.svelte';
+	import AddColumnModal from './column-components/add-column-modal.svelte';
 
 	let { component }: { component: Component } = $props();
 	let worksheetManager = getContext<WorksheetManager>('worksheetManager');
@@ -158,7 +159,7 @@
 									<CellComponent
 										column={effectiveColumn}
 										value={row[column.columnId]}
-										onChange={(val : any) =>
+										onChange={(val: any) =>
 											worksheetManager.updateTableCell(
 												component.functionId,
 												component.componentId,
@@ -174,18 +175,6 @@
 				</tbody>
 			</table>
 		</div>
-		{#if isOpen}
-			<div class="bg-opacity-20 fixed inset-0 z-50 flex items-center justify-center bg-black">
-				<div class="min-w-[300px] rounded-lg bg-white p-6 shadow">
-					<div class="mb-4 text-lg font-medium">Add Column</div>
-					<div>(AddColumnModal content goes here...)</div>
-					<div class="mt-4 flex justify-end">
-						<button class="rounded bg-blue-600 px-3 py-1 text-white" onclick={onClose}>
-							Close
-						</button>
-					</div>
-				</div>
-			</div>
-		{/if}
+		<AddColumnModal bind:isOpen currentTable={component} />
 	</div>
 {/if}
