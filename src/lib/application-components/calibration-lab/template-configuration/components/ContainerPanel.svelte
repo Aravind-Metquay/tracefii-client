@@ -62,9 +62,12 @@
 			const height = parseFloat(dimensions.height);
 
 			if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
-			
+				// Convert current dimensions from the selected unit to pixels
+                const widthInPx = convert(width, unit, 'px');
+                const heightInPx = convert(height, unit, 'px');
+                
 				
-				editor.changeSize({ width, height });
+				editor.changeSize({ width:widthInPx, height:heightInPx });
 			}
 		}
 	}
