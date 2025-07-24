@@ -3,8 +3,8 @@
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '../store.svelte';
 
-    const { component } = $props<{ component: Component }>();
-    const worksheetManager = getContext<WorksheetManager>("worksheetManager");
+  const { component } = $props<{ component: Component }>();
+  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
 
   // Access the current function ID directly from the store

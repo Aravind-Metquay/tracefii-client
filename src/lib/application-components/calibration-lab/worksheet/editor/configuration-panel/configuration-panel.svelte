@@ -91,6 +91,7 @@
     onOpenChange={(v) => (isOpen = v)}
   />  -->
 
+
 	<div class="flex-1 overflow-y-auto">
 		{#if currentActiveFunction && !currentActiveComponent}
 			<FunctionConfiguration

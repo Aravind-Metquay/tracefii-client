@@ -13,6 +13,21 @@
 
 	var isDisabled = component.isDisabled || component.isReadOnly;
 
+  //svelte action function to set the textarea height
+	function autoResize(textarea: HTMLTextAreaElement) {
+		function updateSize() {
+			textarea.style.height = 'auto';
+			textarea.style.height = `${textarea.scrollHeight}px`;
+		}
+		textarea.addEventListener('input', updateSize);
+		updateSize();
+		return {
+			destroy() {
+				textarea.removeEventListener('input', updateSize);
+			}
+		};
+	}
+
 	function handleChange(e: Event) {
 		const value = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
 		if (!component.isReadOnly && !component.isDisabled && component.componentId) {
@@ -23,7 +38,7 @@
 
 {#if component.componentId && component.componentType === 'Text' && component.textComponent}
 	{#if component.textComponent.type === 'Heading'}
-		<div class="w-full" onclick={() => worksheetManager.setCurrentActiveComponent(component)}>
+		<div class="col-span-3" onclick={() => worksheetManager.setCurrentActiveComponent(component)}>
 			<input
 				id={component.componentId}
 				type="text"
@@ -59,10 +74,11 @@
 				oninput={handleChange}
 				disabled={component.isDisabled}
 				readonly={component.isReadOnly}
-				class="mx-1 min-h-20 w-full rounded-md border border-black p-2 outline-none {isDisabled
+				class="mx-1 min-h-20 w-full rounded-md border border-black p-2 outline-none resize-none overflow-y-hidden  {isDisabled
 					? 'cursor-not-allowed bg-gray-50'
 					: ''} {component.isRequired ? 'border-red-500' : ''}"
 				placeholder={component.defaultValue || 'Enter text'}
+        use:autoResize
 			>
 				{currentValue}
 			</textarea>

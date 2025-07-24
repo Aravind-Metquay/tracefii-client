@@ -12,6 +12,7 @@
 	let showInCertificate = $state(false);
 	let isRequired = $state(false);
 	let isReadOnly = $state(false);
+	let isDisabled = $state(false);
 
 	let inputType = $state<'Number' | 'Text'>('Number');
 	let roundingDigits = $state(0);
@@ -104,13 +105,13 @@
 			showInCertificate,
 			isRequired,
 			isReadOnly,
+			isDisabled,
 			order: 0,
 			defaultValue: '',
 			certificateVisibilityBasedonExpression: false,
 			certificateVisibilityExpression: '',
 			isComponentDisabledOnExpression: false,
 			disableExpression: '',
-			isDisabled: false,
 			isValidationEnabled: false,
 			validationExpression: '',
 			validationMessage: '',
@@ -292,11 +293,15 @@
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="component-mandatory" bind:checked={isRequired} />
-				<label for="component-mandatory" class="cursor-pointer font-normal">Is mandatory?</label>
+				<label for="component-mandatory" class="cursor-pointer font-normal">Is Required?</label>
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="component-readonly" bind:checked={isReadOnly} />
 				<label for="component-readonly" class="cursor-pointer font-normal">Is readonly?</label>
+			</div>
+			<div class="flex items-center space-x-2">
+				<Checkbox id="component-disabled" bind:checked={isDisabled} />
+				<label for="component-disabled" class="cursor-pointer font-normal">Is Disabled?</label>
 			</div>
 		</div>
 
