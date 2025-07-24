@@ -99,12 +99,17 @@
 		if (debounceTimer) clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
 			updateSelectedBarcode();
-		}, 300);
+		}, 800);
 	};
 
 	const handleInput = (updateFn: () => void) => {
 		updateFn();
 		debouncedUpdate();
+	};
+
+	const handleImmediateUpdate = (updateFn: () => void) => {
+		updateFn();
+		updateSelectedBarcode();
 	};
 
 	$effect(() => {
@@ -128,10 +133,6 @@
 		>
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
-			<!-- <option value="EAN13">EAN13</option>
-			<option value="UPC">UPC</option>
-			<option value="ITF">ITF</option> -->
-			
 		</select>
 	</div>
 
@@ -146,7 +147,8 @@
 			oninput={(e) => handleInput(() => (expression = (e.target as HTMLInputElement).value))}
 		/>
 		<p class="mt-1 w-full truncate text-xs text-gray-500" title={evaluatedValue}>
-			<span class="font-medium">Preview:</span> {evaluatedValue}
+			<span class="font-medium">Preview:</span>
+			{evaluatedValue}
 		</p>
 	</div>
 
@@ -186,14 +188,17 @@
 			class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
 			disabled={!isBarcodeSelected || isUpdating}
 			checked={displayValue}
-			onchange={(e) => handleInput(() => (displayValue = (e.target as HTMLInputElement).checked))}
+			onchange={(e) =>
+				handleImmediateUpdate(() => (displayValue = (e.target as HTMLInputElement).checked))}
 		/>
 		<label for="display-value" class="text-sm text-gray-700"> Show Text </label>
 	</div>
 
 	{#if isUpdating}
 		<div class="flex items-center gap-2 text-xs text-blue-600">
-			<div class="h-3 w-3 animate-spin rounded-full border border-blue-600 border-t-transparent"></div>
+			<div
+				class="h-3 w-3 animate-spin rounded-full border border-blue-600 border-t-transparent"
+			></div>
 			Generating...
 		</div>
 	{/if}

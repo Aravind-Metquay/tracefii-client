@@ -85,7 +85,7 @@
 		if (debounceTimer) clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
 			updateSelectedQRCode();
-		}, 500);
+		}, 800);
 	};
 
 	
