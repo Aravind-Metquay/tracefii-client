@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Input, Checkbox, Button, Modal , Select } from '@/components';
+	import { Input, Checkbox, Button, Modal, Select } from '@/components';
 	import type { Component, SelectItem as SelectItemType } from '@/Types';
 	import type { WorksheetManager } from '../store.svelte';
 	import { getContext } from 'svelte';
 	let { open = $bindable() }: { open: boolean } = $props();
 
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
-    
+
 	let selectedComponent = $state<Component['componentType']>('Input');
 	let componentName = $state('');
 	let showInCertificate = $state(false);
@@ -24,26 +24,26 @@
 	let textType = $state<'Paragraph' | 'Heading'>('Heading');
 
 	let tableInCertificate = $state(false);
-   //If the modal is open,it resets the values
+	//If the modal is open,it resets the values
 	$effect(() => {
-        if (open) {
-            selectedComponent    = 'Input';
-            componentName        = '';
-            showInCertificate    = false;
-            isRequired           = false;
-            isReadOnly           = false;
-            inputType            = 'Number';
-            roundingDigits       = 0;
-            selectType           = 'Yes or No';
-            referenceWorksheetId = '';
-            customValues         = [];
-            customInputValue     = '';
-            textType             = 'Heading';
-            tableInCertificate   = false;
-			const focusComponent=document.getElementById('component-type');
+		if (open) {
+			selectedComponent = 'Input';
+			componentName = '';
+			showInCertificate = false;
+			isRequired = false;
+			isReadOnly = false;
+			inputType = 'Number';
+			roundingDigits = 0;
+			selectType = 'Yes or No';
+			referenceWorksheetId = '';
+			customValues = [];
+			customInputValue = '';
+			textType = 'Heading';
+			tableInCertificate = false;
+			const focusComponent = document.getElementById('component-type');
 			focusComponent?.focus();
-        }
-    });
+		}
+	});
 
 	// Convert data for Select
 	const componentOptions = [
@@ -218,7 +218,12 @@
 				{#if selectedComponent === 'Input' && inputType === 'Number'}
 					<div class="space-y-1">
 						<label for="rounding-digits">Rounding Digits</label>
-						<Input size="small" id="rounding-digits" bind:value={roundingDigits} placeholder="e.g., 2" />
+						<Input
+							size="small"
+							id="rounding-digits"
+							bind:value={roundingDigits}
+							placeholder="e.g., 2"
+						/>
 					</div>
 				{/if}
 
