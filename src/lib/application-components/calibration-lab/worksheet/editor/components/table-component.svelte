@@ -158,7 +158,7 @@
 									<CellComponent
 										column={effectiveColumn}
 										value={row[column.columnId]}
-										onChange={(val) =>
+										onChange={(val : any) =>
 											worksheetManager.updateTableCell(
 												component.functionId,
 												component.componentId,
