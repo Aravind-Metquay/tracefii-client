@@ -10,13 +10,16 @@
   // Access the current function ID directly from the store
   const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
 
-  // Access the current value from the data store reactively
-  let currentValue = $state('');
-  if (currentActiveFunctionId && dataStore[currentActiveFunctionId]) {
-    currentValue = dataStore[currentActiveFunctionId][component.componentId] ?? '';
-  } else {
-    currentValue = '';
-  }
+  let currentValue = $derived(
+		worksheetManager.getComponentValue(component.functionId, component.componentId)
+	);
+	//What do we need here?
+	//1. Get data of a component.
+	//2. Write data of a component.
+	//3. Changes should be automatically calculated and rendered here.
+	//4. Integrate Default value into getComponent Data
+	//5. Need to understand if props are already reactive or do they need to be derived to become reactive?
+
 
   const isNumberType = $derived(component.inputComponent?.type === "Number");
   const isDisabled = $derived(component.isDisabled || component.isReadOnly);
