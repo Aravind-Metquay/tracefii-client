@@ -1,25 +1,26 @@
 <script lang="ts">
-	import type { TableColumn } from "@/Types";
+	import type { TableColumn } from '@/Types';
 
-    export let column: TableColumn;
-    export let value: any;
-    export let onChange: (val: any) => void;
+	let { column, value, onChange } = $props<{
+		column: TableColumn;
+		value: string | undefined;
+		onChange: (val: string) => void;
+	}>();
 
-    const selectOptions = column.selectComponent?.values ?? [];
-    let selectValue = value ?? "";
+	const selectOptions = $derived(column.selectComponent?.values ?? []);
 </script>
 
 <select
-  class="w-full border-none outline-none bg-transparent text-sm"
-  bind:value={selectValue}
-  required={column.isRequired}
-  disabled={column.isReadOnly}
-  on:change={(e) => onChange((e.target as HTMLSelectElement).value)}
+	class="w-full border-none bg-transparent text-sm outline-none"
+	required={column.isRequired}
+	disabled={column.isReadOnly || column.isDisabled}
+	value={value ?? ''}
+	onchange={(e) => onChange((e.target as HTMLSelectElement).value)}
 >
-  <option value="">Select...</option>
-  {#each selectOptions as item (item.key)}
-    <option value={item.value} class="bg-white">
-      {item.value}
-    </option>
-  {/each}
+	<option value="" disabled>Select...</option>
+	{#each selectOptions as item (item.key)}
+		<option value={item.value} class="bg-white">
+			{item.value}
+		</option>
+	{/each}
 </select>

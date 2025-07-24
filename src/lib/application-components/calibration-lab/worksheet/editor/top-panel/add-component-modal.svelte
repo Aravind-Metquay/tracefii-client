@@ -25,6 +25,26 @@
 	let textType = $state<'Paragraph' | 'Heading'>('Heading');
 
 	let tableInCertificate = $state(false);
+	//If the modal is open,it resets the values
+	$effect(() => {
+		if (open) {
+			selectedComponent = 'Input';
+			componentName = '';
+			showInCertificate = false;
+			isRequired = false;
+			isReadOnly = false;
+			inputType = 'Number';
+			roundingDigits = 0;
+			selectType = 'Yes or No';
+			referenceWorksheetId = '';
+			customValues = [];
+			customInputValue = '';
+			textType = 'Heading';
+			tableInCertificate = false;
+			const focusComponent = document.getElementById('component-type');
+			focusComponent?.focus();
+		}
+	});
 
 	// Convert data for Select
 	const componentOptions = [

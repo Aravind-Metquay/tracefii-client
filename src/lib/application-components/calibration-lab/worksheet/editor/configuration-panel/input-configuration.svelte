@@ -14,6 +14,7 @@
 	function handleInputUpdate(updates: Partial<typeof component>) {
 		worksheetManager.updateInputComponent(component.componentId, updates);
 	}
+	
 </script>
 
 {#if component?.inputComponent}
@@ -90,6 +91,7 @@
 						class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
 						checked={component.isDisabled}
 						onchange={(e) => handleComponentUpdate({ isDisabled: e.currentTarget.checked })}
+						
 					/>
 					<label class="text-sm text-gray-700">Disabled</label>
 				</div>

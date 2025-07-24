@@ -1,42 +1,44 @@
 <script lang="ts">
-	import type { TableColumn } from "@/Types";
+	import type { TableColumn } from '@/Types';
 
-    export let column: TableColumn;
-    export let value: any;
-    export let onChange: (val: any) => void;
+	let { column, value, onChange } = $props<{
+		column: TableColumn;
+		value: string | number | undefined;
+		onChange: (val: string | number) => void;
+	}>();
 
-    // Local computed input props
-    const inputClass =
-        "w-full border-none outline-none bg-transparent text-sm" +
-        (column.isReadOnly ? " bg-gray-50 cursor-not-allowed" : "");
+	const inputClass = $derived(
+		'w-full border-none outline-none bg-transparent text-sm' +
+			(column.isReadOnly ? ' bg-gray-50 cursor-not-allowed' : '')
+	);
 
-    const inputType = column.inputComponent?.type
-        ? column.inputComponent.type.toLowerCase()
-        : "text";
+	const inputType = $derived(column.inputComponent?.type?.toLowerCase() ?? 'text');
 
-    const inputValue = value ?? "";
+	function handleInput(e: Event) {
+		const targetValue = (e.target as HTMLInputElement).value;
+
+		if (inputType === 'number') {
+			if (targetValue === '') {
+				onChange('');
+				return;
+			}
+			const num = parseFloat(targetValue);
+			if (!isNaN(num)) {
+				onChange(num);
+			}
+		} else {
+			onChange(targetValue);
+		}
+	}
 </script>
 
 <input
-  class={inputClass}
-  aria-label={column.columnName}
-  id={column.columnId}
-  value={inputValue}
-  readonly={column.isReadOnly}
-  type={inputType}
-  on:input={(e) => {
-    const inputValue = (e.target as HTMLInputElement).value;
-    if (column.inputComponent?.type === "Number") {
-      if (!inputValue) {
-        onChange("");
-        return;
-      }
-      const numValue = parseFloat(inputValue);
-      if (!isNaN(numValue)) {
-        onChange(numValue);
-      }
-    } else {
-      onChange(inputValue);
-    }
-  }}
+	class={inputClass}
+	aria-label={column.columnName}
+	id={column.columnId}
+	type={inputType}
+	readonly={column.isReadOnly}
+	disabled={column.isDisabled}
+	oninput={handleInput}
+	value={value ?? ''}
 />
