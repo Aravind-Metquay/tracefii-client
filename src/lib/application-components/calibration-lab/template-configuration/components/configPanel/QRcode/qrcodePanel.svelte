@@ -52,7 +52,7 @@
  			const newUrl = await QRCode.toDataURL(evaluatedValue, {
  				errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
  				width: 256, // Use a consistent width for generation
- 				margin: 1
+ 				
  			});
 
  			// 2. IMPORTANT: Update the custom data on the *existing* object
