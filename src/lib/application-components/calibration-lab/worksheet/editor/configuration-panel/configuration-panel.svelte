@@ -67,7 +67,7 @@
 	const titleInfo = $derived(getTitleInfo());
 </script>
 
-<div class="flex h-[700px] flex-col rounded-md bg-white">
+
 <div class="flex h-[700px] flex-col rounded-md bg-white">
 	<div class="flex items-center justify-between border-b p-4">
 		<div>
