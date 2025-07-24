@@ -3,12 +3,14 @@
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '../store.svelte';
 
-	let { component }: { component: Component } = $props();
-	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
+    const { component } = $props<{ component: Component }>();
+    const worksheetManager = getContext<WorksheetManager>("worksheetManager");
 
-	const currentActiveFunctionId = $derived(worksheetManager.getCurrentActiveFunction()?.functionId);
 
-	let currentValue = $derived(
+  // Access the current function ID directly from the store
+  const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
+
+  let currentValue = $derived(
 		worksheetManager.getComponentValue(component.functionId, component.componentId)
 	);
 	//What do we need here?
@@ -18,9 +20,10 @@
 	//4. Integrate Default value into getComponent Data
 	//5. Need to understand if props are already reactive or do they need to be derived to become reactive?
 
-	const isNumberType = $derived(component.inputComponent?.type === 'Number');
-	const isDisabled = component.isDisabled || component.isReadOnly;
-	const validationError = component.isValidationEnabled && component.validationExpression;
+
+  const isNumberType = $derived(component.inputComponent?.type === "Number");
+  const isDisabled = $derived(component.isDisabled || component.isReadOnly);
+  const validationError = component.isValidationEnabled && component.validationExpression;
 
 	function handleNumberChange(e: Event) {
 		const value = (e.target as HTMLInputElement).value.trim();
