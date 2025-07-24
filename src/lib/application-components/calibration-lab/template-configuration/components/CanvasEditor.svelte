@@ -60,9 +60,32 @@
 	});
 </script>
 
-<div class="canvas-editor">
-	<div bind:this={containerElement} class="canvas-wrapper">
-		<canvas bind:this={canvasElement}></canvas>
+<div class="canvas-editor flex h-full flex-col">
+	<div class="min-h-0 w-full flex-1">
+		<div
+			bind:this={containerElement}
+			class="relative flex h-full w-full items-center justify-center overflow-hidden "
+		>
+			<!-- Canvas takes full container size -->
+			<canvas
+				bind:this={canvasElement}
+				class="block max-h-full max-w-full"
+				style="
+					width: 100%; 
+					height: 100%; 
+					display: block;
+				"
+			></canvas>
+
+			<!-- Optional: Workspace size indicator -->
+			{#if editor?.workspaceSize}
+				<div
+					class="absolute bottom-4 left-4 rounded bg-white/80 px-2 py-1 text-xs text-gray-600 backdrop-blur-sm"
+				>
+					Workspace: {editor.workspaceSize.width}×{editor.workspaceSize.height}
+				</div>
+			{/if}
+		</div>
 	</div>
 	<Footer {editor} />
 </div>

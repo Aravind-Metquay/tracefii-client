@@ -142,6 +142,7 @@ export function createEditor(options: EditorOptions = {}) {
 	let container = $state<HTMLElement | null>(null);
 	let selectedTool = $state('select');
 	let selectedObjects = $state<FabricObject[]>([]);
+	let objectModificationCounter = $state(0); // Reactive trigger for object changes
 	let zoom = $state(1);
 	let viewport = $state({ x: 0, y: 0 });
 	let fontFamily = $state(options.fontFamily || FONT_FAMILY);
@@ -157,6 +158,13 @@ export function createEditor(options: EditorOptions = {}) {
 		saveCallback: options.saveCallback
 	});
 
+	const canvasEvents = createCanvasEvents({
+		canvas,
+		setSelectedObjects: (objects) => (selectedObjects = objects),
+		clearSelectionCallback: options.clearSelectionCallback,
+		save: history.save,
+		onObjectModified: () => objectModificationCounter++
+	});
 
 	const clipboard = createClipboard({ canvas });
 
@@ -853,37 +861,55 @@ async function addBarcode(): Promise<void> {
 	// Image Operations
 	// ================================
 
-	async function addImage(fileOrUrl: File | string): Promise<void> {
+	async function addImage(fileOrUrl: File | string) {
 		if (!canvas) return;
 
-		const handleImage = async (url: string) => {
-			const image = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
-			const workspace = getWorkspace();
+		const readFileAsDataURL = (file: File): Promise<string> => {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => {
+					if (typeof reader.result === 'string') {
+						resolve(reader.result);
+					} else {
+						reject(new Error('Failed to read file as data URL'));
+					}
+				};
+				reader.onerror = () => reject(reader.error);
+				reader.readAsDataURL(file);
+			});
+		};
 
-			image.scaleToWidth((workspace?.width ?? 400) * 0.8);
-			const aspectRatio = (image.height ?? 1) / (image.width ?? 1);
-			image.set({ height: (image.width ?? 1) * aspectRatio });
+		const handleImage = async (url: string, crossOrigin?: 'anonymous' | 'use-credentials' | '') => {
+			try {
+				const image = await FabricImage.fromURL(url, { crossOrigin });
 
-			if (!canvas) return;
+				const workspace = getWorkspace();
+				image.scaleToWidth((workspace?.width ?? 400) * 0.5);
 
-			const command = new AddElementCommand(canvas, image);
-			history.execute(command);
-			addToCanvas(image);
+				const aspectRatio = image.height / image.width;
+				image.set({ height: image.width * aspectRatio });
+
+				if (!canvas) return;
+
+				const command = new AddElementCommand(canvas, image);
+				history.execute(command);
+				addToCanvas(image);
+			} catch (err) {
+				console.error('Failed to load image:', err);
+			}
 		};
 
 		if (typeof fileOrUrl === 'string') {
-			await handleImage(fileOrUrl);
+			await handleImage(fileOrUrl, 'anonymous');
 		} else {
-			const reader = new FileReader();
-			reader.onload = async () => {
-				if (typeof reader.result === 'string') {
-					await handleImage(reader.result);
-				}
-			};
-			reader.readAsDataURL(fileOrUrl);
+			try {
+				const dataUrl = await readFileAsDataURL(fileOrUrl);
+				await handleImage(dataUrl);
+			} catch (err) {
+				console.error('Error reading file:', err);
+			}
 		}
 	}
-
 	// ================================
 	// Export Operations
 	// ================================
@@ -1265,22 +1291,61 @@ async function addBarcode(): Promise<void> {
 		return selectedObject.get('fill') || fillColor;
 	}
 
+	// Make these reactive by depending on selectedObjects
+	let activeScaleX = $derived.by(() => {
+		const selectedObject = selectedObjects[0];
+		if (!selectedObject || typeof selectedObject.scaleX !== 'number') return 1.0;
+		return selectedObject.scaleX;
+	});
+
+	let activeScaleY = $derived.by(() => {
+		const selectedObject = selectedObjects[0];
+		if (!selectedObject || typeof selectedObject.scaleY !== 'number') return 1.0;
+		return selectedObject.scaleY;
+	});
+
 	function getActiveScaleX(): number {
-		if (!canvas) return 1.0;
-		const activeObject = canvas.getActiveObject();
-		if (activeObject && 'scaleX' in activeObject) {
-			return activeObject.scaleX ?? 1.0;
-		}
-		return 1.0;
+		return activeScaleX;
 	}
 
 	function getActiveScaleY(): number {
-		if (!canvas) return 1.0;
-		const activeObject = canvas.getActiveObject();
-		if (activeObject && 'scaleY' in activeObject) {
-			return activeObject.scaleY ?? 1.0;
+		return activeScaleY;
+	}
+
+	function updateObjectSize(dimension: 'width' | 'height', pixelValue: number) {
+		if (!canvas || pixelValue <= 0) return false;
+
+		const obj = canvas.getActiveObject();
+		if (!obj || !('width' in obj) || !('height' in obj)) return false;
+
+		const originalSize = dimension === 'width' ? obj.width : obj.height;
+		if (!originalSize) return false;
+
+		const newScale = pixelValue / originalSize;
+
+		// Check if aspect ratio is locked
+		if (obj.lockScalingX) {
+			obj.set({
+				scaleX: newScale,
+				scaleY: newScale
+			});
+		} else {
+			if (dimension === 'width') {
+				obj.set('scaleX', newScale);
+			} else {
+				obj.set('scaleY', newScale);
+			}
 		}
-		return 1.0;
+
+		obj.setCoords(); // Important: Update object coordinates
+		canvas.requestRenderAll();
+
+		// Save to history for undo/redo
+		if (history?.save) {
+			history.save();
+		}
+
+		return true;
 	}
 
 	// ================================
@@ -1378,7 +1443,7 @@ async function addBarcode(): Promise<void> {
 		get canUndo() { return history.canUndo; },
 		get canRedo() { return history.canRedo; },
 		history,
-		//canvasEvents
+		updateObjectSize
 	};
 }
 

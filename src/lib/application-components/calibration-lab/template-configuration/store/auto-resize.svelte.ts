@@ -1,5 +1,3 @@
-import { onMount, onDestroy } from 'svelte';
-import { Point } from 'fabric';
 import type { Canvas, Rect } from 'fabric';
 
 interface AutoResizeOptions {
@@ -8,6 +6,8 @@ interface AutoResizeOptions {
 }
 
 export function createAutoResize({ canvas, container }: AutoResizeOptions) {
+	let cleanup: (() => void) | null = null;
+
 	function autoZoom() {
 		if (!canvas || !container) return;
 
@@ -21,32 +21,39 @@ export function createAutoResize({ canvas, container }: AutoResizeOptions) {
 		const scaleY = height / workspace.height;
 		const scale = Math.min(scaleX, scaleY) * 0.8;
 
-		const center = canvas.getCenter();
-		canvas.zoomToPoint(new Point(center.left, center.top), scale);
+		const center = canvas.getCenterPoint();
+		canvas.zoomToPoint(center, scale);
 		canvas.renderAll();
 	}
 
 	function handleResize() {
 		if (!canvas || !container) return;
-		canvas.setWidth(container.offsetWidth);
-		canvas.setHeight(container.offsetHeight);
+		canvas.setDimensions({
+			width: container.offsetWidth,
+			height: container.offsetHeight
+		});
 		autoZoom();
 	}
 
 	function attachEvents() {
 		if (typeof window !== 'undefined') {
 			window.addEventListener('resize', handleResize);
+
+			cleanup = () => {
+				window.removeEventListener('resize', handleResize);
+			};
 		}
 
-		onMount(() => {
-			handleResize();
-			return () => {
-				if (typeof window !== 'undefined') {
-					window.removeEventListener('resize', handleResize);
-				}
-			};
-		});
+		// Initial resize
+		handleResize();
 	}
 
-	return { autoZoom, attachEvents };
+	function detachEvents() {
+		if (cleanup) {
+			cleanup();
+			cleanup = null;
+		}
+	}
+
+	return { autoZoom, attachEvents, detachEvents };
 }
