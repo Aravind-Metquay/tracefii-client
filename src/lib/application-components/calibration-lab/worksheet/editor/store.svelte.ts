@@ -351,13 +351,22 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		},
 
 		removeFunction(functionId: string) {
+			//Removing Component id along with removing function
+			const componentsToRemove = worksheet.components
+				.filter((c) => c.functionId === functionId)
+				.map((c) => c.componentId);
+			for (const cid of componentsToRemove) {
+				this.removeComponent(cid);
+			}
+
 			const idx = worksheet.functions.findIndex((f) => f.functionId === functionId);
 			if (idx >= 0) worksheet.functions.splice(idx, 1);
 
 			if (worksheet.currentActiveElements.function?.functionId === functionId) {
 				worksheet.currentActiveElements.function = null;
+				worksheet.currentActiveElements.component = null;
+				worksheet.currentActiveElements.column = null;
 			}
-
 			//Here we need to remove the component id
 			//We also need to remove the components before rendering a UI confirmation
 		},
