@@ -7,7 +7,7 @@
 	import type { ComponentType } from './lib/types';
 
 
-	 let { appState= $bindable(null) } = $props();
+	 let { appState= $bindable() } = $props();
 	
 
 	setContext('appState', appState);
