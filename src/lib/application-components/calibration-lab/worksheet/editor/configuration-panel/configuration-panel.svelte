@@ -67,7 +67,7 @@
 	const titleInfo = $derived(getTitleInfo());
 </script>
 
-<div class="flex h-full flex-col rounded-md bg-white">
+<div class="flex h-[700px] flex-col rounded-md bg-white">
 	<div class="flex items-center justify-between border-b p-4">
 		<div>
 			<h2 class="text-sm font-medium">{titleInfo.title}</h2>
@@ -91,7 +91,7 @@
     onOpenChange={(v) => (isOpen = v)}
   />  -->
 
-	<div class="flex-1 overflow-y-auto">
+	<div class="flex-1 overflow-y-auto h-[700px]">
 		{#if currentActiveFunction && !currentActiveComponent}
 			<FunctionConfiguration
 				function={currentActiveFunction}

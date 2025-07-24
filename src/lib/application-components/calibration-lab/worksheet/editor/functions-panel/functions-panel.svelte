@@ -18,8 +18,9 @@
       Add
     </Button>
   </div>
-
+  <div class="overflow-y-auto h-[700px]">
   {#each worksheetManager.getAllFunctions() as fn (fn.functionId)}
     <Function fn={fn} worksheetManager={worksheetManager} />
   {/each}
+  </div>
 </div>
