@@ -26,13 +26,13 @@
 
 	// Compute display sizes in pixels first, then convert to cm
 	let displayWidthPx = $derived(
-		selectedObject?.width && scaleX 
+		selectedObject?.width && scaleX
 			? Math.round(selectedObject.width * scaleX)
 			: originalWidth || 100
 	);
 
 	let displayHeightPx = $derived(
-		selectedObject?.height && scaleY 
+		selectedObject?.height && scaleY
 			? Math.round(selectedObject.height * scaleY)
 			: originalHeight || 100
 	);

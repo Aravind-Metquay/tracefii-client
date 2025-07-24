@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { Button } from '@/components/ui/button';
 	import ColorPicker from 'svelte-awesome-color-picker';
-	import { Input } from '@/components/ui/input';
 	import type { TemplateType, UnitType, Editor, Color, Dimensions } from '../lib/types';
-	import {convert} from '../lib/logic.svelte'
+	import { convert } from '../lib/logic.svelte';
 	import { CircleArrowLeft } from '@lucide/svelte';
 
 	interface Props {
@@ -24,37 +22,32 @@
 		editor
 	}: Props = $props();
 
-		
 	function handleTypeChange(type: TemplateType) {
 		selectedType = type;
 		onTypeChange?.(type);
 	}
 
-	
-		function handleUnitChange(event: Event) {
-			const newUnit = (event.target as HTMLSelectElement).value as UnitType;
-			const oldUnit = unit;
+	function handleUnitChange(event: Event) {
+		const newUnit = (event.target as HTMLSelectElement).value as UnitType;
+		const oldUnit = unit;
 
-			if (newUnit !== oldUnit) {
-				const w = parseFloat(dimensions.width);
-				const h = parseFloat(dimensions.height);
+		if (newUnit !== oldUnit) {
+			const w = parseFloat(dimensions.width);
+			const h = parseFloat(dimensions.height);
 
-				if (!isNaN(w)) {
-					const px = convert(w, oldUnit, 'px');
-					dimensions.width = convert(px, 'px', newUnit).toFixed(2);
-				}
-
-				if (!isNaN(h)) {
-					const px = convert(h, oldUnit, 'px');
-					dimensions.height = convert(px, 'px', newUnit).toFixed(2);
-				}
-
-				unit = newUnit; // Update unit only after conversion
+			if (!isNaN(w)) {
+				const px = convert(w, oldUnit, 'px');
+				dimensions.width = convert(px, 'px', newUnit).toFixed(2);
 			}
+
+			if (!isNaN(h)) {
+				const px = convert(h, oldUnit, 'px');
+				dimensions.height = convert(px, 'px', newUnit).toFixed(2);
+			}
+
+			unit = newUnit;
 		}
-
-
-
+	}
 
 	function handleDimensionChange() {
 		if (dimensions.width && dimensions.height && editor?.canvas) {
@@ -63,11 +56,10 @@
 
 			if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
 				// Convert current dimensions from the selected unit to pixels
-                const widthInPx = convert(width, unit, 'px');
-                const heightInPx = convert(height, unit, 'px');
-                
-				
-				editor.changeSize({ width:widthInPx, height:heightInPx });
+				const widthInPx = convert(width, unit, 'px');
+				const heightInPx = convert(height, unit, 'px');
+
+				editor.changeSize({ width: widthInPx, height: heightInPx });
 			}
 		}
 	}
@@ -75,17 +67,14 @@
 	function handleColorChange(color: { hex: string | null }) {
 		if (color.hex && editor?.canvas) {
 			backgroundColor = hexToRgb(color.hex);
-			
+
 			const workspace = editor.getWorkspace();
 			if (workspace) {
 				workspace.set('fill', color.hex);
-				
-		
 			}
 
 			editor.canvas.backgroundColor = color.hex;
 			editor.canvas.renderAll();
-
 		}
 	}
 
@@ -112,7 +101,6 @@
 		);
 	}
 
-	// Watch for dimension changes and apply them
 	$effect(() => {
 		if (dimensions.width && dimensions.height && unit) {
 			handleDimensionChange();
@@ -122,8 +110,7 @@
 
 <div class="container-panel h-full w-full max-w-[320px] overflow-y-auto border-r bg-white">
 	<div class="space-y-6 p-4">
-	
-		 <CircleArrowLeft class="flex-shrink-0 h-7 w-7 text-black cursor-pointer "  />
+		<CircleArrowLeft class="h-7 w-7 flex-shrink-0 cursor-pointer text-black " />
 
 		<h1 class="text-2xl font-semibold">Untitled Design</h1>
 
@@ -158,7 +145,6 @@
 					<option value="cm">cm</option>
 					<option value="px">px</option>
 					<option value="in">in</option>
-
 				</select>
 			</div>
 
@@ -186,13 +172,9 @@
 				<label for="background-color" class="block text-xs font-medium text-gray-600"
 					>Background Color</label
 				>
-				<div class="items-center gap-3 p-2 rounded-md text-xs">
-					<ColorPicker
-						hex={rgbToHex(backgroundColor)}
-						onInput={handleColorChange}
-					/>
+				<div class="items-center gap-3 rounded-md p-2 text-xs">
+					<ColorPicker hex={rgbToHex(backgroundColor)} onInput={handleColorChange} />
 				</div>
-				
 			</div>
 		</div>
 	</div>

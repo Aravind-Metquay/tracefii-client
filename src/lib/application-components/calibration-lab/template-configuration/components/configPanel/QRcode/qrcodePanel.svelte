@@ -27,59 +27,58 @@
 
 	// Effect to update the preview whenever the expression changes
 	$effect(() => {
-		evaluatedValue = expression.replace('{{default_qrcode}}', `https://metquay.com/generated/${Date.now()}`);
+		evaluatedValue = expression.replace(
+			'{{default_qrcode}}',
+			`https://metquay.com/generated/${Date.now()}`
+		);
 	});
 
 	/**
 	 * Updates the currently selected QR code object on the canvas.
 	 */
 	const updateSelectedQRCode = async () => {
- 		if (isUpdating || !isQRCodeSelected || !selectedObject || !editor.canvas) {
- 			return;
- 		}
- 		isUpdating = true;
+		if (isUpdating || !isQRCodeSelected || !selectedObject || !editor.canvas) {
+			return;
+		}
+		isUpdating = true;
 
- 		try {
- 			// Cast the selected object to a Fabric Image to access its methods
- 			const objectToUpdate = selectedObject as fabric.Image & ExtendedFabricObject;
- 			const canvas = editor.canvas;
+		try {
+			// Cast the selected object to a Fabric Image to access its methods
+			const objectToUpdate = selectedObject as fabric.Image & ExtendedFabricObject;
+			const canvas = editor.canvas;
 
 			//Storing the current visual dimensions of the object on the canvas
-			 const originalScaledWidth = objectToUpdate.getScaledWidth();
-       		 const originalScaledHeight = objectToUpdate.getScaledHeight();
+			const originalScaledWidth = objectToUpdate.getScaledWidth();
+			const originalScaledHeight = objectToUpdate.getScaledHeight();
 
- 			// 1. Generate the new QR Code image data URL
- 			const newUrl = await QRCode.toDataURL(evaluatedValue, {
- 				errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
- 				width: 256, // Use a consistent width for generation
- 				
- 			});
+			// 1. Generate the new QR Code image data URL
+			const newUrl = await QRCode.toDataURL(evaluatedValue, {
+				errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
+				width: 256 // Use a consistent width for generation
+			});
 
- 			// 2. IMPORTANT: Update the custom data on the *existing* object
- 			objectToUpdate.set('data', {
- 				...objectToUpdate.data,
- 				expression: expression,
- 				errorCorrectionLevel: errorLevel
- 			});
+			// 2. IMPORTANT: Update the custom data on the *existing* object
+			objectToUpdate.set('data', {
+				...objectToUpdate.data,
+				expression: expression,
+				errorCorrectionLevel: errorLevel
+			});
 
- 			// 3. Use setSrc() to replace the image content in-place.
- 			 await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
-			 objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
-        	objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
-			
-			 canvas.requestRenderAll();
- 		
- 
-            
-            // 4. Notify Fabric that the object was modified (for undo/redo history)
-            canvas.fire('object:modified', { target: objectToUpdate });
+			// 3. Use setSrc() to replace the image content in-place.
+			await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
+			objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
+			objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
 
- 		} catch (error) {
- 			console.error('QR Code update failed:', error);
- 		} finally {
- 			isUpdating = false;
- 		}
- 	};
+			canvas.requestRenderAll();
+
+			// 4. Notify Fabric that the object was modified (for undo/redo history)
+			canvas.fire('object:modified', { target: objectToUpdate });
+		} catch (error) {
+			console.error('QR Code update failed:', error);
+		} finally {
+			isUpdating = false;
+		}
+	};
 
 	const debouncedUpdate = () => {
 		if (debounceTimer) clearTimeout(debounceTimer);
@@ -88,15 +87,13 @@
 		}, 800);
 	};
 
-	
-	
 	/**
 	 * Handles user input for the QR code content. (WRITE)
 	 */
 	const handleExpressionInput = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		expression = target.value; // 1. Update state immediately for a responsive UI
-		debouncedUpdate();         // 2. Then, trigger the canvas update
+		debouncedUpdate(); // 2. Then, trigger the canvas update
 	};
 
 	/**
@@ -105,7 +102,7 @@
 	const handleErrorLevelChange = (event: Event) => {
 		const target = event.target as HTMLSelectElement;
 		errorLevel = target.value; // 1. Update state immediately
-		debouncedUpdate();         // 2. Then, trigger the canvas update
+		debouncedUpdate(); // 2. Then, trigger the canvas update
 	};
 
 	// Cleanup effect
@@ -123,7 +120,7 @@
 		<label for="error-level" class="text-xs text-gray-600"> Error Correction Level </label>
 		<select
 			id="error-level"
-			class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+			class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
 			disabled={!isQRCodeSelected || isUpdating}
 			value={errorLevel}
 			onchange={handleErrorLevelChange}
@@ -140,7 +137,7 @@
 		<input
 			id="expression"
 			type="text"
-			class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+			class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
 			placeholder="Enter URL or text"
 			disabled={!isQRCodeSelected || isUpdating}
 			value={expression}
@@ -162,6 +159,4 @@
 			Generating QR code...
 		</div>
 	{/if}
-
-	
 </div>

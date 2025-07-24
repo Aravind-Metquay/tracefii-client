@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Editor } from '../lib/types'; // Adjust path if needed
+	import type { Editor } from '../lib/types';
 	import Footer from './Footer.svelte';
 
 
@@ -8,11 +8,9 @@
 		backgroundColor: { r: number; g: number; b: number };
 	}>();
 
-	// Use $state for element bindings
 	let canvasElement = $state<HTMLCanvasElement | undefined>();
 	let containerElement = $state<HTMLDivElement | undefined>();
 
-	// Helper function to convert RGB object to a hex string
 	function rgbToHex(rgb: { r: number; g: number; b: number }): string {
 		return '#' + [rgb.r, rgb.g, rgb.b].map(x => {
 			const hex = x.toString(16);
@@ -22,9 +20,7 @@
 
 	
 	$effect(() => {
-		// 1. Wait for Svelte to bind the HTML elements to our variables.
 		if (!canvasElement || !containerElement) {
-			// This effect will automatically re-run once they are available.
 			return;
 		}
 
@@ -76,15 +72,6 @@
 					display: block;
 				"
 			></canvas>
-
-			<!-- Optional: Workspace size indicator -->
-			{#if editor?.workspaceSize}
-				<div
-					class="absolute bottom-4 left-4 rounded bg-white/80 px-2 py-1 text-xs text-gray-600 backdrop-blur-sm"
-				>
-					Workspace: {editor.workspaceSize.width}×{editor.workspaceSize.height}
-				</div>
-			{/if}
 		</div>
 	</div>
 	<Footer {editor} />
@@ -96,17 +83,6 @@
 		flex-direction: column;
 		height: 100%;
 		width: 100%;
-	}
-	.canvas-wrapper {
-		/* This container defines the available area for the canvas */
-		flex: 1;
-		min-height: 0;
-		width: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		overflow: hidden;
-		background-color: #f8fafc; /* A fallback color */
 	}
 	canvas {
 		

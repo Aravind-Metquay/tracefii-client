@@ -38,7 +38,6 @@
 		'DD MMM YYYY'
 	];
 
-
 	function handleDateFormatChange(format: string) {
 		editor?.changeDateFormat?.(format);
 	}

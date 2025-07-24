@@ -39,7 +39,7 @@ export function createHotkeys({ undo, redo, copy, paste, save, canvas }: Hotkeys
 
 		if (typeof window !== 'undefined') {
 			window.addEventListener('keydown', handleKeyDown);
-			
+
 			cleanup = () => {
 				window.removeEventListener('keydown', handleKeyDown);
 			};

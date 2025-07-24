@@ -792,7 +792,6 @@ export function createEditor(options: EditorOptions = {}) {
 		addToCanvas(img);
 	}
 
-
 	async function addBarcode(): Promise<void> {
 		if (!canvas) return;
 
