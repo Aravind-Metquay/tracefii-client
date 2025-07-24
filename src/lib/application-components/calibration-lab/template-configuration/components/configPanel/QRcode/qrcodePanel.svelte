@@ -44,11 +44,15 @@
  			const objectToUpdate = selectedObject as fabric.Image & ExtendedFabricObject;
  			const canvas = editor.canvas;
 
+			//Storing the current visual dimensions of the object on the canvas
+			 const originalScaledWidth = objectToUpdate.getScaledWidth();
+       		 const originalScaledHeight = objectToUpdate.getScaledHeight();
+
  			// 1. Generate the new QR Code image data URL
  			const newUrl = await QRCode.toDataURL(evaluatedValue, {
  				errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
  				width: 256, // Use a consistent width for generation
- 				margin: 1
+ 				
  			});
 
  			// 2. IMPORTANT: Update the custom data on the *existing* object
@@ -60,7 +64,10 @@
 
  			// 3. Use setSrc() to replace the image content in-place.
  			 await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
-			canvas.requestRenderAll();
+			 objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
+        	objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
+			
+			 canvas.requestRenderAll();
  		
  
             

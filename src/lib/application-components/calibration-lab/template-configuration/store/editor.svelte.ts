@@ -773,7 +773,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const dataUrl = await QRCode.toDataURL(finalValue, {
 			errorCorrectionLevel: 'H',
-			width: 100
+			width: 256
 		});
 
 		const img = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
@@ -792,7 +792,7 @@ export function createEditor(options: EditorOptions = {}) {
 		addToCanvas(img);
 	}
 
-	// Inside editor.svelte
+	
 
 	async function addBarcode(): Promise<void> {
 		if (!canvas) return;

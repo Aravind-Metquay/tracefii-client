@@ -128,9 +128,9 @@
 		>
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
-			<option value="EAN13">EAN13</option>
+			<!-- <option value="EAN13">EAN13</option>
 			<option value="UPC">UPC</option>
-			<option value="ITF">ITF</option>
+			<option value="ITF">ITF</option> -->
 			
 		</select>
 	</div>
@@ -150,9 +150,9 @@
 		</p>
 	</div>
 
-	<div class="grid grid-cols-2 gap-4">
+	<!-- <div class="grid grid-cols-2 gap-4">
 		<div class="flex flex-col gap-1">
-			<label for="barcode-width" class="text-xs text-gray-600">Bar Width</label>
+			<label for="barcode-width" class="text-xs text-gray-600">Bar Width (px)</label>
 			<input
 				id="barcode-width"
 				type="number"
@@ -165,7 +165,7 @@
 			/>
 		</div>
 		<div class="flex flex-col gap-1">
-			<label for="barcode-height" class="text-xs text-gray-600">Height</label>
+			<label for="barcode-height" class="text-xs text-gray-600">Height (px)</label>
 			<input
 				id="barcode-height"
 				type="number"
@@ -177,7 +177,7 @@
 				oninput={(e) => handleInput(() => (barHeight = Number((e.target as HTMLInputElement).value)))}
 			/>
 		</div>
-	</div>
+	</div> -->
 
 	<div class="flex items-center gap-2">
 		<input
