@@ -320,14 +320,13 @@ export function createEditor(options: EditorOptions = {}) {
 	// Canvas Initialization
 	// ================================
 
-
 	function initializeCanvas(
-    canvasElement: HTMLCanvasElement,
-    containerElement: HTMLElement
-): Canvas {
-    try {
-        // initializeVariableValues();
-		canvas = new Canvas(canvasElement, {
+		canvasElement: HTMLCanvasElement,
+		containerElement: HTMLElement
+	): Canvas {
+		try {
+			// initializeVariableValues();
+			canvas = new Canvas(canvasElement, {
 				width: options.defaultWidth || 500,
 				height: options.defaultHeight || 500,
 				renderOnAddRemove: true,
@@ -335,114 +334,108 @@ export function createEditor(options: EditorOptions = {}) {
 				selection: true
 			});
 
-      
+			// The 'canvas' variable now exists, so we can attach listeners.
+			// ==================================================================
+			canvas.on('selection:created', (e) => {
+				if (e.selected) {
+					selectedObjects = e.selected;
+				}
+			});
 
-       
-        // The 'canvas' variable now exists, so we can attach listeners.
-        // ==================================================================
-        canvas.on('selection:created', (e) => {
-            if (e.selected) {
-                selectedObjects = e.selected;
-            }
-        });
+			canvas.on('selection:updated', (e) => {
+				if (e.selected) {
+					selectedObjects = e.selected;
+				}
+			});
 
-        canvas.on('selection:updated', (e) => {
-            if (e.selected) {
-                selectedObjects = e.selected;
-            }
-        });
+			canvas.on('selection:cleared', () => {
+				selectedObjects = [];
+			});
+			// ==================================================================
 
-        canvas.on('selection:cleared', () => {
-            selectedObjects = [];
-        });
-        // ==================================================================
+			container = containerElement;
 
+			FabricObject.prototype.set({
+				cornerColor: '#FFF',
+				cornerStyle: 'circle',
+				borderColor: '#3b82f6',
+				borderScaleFactor: 1.5,
+				transparentCorners: false,
+				borderOpacityWhenMoving: 1,
+				cornerStrokeColor: '#3b82f6'
+			});
 
-        container = containerElement;
+			const workspace = new Rect({
+				width: workspaceSize.width,
+				height: workspaceSize.height,
+				name: 'clip',
+				fill: 'white',
+				stroke: '#e5e7eb',
+				strokeWidth: 2,
+				selectable: false,
+				hasControls: false,
+				hoverCursor: 'default',
+				moveCursor: 'default',
+				shadow: new Shadow({
+					color: 'rgba(0,0,0,0.1)',
+					blur: 10,
+					offsetX: 0,
+					offsetY: 2
+				})
+			});
 
-        FabricObject.prototype.set({
-            cornerColor: '#FFF',
-            cornerStyle: 'circle',
-            borderColor: '#3b82f6',
-            borderScaleFactor: 1.5,
-            transparentCorners: false,
-            borderOpacityWhenMoving: 1,
-            cornerStrokeColor: '#3b82f6'
-        });
+			canvas.add(workspace);
+			canvas.centerObject(workspace);
 
-        const workspace = new Rect({
-            width: workspaceSize.width,
-            height: workspaceSize.height,
-            name: 'clip',
-            fill: 'white',
-            stroke: '#e5e7eb',
-            strokeWidth: 2,
-            selectable: false,
-            hasControls: false,
-            hoverCursor: 'default',
-            moveCursor: 'default',
-            shadow: new Shadow({
-                color: 'rgba(0,0,0,0.1)',
-                blur: 10,
-                offsetX: 0,
-                offsetY: 2
-            })
-        });
+			if (options.lockWorkspaceBounds !== false) {
+				canvas.clipPath = workspace;
+			}
 
-        canvas.add(workspace);
-        canvas.centerObject(workspace);
+			canvas.backgroundColor = '#f8fafc';
 
-        if (options.lockWorkspaceBounds !== false) {
-            canvas.clipPath = workspace;
-        }
+			if (options.lockWorkspaceBounds !== false) {
+				setupWorkspaceBoundaryConstraints();
+			}
 
-        canvas.backgroundColor = '#f8fafc';
+			canvas.on('after:render', () => {
+				if (options.lockWorkspaceBounds !== false) {
+					constrainViewport();
+				}
+			});
 
-        if (options.lockWorkspaceBounds !== false) {
-            setupWorkspaceBoundaryConstraints();
-        }
+			canvas.on('mouse:wheel', (opt) => {
+				if (!canvas || !opt.e.ctrlKey) return;
 
-        canvas.on('after:render', () => {
-            if (options.lockWorkspaceBounds !== false) {
-                constrainViewport();
-            }
-        });
+				const delta = opt.e.deltaY;
+				let zoom = canvas.getZoom();
+				zoom *= 0.999 ** delta;
 
-        canvas.on('mouse:wheel', (opt) => {
-            if (!canvas || !opt.e.ctrlKey) return;
+				if (zoom > 3) zoom = 3;
+				if (zoom < 0.1) zoom = 0.1;
 
-            const delta = opt.e.deltaY;
-            let zoom = canvas.getZoom();
-            zoom *= 0.999 ** delta;
+				const point = new Point(opt.e.offsetX, opt.e.offsetY);
+				canvas.zoomToPoint(point, zoom);
 
-            if (zoom > 3) zoom = 3;
-            if (zoom < 0.1) zoom = 0.1;
+				opt.e.preventDefault();
+				opt.e.stopPropagation();
 
-            const point = new Point(opt.e.offsetX, opt.e.offsetY);
-            canvas.zoomToPoint(point, zoom);
+				if (options.lockWorkspaceBounds !== false) {
+					constrainViewport();
+				}
+			});
 
-            opt.e.preventDefault();
-            opt.e.stopPropagation();
+			hotkeys.attachEvents();
+			autoResize.attachEvents();
 
-            if (options.lockWorkspaceBounds !== false) {
-                constrainViewport();
-            }
-        });
+			canvas.requestRenderAll();
+			history.save();
 
-
-        
-        hotkeys.attachEvents();
-        autoResize.attachEvents();
-
-        canvas.requestRenderAll();
-        history.save();
-
-        return canvas;
-    } catch (error) {
-        console.error('Failed to initialize canvas:', error);
-        throw error;
-    }
-}
+			return canvas;
+		} catch (error) {
+			console.error('Failed to initialize canvas:', error);
+			throw error;
+		}
+	}
 
 	// ================================
 	// Canvas Utilities
@@ -785,7 +778,7 @@ export function createEditor(options: EditorOptions = {}) {
 			top: 100,
 			data: {
 				type: 'QR Code',
-				expression:template,
+				expression: template,
 				errorCorrectionLevel: 'H'
 			}
 		});
@@ -797,64 +790,63 @@ export function createEditor(options: EditorOptions = {}) {
 
 	// Inside editor.svelte
 
-async function addBarcode(): Promise<void> {
-	if (!canvas) return;
+	async function addBarcode(): Promise<void> {
+		if (!canvas) return;
 
-	const initialExpression = 'BAR##date_code##';
+		const initialExpression = 'BAR##date_code##';
 
-	// Evaluate the initial expression for the first creation
-	const today = new Date();
-	const dateCode = `${today.getFullYear()}${(today.getMonth() + 1)
-		.toString()
-		.padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
-	const initialValue = initialExpression.replace(/##date_code##/gi, dateCode);
+		// Evaluate the initial expression for the first creation
+		const today = new Date();
+		const dateCode = `${today.getFullYear()}${(today.getMonth() + 1)
+			.toString()
+			.padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
+		const initialValue = initialExpression.replace(/##date_code##/gi, dateCode);
 
-	// Define initial options
-	const barcodeOptions = {
-		format: 'CODE128',
-		width: 2,
-		height: 50,
-		displayValue: true
-	};
+		// Define initial options
+		const barcodeOptions = {
+			format: 'CODE128',
+			width: 2,
+			height: 50,
+			displayValue: true
+		};
 
-	// Generate the barcode image
-	const canvasElement = document.createElement('canvas');
-	JsBarcode(canvasElement, initialValue, barcodeOptions);
-	const dataUrl = canvasElement.toDataURL();
-	const img = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+		// Generate the barcode image
+		const canvasElement = document.createElement('canvas');
+		JsBarcode(canvasElement, initialValue, barcodeOptions);
+		const dataUrl = canvasElement.toDataURL();
+		const img = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
 
-	img.set({
-		left: 100,
-		top: 100,
-		// Save all initial settings to the data object for later editing
-		data: {
-			type: 'Barcode',
-			expression: initialExpression, // Store the expression
-			format: barcodeOptions.format,
-			barWidth: barcodeOptions.width,
-			barHeight: barcodeOptions.height,
-			displayValue: barcodeOptions.displayValue
-		}
-	});
+		img.set({
+			left: 100,
+			top: 100,
+			// Save all initial settings to the data object for later editing
+			data: {
+				type: 'Barcode',
+				expression: initialExpression, // Store the expression
+				format: barcodeOptions.format,
+				barWidth: barcodeOptions.width,
+				barHeight: barcodeOptions.height,
+				displayValue: barcodeOptions.displayValue
+			}
+		});
 
-	
-	const command = new AddElementCommand(canvas, img);
-	history.execute(command);
-	addToCanvas(img);
-}
+		const command = new AddElementCommand(canvas, img);
+		history.execute(command);
+		addToCanvas(img);
+	}
 
 	// Replacing previouys QRCODE
-		function replaceObject(oldObject: FabricObject, newObject: FabricObject): void {
-			if (!canvas || !oldObject || !newObject) return;
+	function replaceObject(oldObject: FabricObject, newObject: FabricObject): void {
+		if (!canvas || !oldObject || !newObject) return;
 
-			// The calling function is responsible for setting the new object's properties.
-			// This function just performs the swap on the canvas.
-			canvas.remove(oldObject);
-			canvas.add(newObject);
-			canvas.setActiveObject(newObject);
-			canvas.requestRenderAll();
-			history.save(); // Save the state after replacement
-		}
+		// The calling function is responsible for setting the new object's properties.
+		// This function just performs the swap on the canvas.
+		canvas.remove(oldObject);
+		canvas.add(newObject);
+		canvas.setActiveObject(newObject);
+		canvas.requestRenderAll();
+		history.save(); // Save the state after replacement
+	}
 
 	// ================================
 	// Image Operations
@@ -1351,28 +1343,67 @@ async function addBarcode(): Promise<void> {
 	// Public API
 	// ================================
 
-	
-	return{
-		get canvas() { return canvas; },
-		get container() { return container; },
-		get selectedTool() { return selectedTool; },
-		set selectedTool(value) { selectedTool = value; },
-		get selectedObjects() { return selectedObjects; },
-		get zoom() { return zoom; },
-		get viewport() { return viewport; },
-		get fontFamily() { return fontFamily; },
-		set fontFamily(value) { fontFamily = value; },
-		get fillColor() { return fillColor; },
-		set fillColor(value) { fillColor = value; },
-		get strokeColor() { return strokeColor; },
-		set strokeColor(value) { strokeColor = value; },
-		get strokeWidth() { return strokeWidth; },
-		set strokeWidth(value) { strokeWidth = value; },
-		get strokeDashArray() { return strokeDashArray; },
-		set strokeDashArray(value) { strokeDashArray = value; },
-		get hasSelection() { return hasSelection; },
-		get canvasSize() { return canvasSize; },
-		get workspaceSize() { return workspaceSize; },
+	return {
+		get canvas() {
+			return canvas;
+		},
+		get container() {
+			return container;
+		},
+		get selectedTool() {
+			return selectedTool;
+		},
+		set selectedTool(value) {
+			selectedTool = value;
+		},
+		get selectedObjects() {
+			return selectedObjects;
+		},
+		get zoom() {
+			return zoom;
+		},
+		get viewport() {
+			return viewport;
+		},
+		get fontFamily() {
+			return fontFamily;
+		},
+		set fontFamily(value) {
+			fontFamily = value;
+		},
+		get fillColor() {
+			return fillColor;
+		},
+		set fillColor(value) {
+			fillColor = value;
+		},
+		get strokeColor() {
+			return strokeColor;
+		},
+		set strokeColor(value) {
+			strokeColor = value;
+		},
+		get strokeWidth() {
+			return strokeWidth;
+		},
+		set strokeWidth(value) {
+			strokeWidth = value;
+		},
+		get strokeDashArray() {
+			return strokeDashArray;
+		},
+		set strokeDashArray(value) {
+			strokeDashArray = value;
+		},
+		get hasSelection() {
+			return hasSelection;
+		},
+		get canvasSize() {
+			return canvasSize;
+		},
+		get workspaceSize() {
+			return workspaceSize;
+		},
 
 		// Functions
 		initializeCanvas,
@@ -1439,10 +1470,13 @@ async function addBarcode(): Promise<void> {
 		onRedo: history.redo,
 		onCopy: clipboard.copy,
 		onPaste: clipboard.paste,
-		get canUndo() { return history.canUndo; },
-		get canRedo() { return history.canRedo; },
+		get canUndo() {
+			return history.canUndo;
+		},
+		get canRedo() {
+			return history.canRedo;
+		},
 		history,
 		updateObjectSize
 	};
 }
-
