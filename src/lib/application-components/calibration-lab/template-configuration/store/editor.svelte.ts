@@ -1007,7 +1007,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const object = new Circle({
 			...CIRCLE_OPTIONS,
-			fill: fillColor,
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -1020,7 +1020,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const object = new Rect({
 			...RECTANGLE_OPTIONS,
-			fill: fillColor,
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -1035,7 +1035,7 @@ export function createEditor(options: EditorOptions = {}) {
 			...RECTANGLE_OPTIONS,
 			rx: 50,
 			ry: 50,
-			fill: fillColor,
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -1048,7 +1048,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const object = new Triangle({
 			...TRIANGLE_OPTIONS,
-			fill: fillColor,
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -1070,7 +1070,7 @@ export function createEditor(options: EditorOptions = {}) {
 			],
 			{
 				...TRIANGLE_OPTIONS,
-				fill: fillColor,
+				fill: fillColor
 			}
 		);
 
@@ -1094,7 +1094,7 @@ export function createEditor(options: EditorOptions = {}) {
 			],
 			{
 				...DIAMOND_OPTIONS,
-				fill: fillColor,
+				fill: fillColor
 			}
 		);
 

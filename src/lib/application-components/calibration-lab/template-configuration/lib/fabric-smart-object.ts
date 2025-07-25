@@ -1,4 +1,4 @@
-import { Line, FabricObject, Canvas, type TEvent, type TPointerEvent } from 'fabric';
+import { Line, FabricObject, Canvas} from 'fabric';
 
 // Extend fabric objects with guides property
 declare module 'fabric' {
