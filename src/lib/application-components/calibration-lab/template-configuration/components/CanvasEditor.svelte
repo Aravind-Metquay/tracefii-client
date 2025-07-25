@@ -56,40 +56,19 @@
 		return () => {
 			console.log('Cleaning up canvas editor...');
 			resizeObserver.disconnect();
-			// The editor itself can handle disposing the canvas if needed.
 		};
 	});
 </script>
 
-<div class="canvas-editor flex h-full flex-col">
+<div class="flex h-full w-full flex-col">
 	<div class="min-h-0 w-full flex-1">
 		<div
 			bind:this={containerElement}
 			class="relative flex h-full w-full items-center justify-center overflow-hidden"
 		>
 			<!-- Canvas takes full container size -->
-			<canvas
-				bind:this={canvasElement}
-				class="block max-h-full max-w-full"
-				style="
-					width: 100%; 
-					height: 100%; 
-					display: block;
-				"
-			></canvas>
+			<canvas bind:this={canvasElement} class="block max-h-full max-w-full"></canvas>
 		</div>
 	</div>
 	<Footer {editor} />
 </div>
-
-<style>
-	.canvas-editor {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		width: 100%;
-	}
-	canvas {
-		display: block;
-	}
-</style>
