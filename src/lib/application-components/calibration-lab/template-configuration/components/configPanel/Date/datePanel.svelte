@@ -2,6 +2,7 @@
 	import ColorPicker from 'svelte-awesome-color-picker';
 	import { colord, type Colord } from 'colord';
 	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
+	import Button from '@/components/ui/button/button.svelte';
 
 	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
 
@@ -163,45 +164,51 @@
 
 	<!-- Font Styles -->
 	<div class="flex items-center gap-2">
-		<button
-			class={`rounded border p-2 ${fontWeight >= 700 ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={fontWeight >= 700 ? 'primary' : 'secondary'}
 			onclick={handleFontWeightChange}
 		>
 			<Bold size={16} />
-		</button>
+	    </Button>
 
-		<button
-			class={`rounded border p-2 italic ${fontStyle === 'italic' ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={fontStyle === 'italic' ? 'primary' : 'secondary'}
 			onclick={handleFontStyleChange}
 		>
 			<Italic size={16} />
-		</button>
+		</Button>
 
-		<button
-			class={`rounded border p-2 underline ${underline ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={underline ? 'primary' : 'secondary'}
 			onclick={handleFontUnderlineChange}
 		>
 			<Underline size={16} />
-		</button>
-		<button
-			class={`rounded border p-2 ${textAlign === 'left' ? 'bg-gray-200' : ''}`}
+	    </Button>
+		<Button
+			size="icon"
+			variant={textAlign === 'left' ? 'primary' : 'secondary'}
 			onclick={() => handleTextAlignChange('left')}
 		>
 			<AlignLeft size={16} />
-		</button>
+        </Button>
 
-		<button
-			class={`rounded border p-2 ${textAlign === 'center' ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={textAlign === 'center' ? 'primary' : 'secondary'}
 			onclick={() => handleTextAlignChange('center')}
 		>
 			<AlignCenter size={16} />
-		</button>
+		</Button>
 
-		<button
-			class={`rounded border p-2 ${textAlign === 'right' ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={textAlign === 'right' ? 'primary' : 'secondary'}
 			onclick={() => handleTextAlignChange('right')}
 		>
 			<AlignRight size={16} />
-		</button>
+	    </Button>
 	</div>
 </div>
