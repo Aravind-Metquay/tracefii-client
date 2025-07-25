@@ -1,5 +1,7 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
+import 'fabric';
+
 declare global {
 	namespace App {
 		// interface Error {}
@@ -30,6 +32,16 @@ declare module 'svelte-filepond' {
 	export class FilePond extends SvelteComponent<FilePondProps> {}
 	
 	export function registerPlugin(...plugins: any[]): void;
+	
 }
+declare module 'fabric' {
+	namespace fabric {
+		// This adds the custom 'guides' property to every FabricObject
+		interface FabricObject {
+			guides?: { [key: string]: Line };
+		}
+	}
+}
+
 
 export {};
