@@ -594,7 +594,7 @@ export type WorksheetManager = {
 	getAllComponents(): Component[];
 	getComponentsOfCurrentFunction(): Component[];
 	checkIfComponentLabelExistsInFunction(functionId: string, label: string): boolean
-	
+	checkIfColumnNameExistsInTable(tableId: string, columnName: string): boolean
 	// Table Columns
 	createNewColumn(newColumn: TableColumn): void;
 	addColumn(tableId: string, col: TableColumn): void;

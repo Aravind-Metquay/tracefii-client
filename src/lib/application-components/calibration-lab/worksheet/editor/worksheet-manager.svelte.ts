@@ -520,6 +520,24 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			this.setCurrentActiveColumn(newColumn);
 		},
 
+		checkIfColumnNameExistsInTable(tableId: string, columnName: string): boolean {
+			const tableComponent = this.getComponentById(tableId);
+
+			if (
+				!tableComponent ||
+				tableComponent.componentType !== 'Table' ||
+				!tableComponent.tableComponent?.columns
+			) {
+				return false;
+			}
+
+			const normalizedColumnName = columnName.trim().toLowerCase();
+
+			return tableComponent.tableComponent.columns.some(
+				(col) => col.columnName.trim().toLowerCase() === normalizedColumnName
+			);
+		},
+
 		addColumn(tableId: string, col: TableColumn) {
 			const component = worksheet.components.find((c) => c.componentId === tableId);
 			if (!component) throw new Error('Table not found for adding column');

@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { Input, Checkbox, Button, Modal, Select } from '@/components';
-	import type { Component, SelectItem as SelectItemType, TableColumn, WorksheetManager } from '@/Types';
+	import type {
+		Component,
+		SelectItem as SelectItemType,
+		TableColumn,
+		WorksheetManager
+	} from '@/Types';
 	import { getContext } from 'svelte';
 
-	let { isOpen = $bindable(false) , currentTable }: { isOpen: boolean , currentTable : Component } = $props();
+	let {
+		isOpen = $bindable(false),
+		currentTable
+	}: { isOpen: boolean; currentTable: Component } = $props();
 
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
@@ -23,6 +31,9 @@
 	let customValues = $state<SelectItemType[]>([]);
 	let customInputValue = $state('');
 
+	let columnNameError = $state('');
+
+
 	$effect(() => {
 		if (isOpen) {
 			columnType = 'Input';
@@ -38,13 +49,28 @@
 			referenceWorksheetId = '';
 			customValues = [];
 			customInputValue = '';
+			columnNameError = ''; 
 
 			const focusElement = document.getElementById('column-type');
 			focusElement?.focus();
 		}
 	});
 
-	// Options for dropdowns
+	$effect(() => {
+		if (!isOpen || !currentTable) return;
+
+		const trimmedName = columnName.trim();
+		if (!trimmedName) {
+			columnNameError = 'Column name is required.';
+		} else if (
+			worksheetManager.checkIfColumnNameExistsInTable(currentTable.componentId, trimmedName)
+		) {
+			columnNameError = 'This column name already exists in the table.';
+		} else {
+			columnNameError = '';
+		}
+	});
+
 	const columnTypeOptions = [
 		{ value: 'Input', label: 'Input' },
 		{ value: 'Select', label: 'Select' }
@@ -85,61 +111,74 @@
 		}
 	};
 
-const handleAddColumn = () => {
-    
-    if (!currentTable || currentTable.componentType !== 'Table') {
-        console.error('No active table component found');
-        return;
-    }
+	const handleAddColumn = () => {
+		if (columnNameError) {
+			console.error('Cannot add column due to validation errors.');
+			return;
+		}
 
-    const column: TableColumn = {
-        columnType,
-        tableId: currentTable.componentId,
-        columnId: worksheetManager.generateUniqueId(columnName, 'column', { tableId: currentTable.componentId }),
-        columnName,
-        defaultValue: '',
-        isRequired,
-        certificateVisibilityBasedonExpression: false,
-        certificateVisibilityExpression: '',
-        showInCertificate,
-        isComponentDisabledOnExpression: false,
-        disableExpression: '',
-        isDisabled: disabled,
-        isReadOnly: readOnly,
-        order: 0, 
-        isExpressionEnabled: false,
-        valueExpression: '',
-        isValidationEnabled: enableValidation,
-        validationExpression: enableValidation ? '' : undefined,
-        validationMessage: enableValidation ? '' : undefined,
-        isInvalid: false,
-        isRepeatColumn: false,
-        repeatExpression: undefined,
-        baseColumnId: undefined,
-        
-        inputComponent: columnType === 'Input' ? {
-            type: inputType,
-            roundingDigits: inputType === 'Number' ? roundingDigits : 0
-        } : undefined,
-        
-        selectComponent: columnType === 'Select' ? {
-            type: selectType,
-            referenceWorksheetId: selectType === 'Reference Asset' ? referenceWorksheetId : undefined,
-            values: selectType === 'Custom' 
-                ? customValues 
-                : selectType === 'Yes or No'
-                    ? [
-                        { key: 'true', value: 'Yes' },
-                        { key: 'false', value: 'No' }
-                    ]
-                    : []
-        } : undefined
-    };
+		if (!currentTable || currentTable.componentType !== 'Table') {
+			console.error('No active table component found or current component is not a table.');
+			return;
+		}
 
-    worksheetManager.createNewColumn(column);
-    isOpen = false;
-};
+		const column: TableColumn = {
+			columnType,
+			tableId: currentTable.componentId,
+			columnId: worksheetManager.generateUniqueId(columnName, 'column', {
+				tableId: currentTable.componentId
+			}),
+			columnName,
+			defaultValue: '',
+			isRequired,
+			certificateVisibilityBasedonExpression: false,
+			certificateVisibilityExpression: '',
+			showInCertificate,
+			isComponentDisabledOnExpression: false,
+			disableExpression: '',
+			isDisabled: disabled,
+			isReadOnly: readOnly,
+			order: currentTable.tableComponent?.columns.length ?? 0, 
+			isExpressionEnabled: false,
+			valueExpression: '',
+			isValidationEnabled: enableValidation,
+			validationExpression: enableValidation ? '' : undefined,
+			validationMessage: enableValidation ? '' : undefined,
+			isInvalid: false,
+			isRepeatColumn: false,
+			repeatExpression: undefined,
+			baseColumnId: undefined,
 
+			inputComponent:
+				columnType === 'Input'
+					? {
+							type: inputType,
+							roundingDigits: inputType === 'Number' ? roundingDigits : 0
+						}
+					: undefined,
+
+			selectComponent:
+				columnType === 'Select'
+					? {
+							type: selectType,
+							referenceWorksheetId:
+								selectType === 'Reference Asset' ? referenceWorksheetId : undefined,
+							values:
+								selectType === 'Custom'
+									? customValues
+									: selectType === 'Yes or No'
+										? [
+												{ key: 'true', value: 'Yes' },
+												{ key: 'false', value: 'No' }
+											]
+										: []
+						}
+					: undefined
+		};
+
+		worksheetManager.createNewColumn(column);
+		isOpen = false;
+	};
 </script>
 
 <Modal.Root bind:isOpen title="Add New Column">
@@ -189,6 +228,9 @@ const handleAddColumn = () => {
 					bind:value={columnName}
 					placeholder="Enter column name"
 				/>
+				{#if columnNameError && columnName}
+					<p class="mt-1 text-sm text-red-600">{columnNameError}</p>
+				{/if}
 			</div>
 
 			<div class="md:col-span-2">
@@ -259,7 +301,9 @@ const handleAddColumn = () => {
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="show-in-certificate" bind:checked={showInCertificate} />
-				<label for="show-in-certificate" class="cursor-pointer font-normal">Show in Certificate</label>
+				<label for="show-in-certificate" class="cursor-pointer font-normal"
+					>Show in Certificate</label
+				>
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="read-only" bind:checked={readOnly} />
@@ -271,12 +315,14 @@ const handleAddColumn = () => {
 			</div>
 			<div class="flex items-center space-x-2">
 				<Checkbox id="enable-validation" bind:checked={enableValidation} />
-				<label for="enable-validation" class="cursor-pointer font-normal">Enable Validation</label>
+				<label for="enable-validation" class="cursor-pointer font-normal"
+					>Enable Validation</label
+				>
 			</div>
 		</div>
 
 		<div class="flex justify-end pt-4">
-			<Button type="submit" size="small">Add Column</Button>
+			<Button type="submit" size="small" disabled={!!columnNameError}>Add Column</Button>
 		</div>
 	</form>
 </Modal.Root>
