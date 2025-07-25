@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Repeat , Trash , GripVertical} from '@lucide/svelte';
+  import { Trash , GripVertical} from '@lucide/svelte';
   import type {Function , WorksheetManager} from '@/Types'
 
   let { fn , worksheetManager } : {fn : Function , worksheetManager : WorksheetManager} = $props();
@@ -35,7 +35,7 @@
 
 
   <a
-    onclick={() => worksheetManager.removeFunction(fn.functionId)}
+    onclick={(e) => {e.stopPropagation(); worksheetManager.removeFunction(fn.functionId);}}
   >
     <Trash
       size="16"
