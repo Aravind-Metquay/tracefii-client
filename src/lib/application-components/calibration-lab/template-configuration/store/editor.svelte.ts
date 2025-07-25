@@ -8,7 +8,8 @@ import {
 	Triangle,
 	Polygon,
 	Point,
-	Shadow
+	Shadow,
+	Line
 } from 'fabric';
 import { createHistory } from './history.svelte';
 import { createCanvasEvents } from './canvas-events.svelte';
@@ -26,7 +27,6 @@ import {
 	STROKE_COLOR,
 	STROKE_WIDTH,
 	STROKE_DASH_ARRAY,
-	TEXT_OPTIONS,
 	FONT_SIZE,
 	FONT_WEIGHT,
 	CIRCLE_OPTIONS,
@@ -428,6 +428,9 @@ export function createEditor(options: EditorOptions = {}) {
 			hotkeys.attachEvents();
 			autoResize.attachEvents();
 
+			// Initialize object snapping
+			enableSnapping();
+
 			canvas.requestRenderAll();
 			history.save();
 
@@ -478,22 +481,49 @@ export function createEditor(options: EditorOptions = {}) {
 	// Text and Date Operations
 	// ================================
 
+	// Helper function to sanitize options for Fabric.js objects
+	function sanitizeFabricOptions(options: any): any {
+		const {
+			type,
+			canvas,
+			_objects,
+			_originalState,
+			aCoords,
+			oCoords,
+			matrixCache,
+			ownMatrixCache,
+			...cleanOptions
+		} = options || {};
+		return cleanOptions;
+	}
+
 	function addText(text = 'Text', textOptions = {}): void {
 		if (!canvas) return;
 
 		try {
-			const textObj = new Textbox(text, {
-				...TEXT_OPTIONS,
+			// Sanitize textOptions to remove problematic read-only properties
+			const cleanTextOptions = sanitizeFabricOptions(textOptions);
+
+			// Base options for the textbox
+			const baseOptions = {
+				left: 100,
+				top: 100,
 				fill: fillColor,
 				fontFamily: fontFamily,
 				fontSize: FONT_SIZE,
 				fontWeight: FONT_WEIGHT,
 				width: 200,
-				height: 50,
-				minWidth: 200,
-				variableValues: (window as any).variableValues || {},
-				...textOptions
+				height: 50
+			};
+
+			// Create the textbox
+			const textObj = new Textbox(text, {
+				...baseOptions,
+				...cleanTextOptions
 			});
+
+			// Set custom properties directly instead of using Object.assign
+			textObj.variableValues = (window as any).variableValues || {};
 
 			const command = new AddElementCommand(canvas, textObj);
 			history.execute(command);
@@ -508,17 +538,27 @@ export function createEditor(options: EditorOptions = {}) {
 
 		try {
 			const now = new Date();
-			const dateText = new Textbox(moment(now).format(DEFAULT_DATE_FORMAT), {
-				...TEXT_OPTIONS,
+
+			// Base Fabric-safe options
+			const baseOptions = {
+				left: 100,
+				top: 100,
 				fill: fillColor,
 				fontFamily: fontFamily,
 				fontSize: FONT_SIZE,
 				fontWeight: FONT_WEIGHT,
-				customType: 'date',
-				customDateValue: now.toISOString(),
-				customDateFormat: DEFAULT_DATE_FORMAT,
-				variableValues: (window as any).variableValues || {}
-			});
+				width: 200,
+				height: 50
+			};
+
+			// Create the textbox for the date
+			const dateText = new Textbox(moment(now).format(DEFAULT_DATE_FORMAT), baseOptions);
+
+			// Set custom properties directly instead of using Object.assign
+			dateText.customType = 'date';
+			dateText.customDateValue = now.toISOString();
+			dateText.customDateFormat = DEFAULT_DATE_FORMAT;
+			dateText.variableValues = (window as any).variableValues || {};
 
 			const command = new AddElementCommand(canvas, dateText);
 			history.execute(command);
@@ -672,6 +712,228 @@ export function createEditor(options: EditorOptions = {}) {
 			console.error('Failed to get exact textbox location:', error);
 			return null;
 		}
+	}
+
+	// ================================
+	// Object Snapping System
+	// ================================
+
+	interface ObjectGuides {
+		left: { left: number; top: number };
+		right: { left: number; top: number };
+		top: { left: number; top: number };
+		bottom: { left: number; top: number };
+		centerX: { left: number; top: number };
+		centerY: { left: number; top: number };
+	}
+
+	interface SnapGuide extends FabricObject {
+		isSnapGuide?: boolean;
+	}
+
+	const SNAP_THRESHOLD = 10;
+	const GUIDE_COLOR = 'rgb(178, 207, 255)';
+	let snapGuides: SnapGuide[] = [];
+
+	function calculateObjectGuides(obj: FabricObject): ObjectGuides {
+		const bounds = obj.getBoundingRect();
+		const left = bounds.left;
+		const top = bounds.top;
+		const right = left + bounds.width;
+		const bottom = top + bounds.height;
+		const centerX = left + bounds.width / 2;
+		const centerY = top + bounds.height / 2;
+
+		return {
+			left: { left, top },
+			right: { left: right, top },
+			top: { left, top },
+			bottom: { left, top: bottom },
+			centerX: { left: centerX, top },
+			centerY: { left, top: centerY }
+		};
+	}
+
+	function createSnapGuide(type: 'horizontal' | 'vertical', position: number): SnapGuide {
+		if (!canvas) throw new Error('Canvas not initialized');
+
+		const lineProps = {
+			stroke: GUIDE_COLOR,
+			strokeWidth: 1,
+			selectable: false,
+			evented: false,
+			opacity: 0.8,
+			isSnapGuide: true
+		};
+
+		if (type === 'horizontal') {
+			return new Line([0, 0, canvas.width!, 0], {
+				...lineProps,
+				left: 0,
+				top: position
+			}) as SnapGuide;
+		} else {
+			return new Line([0, 0, 0, canvas.height!], {
+				...lineProps,
+				left: position,
+				top: 0
+			}) as SnapGuide;
+		}
+	}
+
+	function clearSnapGuides(): void {
+		if (!canvas) return;
+
+		snapGuides.forEach((guide) => {
+			canvas!.remove(guide);
+		});
+		snapGuides = [];
+		canvas.requestRenderAll();
+	}
+
+	function showSnapGuide(type: 'horizontal' | 'vertical', position: number): void {
+		if (!canvas) return;
+
+		const guide = createSnapGuide(type, position);
+		snapGuides.push(guide);
+		canvas.add(guide);
+	}
+
+	function isInSnapRange(a: number, b: number): boolean {
+		return Math.abs(a - b) <= SNAP_THRESHOLD;
+	}
+
+	function snapObject(obj: FabricObject, property: 'left' | 'top', value: number): void {
+		obj.set(property, value);
+		obj.setCoords();
+	}
+
+	function handleObjectSnapping(movingObj: FabricObject): void {
+		if (!canvas) return;
+
+		clearSnapGuides();
+
+		const movingGuides = calculateObjectGuides(movingObj);
+		const otherObjects = canvas.getObjects().filter(
+			(obj) => obj !== movingObj && !(obj as SnapGuide).isSnapGuide && (obj as any).name !== 'clip' // Exclude workspace
+		);
+
+		const activeSnaps = new Set<string>();
+
+		otherObjects.forEach((targetObj) => {
+			const targetGuides = calculateObjectGuides(targetObj);
+
+			// Check horizontal alignments
+			Object.entries(movingGuides).forEach(([movingKey, movingPos]) => {
+				Object.entries(targetGuides).forEach(([targetKey, targetPos]) => {
+					// Vertical alignment (same Y position)
+					if (isInSnapRange(movingPos.top, targetPos.top)) {
+						const snapKey = `h-${movingKey}-${targetKey}`;
+						if (!activeSnaps.has(snapKey)) {
+							snapObject(movingObj, 'top', targetPos.top - (movingPos.top - movingObj.top!));
+							showSnapGuide('horizontal', targetPos.top);
+							activeSnaps.add(snapKey);
+						}
+					}
+
+					// Horizontal alignment (same X position)
+					if (isInSnapRange(movingPos.left, targetPos.left)) {
+						const snapKey = `v-${movingKey}-${targetKey}`;
+						if (!activeSnaps.has(snapKey)) {
+							snapObject(movingObj, 'left', targetPos.left - (movingPos.left - movingObj.left!));
+							showSnapGuide('vertical', targetPos.left);
+							activeSnaps.add(snapKey);
+						}
+					}
+				});
+			});
+
+			// Check edge-to-edge snapping
+			const movingBounds = movingObj.getBoundingRect();
+			const targetBounds = targetObj.getBoundingRect();
+
+			// Left edge to right edge
+			if (isInSnapRange(movingBounds.left, targetBounds.left + targetBounds.width)) {
+				snapObject(
+					movingObj,
+					'left',
+					targetBounds.left + targetBounds.width - (movingBounds.left - movingObj.left!)
+				);
+				showSnapGuide('vertical', targetBounds.left + targetBounds.width);
+			}
+
+			// Right edge to left edge
+			if (isInSnapRange(movingBounds.left + movingBounds.width, targetBounds.left)) {
+				snapObject(
+					movingObj,
+					'left',
+					targetBounds.left - movingBounds.width - (movingBounds.left - movingObj.left!)
+				);
+				showSnapGuide('vertical', targetBounds.left);
+			}
+
+			// Top edge to bottom edge
+			if (isInSnapRange(movingBounds.top, targetBounds.top + targetBounds.height)) {
+				snapObject(
+					movingObj,
+					'top',
+					targetBounds.top + targetBounds.height - (movingBounds.top - movingObj.top!)
+				);
+				showSnapGuide('horizontal', targetBounds.top + targetBounds.height);
+			}
+
+			// Bottom edge to top edge
+			if (isInSnapRange(movingBounds.top + movingBounds.height, targetBounds.top)) {
+				snapObject(
+					movingObj,
+					'top',
+					targetBounds.top - movingBounds.height - (movingBounds.top - movingObj.top!)
+				);
+				showSnapGuide('horizontal', targetBounds.top);
+			}
+		});
+
+		canvas.requestRenderAll();
+	}
+
+	function setupObjectSnapping(): void {
+		if (!canvas) return;
+
+		canvas.on('object:moving', (e) => {
+			const obj = e.target;
+			if (obj && !(obj as SnapGuide).isSnapGuide) {
+				handleObjectSnapping(obj);
+			}
+		});
+
+		canvas.on('object:modified', () => {
+			clearSnapGuides();
+		});
+
+		canvas.on('selection:cleared', () => {
+			clearSnapGuides();
+		});
+
+		canvas.on('mouse:up', () => {
+			// Clear guides after a short delay to show the final position
+			setTimeout(() => {
+				clearSnapGuides();
+			}, 100);
+		});
+	}
+
+	function enableSnapping(): void {
+		setupObjectSnapping();
+	}
+
+	function disableSnapping(): void {
+		if (!canvas) return;
+
+		canvas.off('object:moving');
+		canvas.off('object:modified');
+		canvas.off('selection:cleared');
+		canvas.off('mouse:up');
+		clearSnapGuides();
 	}
 
 	// ================================
@@ -1506,6 +1768,15 @@ export function createEditor(options: EditorOptions = {}) {
 		},
 		get getExactTextboxLocation() {
 			return getExactTextboxLocation;
+		},
+		get enableSnapping() {
+			return enableSnapping;
+		},
+		get disableSnapping() {
+			return disableSnapping;
+		},
+		get clearSnapGuides() {
+			return clearSnapGuides;
 		},
 		get replaceObject() {
 			return replaceObject;
