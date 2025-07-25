@@ -42,7 +42,7 @@
 
 		const newPosition = {
 			top: bounds.top + objTop * zoom + window.scrollY,
-			right: window.innerWidth - (bounds.left + objLeft * zoom) ,
+			right: window.innerWidth - (bounds.left + objLeft * zoom),
 			width: Math.max((active.width ?? 100) * zoom, 200),
 			height: Math.max((active.height ?? 40) * zoom, 32)
 		};
@@ -226,29 +226,10 @@
 	}
 </script>
 
-{#if visible && position}
-	<div
-		class="floating-editor"
-		style="top: {position.top}px; right: {position.right}px; width: {position.width}px; height: {position.height}px;"
-	>
-		<textarea
-			bind:this={inputEl}
-			bind:value
-			class="floating-textarea"
-			oninput={(e) => handleChange((e.target as HTMLTextAreaElement).value)}
-			onkeydown={handleKeyDown}
-			autofocus
-		></textarea>
-	</div>
-{/if}
-
 {#if showSuggestions && position}
 	<div
 		class="suggestions-dropdown"
-		style="top: {position.top + position.height + 2}px; min-width: {Math.max(
-			position.width,
-			200
-		)}px;"
+		style="top: {position.top + 15}px; right:{position.right - 120}px "
 	>
 		{#each allDynamicVariables as variable}
 			<div class="suggestion-item" onclick={() => handleSelect(variable)}>
@@ -259,38 +240,6 @@
 {/if}
 
 <style>
-	.floating-editor {
-		position: fixed;
-		z-index: 9999;
-		background: white;
-		border: 1px solid #d1d5db;
-		border-radius: 4px;
-		box-shadow:
-			0 4px 6px -1px rgba(0, 0, 0, 0.1),
-			0 2px 4px -1px rgba(0, 0, 0, 0.06);
-		padding: 2px;
-		pointer-events: auto;
-	}
-
-	.floating-textarea {
-		width: 100%;
-		height: 100%;
-		border: none;
-		outline: none;
-		resize: none;
-		padding: 6px 8px;
-		font-family: 'Courier New', Consolas, monospace;
-		font-size: 13px;
-		line-height: 1.4;
-		background: transparent;
-		border-radius: 2px;
-	}
-
-	.floating-textarea:focus {
-		outline: 2px solid #3b82f6;
-		outline-offset: -2px;
-	}
-
 	.suggestions-dropdown {
 		position: fixed;
 		z-index: 10000;
@@ -302,7 +251,9 @@
 			0 4px 6px -2px rgba(0, 0, 0, 0.05);
 		max-height: 200px;
 		overflow-y: auto;
+		overflow-x: hidden;
 		pointer-events: auto;
+		width: 250px;
 	}
 
 	.suggestion-item {

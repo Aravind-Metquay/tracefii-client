@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Editor } from '../lib/types';
 	import Footer from './Footer.svelte';
-
+	import FloatingFieldEditor from './configPanel/Text/FloatingFieldEditor.svelte';
 
 	let { editor, backgroundColor } = $props<{
 		editor: Editor;
@@ -12,13 +12,17 @@
 	let containerElement = $state<HTMLDivElement | undefined>();
 
 	function rgbToHex(rgb: { r: number; g: number; b: number }): string {
-		return '#' + [rgb.r, rgb.g, rgb.b].map(x => {
-			const hex = x.toString(16);
-			return hex.length === 1 ? '0' + hex : hex;
-		}).join('');
+		return (
+			'#' +
+			[rgb.r, rgb.g, rgb.b]
+				.map((x) => {
+					const hex = x.toString(16);
+					return hex.length === 1 ? '0' + hex : hex;
+				})
+				.join('')
+		);
 	}
 
-	
 	$effect(() => {
 		if (!canvasElement || !containerElement) {
 			return;
@@ -60,7 +64,8 @@
 	<div class="min-h-0 w-full flex-1">
 		<div
 			bind:this={containerElement}
-			class="relative flex h-full w-full items-center justify-center overflow-hidden "
+			class="relative flex h-full w-full items-center justify-center overflow-hidden"
+			style="position:relative;"
 		>
 			<!-- Canvas takes full container size -->
 			<canvas
@@ -73,6 +78,7 @@
 				"
 			></canvas>
 		</div>
+		<FloatingFieldEditor {editor} />
 	</div>
 	<Footer {editor} />
 </div>
@@ -85,7 +91,6 @@
 		width: 100%;
 	}
 	canvas {
-		
 		display: block;
 	}
 </style>
