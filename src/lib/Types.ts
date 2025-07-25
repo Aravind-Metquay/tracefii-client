@@ -593,7 +593,8 @@ export type WorksheetManager = {
 	updateTableComponent(componentId: string, props: Partial<Omit<TableComponent, 'columns'>>): void;
 	getAllComponents(): Component[];
 	getComponentsOfCurrentFunction(): Component[];
-
+	checkIfComponentLabelExistsInFunction(functionId: string, label: string): boolean
+	
 	// Table Columns
 	createNewColumn(newColumn: TableColumn): void;
 	addColumn(tableId: string, col: TableColumn): void;

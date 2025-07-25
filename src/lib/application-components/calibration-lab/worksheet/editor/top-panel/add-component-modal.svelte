@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Input, Checkbox, Button, Modal, Select } from '@/components';
-	import type {WorksheetManager, Component, SelectItem as SelectItemType } from '@/Types';
+	import type { WorksheetManager, Component, SelectItem as SelectItemType } from '@/Types';
 	import { getContext } from 'svelte';
 	let { open = $bindable() }: { open: boolean } = $props();
 
@@ -21,6 +21,7 @@
 	let customValues = $state<SelectItemType[]>([]);
 	let customInputValue = $state('');
 
+	let nameError = $state('');
 	let textType = $state<'Paragraph' | 'Heading'>('Heading');
 
 	let tableInCertificate = $state(false);
@@ -40,8 +41,26 @@
 			customInputValue = '';
 			textType = 'Heading';
 			tableInCertificate = false;
+
+			nameError = '';
+
 			const focusComponent = document.getElementById('component-type');
 			focusComponent?.focus();
+		}
+	});
+
+	$effect(() => {
+		if (!componentName.trim()) {
+			nameError = '';
+			return;
+		}
+		const activeFunction = worksheetManager.getCurrentActiveFunction();
+		if (activeFunction) {
+			const doesExist = worksheetManager.checkIfComponentLabelExistsInFunction(
+				activeFunction.functionId,
+				componentName
+			);
+			nameError = doesExist ? 'A component with this label already exists in this function.' : '';
 		}
 	});
 
@@ -199,7 +218,6 @@
 					/>
 				{/if}
 			</div>
-
 			<div class="space-y-1 md:col-span-2">
 				<label for="component-label">
 					{selectedComponent === 'Table' ? 'Table Name' : 'Component Label'}
@@ -212,6 +230,9 @@
 						? 'e.g., Measurement Results'
 						: 'e.g., Ambient Temperature'}
 				/>
+				{#if nameError}
+					<p class="text-sm text-red-600">{nameError}</p>
+				{/if}
 			</div>
 
 			<div class="md:col-span-2">
@@ -305,7 +326,9 @@
 		</div>
 
 		<div class="flex justify-end pt-4">
-			<Button type="submit" size="small">Add Component</Button>
+			<Button type="submit" size="small" disabled={!componentName.trim() || !!nameError}>
+				Add Component
+			</Button>
 		</div>
 	</form>
 </Modal.Root>

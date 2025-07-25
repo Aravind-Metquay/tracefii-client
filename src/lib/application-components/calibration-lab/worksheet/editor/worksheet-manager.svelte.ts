@@ -20,7 +20,6 @@ import type {
 	WorksheetType
 } from '@/Types';
 
-// Helper type guard for table data
 function isTableData(data: any): data is TableRow[] {
 	return Array.isArray(data);
 }
@@ -471,6 +470,14 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 
 			this.setCurrentActiveComponent(component);
 		},
+
+		checkIfComponentLabelExistsInFunction(functionId: string, label: string): boolean {
+            const normalizedLabel = label.trim().toLowerCase();
+            return worksheet.components.some(
+                (c) =>
+                    c.functionId === functionId && c.label.trim().toLowerCase() === normalizedLabel
+            );
+        },
 
 		getAllComponents(): Component[] {
 			return worksheet.components;
