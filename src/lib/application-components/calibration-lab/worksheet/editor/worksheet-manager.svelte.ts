@@ -61,7 +61,6 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 	});
 
 	if (worksheetData) {
-		// Set metadata
 		worksheet.metadata._id = worksheetData._id;
 		worksheet.metadata.orgId = worksheetData.orgId;
 		worksheet.metadata.createdAt = worksheetData.createdAt.toString();
@@ -73,11 +72,9 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		worksheet.metadata.assetType = worksheetData.assetType || '';
 		worksheet.metadata.type = worksheetData.type;
 
-		// Set stores data
 		worksheet.functions = worksheetData.stores.functions;
 		worksheet.components = worksheetData.stores.components;
 
-		// Convert arrays to Sets if they exist
 		if (Array.isArray(worksheetData.stores.functionIds)) {
 			worksheet.functionIds = new Set(worksheetData.stores.functionIds);
 		} else if (worksheetData.stores.functionIds instanceof Set) {
@@ -95,7 +92,6 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		worksheet.referenceWorksheets = worksheetData.stores.referenceWorksheets;
 		worksheet.referenceInstruments = worksheetData.stores.refereneInstruments;
 
-		// Set dependents
 		worksheet.valueDependents = worksheetData.stores.dependents.value;
 		worksheet.disableDependents = worksheetData.stores.dependents.disable;
 		worksheet.certificateVisibilityDependents =
@@ -105,7 +101,6 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		worksheet.repeatDependents = worksheetData.stores.dependents.repeat;
 	}
 
-	// Helper to select the correct dependent store
 	function getDependentStore(type: ExpressionType): DependentStore {
 		switch (type) {
 			case 'valueExpression':
@@ -234,7 +229,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			const fn: Function = {
 				functionName: `Function ${worksheet.functions.length + 1}`,
 				functionId: functionId,
-				order: worksheet.functions.length,
+				order: worksheet.functions.length + 1,
 				worksheetId: worksheet.metadata.worksheetId
 			};
 
