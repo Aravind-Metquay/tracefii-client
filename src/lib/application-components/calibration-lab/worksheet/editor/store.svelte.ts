@@ -338,9 +338,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 				functionName: `Function ${worksheet.functions.length + 1}`,
 				functionId: functionId,
 				order: worksheet.functions.length,
-				worksheetId: worksheet.metadata.worksheetId,
-				isRepeat: false,
-				repeatExpression: ''
+				worksheetId: worksheet.metadata.worksheetId
 			};
 			worksheet.functions.push(fn);
 			worksheet.functionIds.push(functionId);
