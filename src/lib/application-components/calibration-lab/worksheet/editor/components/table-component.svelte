@@ -123,7 +123,8 @@
 						{#each visibleColumns as column (column.columnId)}
 							<th
 								class="cursor-pointer border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium hover:bg-gray-100"
-								onclick={() => {
+								onclick={(e) => {
+									e.stopPropagation();
 									worksheetManager.setCurrentActiveColumn(column);
 									worksheetManager.setCurrentActiveComponent(component);
 								}}

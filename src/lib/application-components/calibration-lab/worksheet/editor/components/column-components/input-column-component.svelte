@@ -1,11 +1,7 @@
 <script lang="ts">
 	import type { TableColumn } from '@/Types';
 
-	let { column, value, onChange } = $props<{
-		column: TableColumn;
-		value: string | number | undefined;
-		onChange: (val: string | number) => void;
-	}>();
+	let { column, value, onChange } : {column : TableColumn , value : string | number | undefined , onChange: (val: string | number) => void} = $props();
 
 	const inputClass = $derived(
 		'w-full border-none outline-none bg-transparent text-sm' +

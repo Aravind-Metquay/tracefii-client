@@ -138,7 +138,7 @@
 			disableExpression: '',
 			isDisabled: disabled,
 			isReadOnly: readOnly,
-			order: currentTable.tableComponent?.columns.length ?? 0, 
+			order: currentTable.tableComponent?.columns.length ? currentTable.tableComponent?.columns.length + 1 : 1, 
 			isExpressionEnabled: false,
 			valueExpression: '',
 			isValidationEnabled: enableValidation,
