@@ -8,10 +8,10 @@ import {
 	Triangle,
 	Polygon,
 	Point,
-	Shadow
+	Shadow,
+	Line
 } from 'fabric';
 import { createHistory } from './history.svelte';
-import { createCanvasEvents } from './canvas-events.svelte';
 import { AddElementCommand } from '../commands/commands.svelte';
 import JsBarcode from 'jsbarcode';
 import * as QRCode from 'qrcode';
@@ -23,10 +23,6 @@ import { createAutoResize } from './auto-resize.svelte';
 import {
 	FONT_FAMILY,
 	FILL_COLOR,
-	STROKE_COLOR,
-	STROKE_WIDTH,
-	STROKE_DASH_ARRAY,
-	TEXT_OPTIONS,
 	FONT_SIZE,
 	FONT_WEIGHT,
 	CIRCLE_OPTIONS,
@@ -86,9 +82,6 @@ interface EditorOptions {
 	clearSelectionCallback?: () => void;
 	fontFamily?: string;
 	fillColor?: string;
-	strokeColor?: string;
-	strokeWidth?: number;
-	strokeDashArray?: number[];
 	lockWorkspaceBounds?: boolean;
 }
 
@@ -142,28 +135,16 @@ export function createEditor(options: EditorOptions = {}) {
 	let container = $state<HTMLElement | null>(null);
 	let selectedTool = $state('select');
 	let selectedObjects = $state<FabricObject[]>([]);
-	let objectModificationCounter = $state(0); // Reactive trigger for object changes
 	let zoom = $state(1);
 	let viewport = $state({ x: 0, y: 0 });
 	let fontFamily = $state(options.fontFamily || FONT_FAMILY);
 	let fillColor = $state(options.fillColor || FILL_COLOR);
-	let strokeColor = $state(options.strokeColor || STROKE_COLOR);
-	let strokeWidth = $state(options.strokeWidth || STROKE_WIDTH);
-	let strokeDashArray = $state(options.strokeDashArray || STROKE_DASH_ARRAY);
-	let workspaceSize = $state({ width: 500, height: 500 });
+	let workspaceSize = $state({ width: 600, height: 600 });
 
 	// Composables
 	const history = createHistory({
 		canvas,
 		saveCallback: options.saveCallback
-	});
-
-	const canvasEvents = createCanvasEvents({
-		canvas,
-		setSelectedObjects: (objects: FabricObject[]) => (selectedObjects = objects),
-		clearSelectionCallback: options.clearSelectionCallback,
-		save: history.save,
-		onObjectModified: () => objectModificationCounter++
 	});
 
 	const clipboard = createClipboard({ canvas });
@@ -194,11 +175,11 @@ export function createEditor(options: EditorOptions = {}) {
 	// Workspace Management
 	// ================================
 
-	function initializeVariableValues(): void {
-		if (typeof window !== 'undefined' && !window.variableValues) {
-			window.variableValues = {};
-		}
-	}
+	// function initializeVariableValues(): void {
+	// 	if (typeof window !== 'undefined' && !window.variableValues) {
+	// 		window.variableValues = {};
+	// 	}
+	// }
 
 	function getWorkspace(): Rect | undefined {
 		if (!canvas) return undefined;
@@ -298,25 +279,6 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.setViewportTransform(vpt);
 	}
 
-	function resizeWorkspace(width: number, height: number): void {
-		if (!canvas) return;
-
-		const workspace = getWorkspace();
-		if (!workspace) return;
-
-		workspace.set({ width, height });
-		workspaceSize = { width, height };
-
-		canvas.centerObject(workspace);
-
-		if (options.lockWorkspaceBounds !== false) {
-			canvas.clipPath = workspace;
-		}
-
-		canvas.requestRenderAll();
-		history.save();
-	}
-
 	// ================================
 	// Canvas Initialization
 	// ================================
@@ -328,8 +290,8 @@ export function createEditor(options: EditorOptions = {}) {
 		try {
 			// initializeVariableValues();
 			canvas = new Canvas(canvasElement, {
-				width: options.defaultWidth || 500,
-				height: options.defaultHeight || 500,
+				width: options.defaultWidth || 600,
+				height: options.defaultHeight || 800,
 				renderOnAddRemove: true,
 				preserveObjectStacking: true,
 				selection: true
@@ -371,8 +333,6 @@ export function createEditor(options: EditorOptions = {}) {
 				height: workspaceSize.height,
 				name: 'clip',
 				fill: 'white',
-				stroke: '#e5e7eb',
-				strokeWidth: 2,
 				selectable: false,
 				hasControls: false,
 				hoverCursor: 'default',
@@ -428,6 +388,9 @@ export function createEditor(options: EditorOptions = {}) {
 			hotkeys.attachEvents();
 			autoResize.attachEvents();
 
+			// Initialize object snapping
+			enableSnapping();
+
 			canvas.requestRenderAll();
 			history.save();
 
@@ -478,22 +441,49 @@ export function createEditor(options: EditorOptions = {}) {
 	// Text and Date Operations
 	// ================================
 
+	// Helper function to sanitize options for Fabric.js objects
+	function sanitizeFabricOptions(options: any): any {
+		const {
+			type,
+			canvas,
+			_objects,
+			_originalState,
+			aCoords,
+			oCoords,
+			matrixCache,
+			ownMatrixCache,
+			...cleanOptions
+		} = options || {};
+		return cleanOptions;
+	}
+
 	function addText(text = 'Text', textOptions = {}): void {
 		if (!canvas) return;
 
 		try {
-			const textObj = new Textbox(text, {
-				...TEXT_OPTIONS,
+			// Sanitize textOptions to remove problematic read-only properties
+			const cleanTextOptions = sanitizeFabricOptions(textOptions);
+
+			// Base options for the textbox
+			const baseOptions = {
+				left: 100,
+				top: 100,
 				fill: fillColor,
 				fontFamily: fontFamily,
 				fontSize: FONT_SIZE,
 				fontWeight: FONT_WEIGHT,
 				width: 200,
-				height: 50,
-				minWidth: 200,
-				variableValues: (window as any).variableValues || {},
-				...textOptions
+				height: 50
+			};
+
+			// Create the textbox
+			const textObj = new Textbox(text, {
+				...baseOptions,
+				...cleanTextOptions
 			});
+
+			// Set custom properties directly instead of using Object.assign
+			textObj.variableValues = (window as any).variableValues || {};
 
 			const command = new AddElementCommand(canvas, textObj);
 			history.execute(command);
@@ -508,17 +498,27 @@ export function createEditor(options: EditorOptions = {}) {
 
 		try {
 			const now = new Date();
-			const dateText = new Textbox(moment(now).format(DEFAULT_DATE_FORMAT), {
-				...TEXT_OPTIONS,
+
+			// Base Fabric-safe options
+			const baseOptions = {
+				left: 100,
+				top: 100,
 				fill: fillColor,
 				fontFamily: fontFamily,
 				fontSize: FONT_SIZE,
 				fontWeight: FONT_WEIGHT,
-				customType: 'date',
-				customDateValue: now.toISOString(),
-				customDateFormat: DEFAULT_DATE_FORMAT,
-				variableValues: (window as any).variableValues || {}
-			});
+				width: 200,
+				height: 50
+			};
+
+			// Create the textbox for the date
+			const dateText = new Textbox(moment(now).format(DEFAULT_DATE_FORMAT), baseOptions);
+
+			// Set custom properties directly instead of using Object.assign
+			dateText.customType = 'date';
+			dateText.customDateValue = now.toISOString();
+			dateText.customDateFormat = DEFAULT_DATE_FORMAT;
+			dateText.variableValues = (window as any).variableValues || {};
 
 			const command = new AddElementCommand(canvas, dateText);
 			history.execute(command);
@@ -675,6 +675,330 @@ export function createEditor(options: EditorOptions = {}) {
 	}
 
 	// ================================
+	// Object Snapping System
+	// ================================
+
+	interface ObjectGuides {
+		left: { left: number; top: number };
+		right: { left: number; top: number };
+		top: { left: number; top: number };
+		bottom: { left: number; top: number };
+		centerX: { left: number; top: number };
+		centerY: { left: number; top: number };
+	}
+
+	interface SnapGuide extends FabricObject {
+		isSnapGuide?: boolean;
+	}
+
+	const SNAP_THRESHOLD = 10;
+	const GUIDE_COLOR = 'rgb(178, 207, 255)';
+	let snapGuides: SnapGuide[] = [];
+
+	function calculateObjectGuides(obj: FabricObject): ObjectGuides {
+		const bounds = obj.getBoundingRect();
+		const left = bounds.left;
+		const top = bounds.top;
+		const right = left + bounds.width;
+		const bottom = top + bounds.height;
+		const centerX = left + bounds.width / 2;
+		const centerY = top + bounds.height / 2;
+
+		return {
+			left: { left, top },
+			right: { left: right, top },
+			top: { left, top },
+			bottom: { left, top: bottom },
+			centerX: { left: centerX, top },
+			centerY: { left, top: centerY }
+		};
+	}
+
+	function createSnapGuide(type: 'horizontal' | 'vertical', position: number): SnapGuide {
+		if (!canvas) throw new Error('Canvas not initialized');
+
+		const lineProps = {
+			stroke: GUIDE_COLOR,
+			strokeWidth: 1,
+			selectable: false,
+			evented: false,
+			opacity: 0.8,
+			isSnapGuide: true
+		};
+
+		if (type === 'horizontal') {
+			return new Line([0, 0, canvas.width!, 0], {
+				...lineProps,
+				left: 0,
+				top: position
+			}) as SnapGuide;
+		} else {
+			return new Line([0, 0, 0, canvas.height!], {
+				...lineProps,
+				left: position,
+				top: 0
+			}) as SnapGuide;
+		}
+	}
+
+	function clearSnapGuides(): void {
+		if (!canvas || snapGuides.length === 0) return;
+
+		// Remove guides without triggering render for each one
+		snapGuides.forEach((guide) => {
+			canvas!.remove(guide);
+		});
+		snapGuides = [];
+		// Single render call after all guides are removed
+		canvas.requestRenderAll();
+	}
+
+	function showSnapGuide(type: 'horizontal' | 'vertical', position: number): void {
+		if (!canvas) return;
+
+		// Check if we already have a guide at this position to avoid duplicates
+		const existingGuide = snapGuides.find((guide) => {
+			if (type === 'horizontal') {
+				return Math.abs((guide.top || 0) - position) < 1;
+			} else {
+				return Math.abs((guide.left || 0) - position) < 1;
+			}
+		});
+
+		if (existingGuide) return;
+
+		const guide = createSnapGuide(type, position);
+		snapGuides.push(guide);
+		canvas.add(guide);
+	}
+
+	function isInSnapRange(a: number, b: number): boolean {
+		return Math.abs(a - b) <= SNAP_THRESHOLD;
+	}
+
+	function snapObject(obj: FabricObject, property: 'left' | 'top', value: number): void {
+		obj.set(property, value);
+		obj.setCoords();
+	}
+
+	function handleObjectSnapping(movingObj: FabricObject): void {
+		if (!canvas) return;
+
+		clearSnapGuides();
+
+		const movingBounds = movingObj.getBoundingRect();
+		const otherObjects = canvas
+			.getObjects()
+			.filter(
+				(obj) =>
+					obj !== movingObj && !(obj as SnapGuide).isSnapGuide && (obj as any).name !== 'clip'
+			);
+
+		let snapX: number | null = null;
+		let snapY: number | null = null;
+		let snapGuideX: number | null = null;
+		let snapGuideY: number | null = null;
+
+		// Find the closest snap points
+		let minXDistance = SNAP_THRESHOLD + 1;
+		let minYDistance = SNAP_THRESHOLD + 1;
+
+		otherObjects.forEach((targetObj) => {
+			const targetBounds = targetObj.getBoundingRect();
+
+			// Calculate all possible snap positions
+			const snapPositions = {
+				// Align edges
+				left: targetBounds.left,
+				right: targetBounds.left + targetBounds.width,
+				centerX: targetBounds.left + targetBounds.width / 2,
+				top: targetBounds.top,
+				bottom: targetBounds.top + targetBounds.height,
+				centerY: targetBounds.top + targetBounds.height / 2,
+				// Edge-to-edge positions
+				leftToRight: targetBounds.left + targetBounds.width,
+				rightToLeft: targetBounds.left - movingBounds.width,
+				topToBottom: targetBounds.top + targetBounds.height,
+				bottomToTop: targetBounds.top - movingBounds.height
+			};
+
+			// Check horizontal snapping (X-axis)
+			const movingCenterX = movingBounds.left + movingBounds.width / 2;
+			const movingRight = movingBounds.left + movingBounds.width;
+
+			[
+				{
+					pos: snapPositions.left,
+					guide: snapPositions.left,
+					offset: movingBounds.left - movingObj.left!
+				},
+				{
+					pos: snapPositions.right,
+					guide: snapPositions.right,
+					offset: movingBounds.left - movingObj.left!
+				},
+				{
+					pos: snapPositions.centerX,
+					guide: snapPositions.centerX,
+					offset: movingCenterX - movingObj.left! - movingBounds.width / 2
+				},
+				{
+					pos: snapPositions.leftToRight,
+					guide: snapPositions.leftToRight,
+					offset: movingBounds.left - movingObj.left!
+				},
+				{
+					pos: snapPositions.rightToLeft,
+					guide: snapPositions.left,
+					offset: movingRight - movingObj.left! - movingBounds.width
+				}
+			].forEach(({ pos, guide, offset }) => {
+				const distance = Math.abs(movingBounds.left - pos);
+				if (distance < minXDistance && distance <= SNAP_THRESHOLD) {
+					minXDistance = distance;
+					snapX = pos - offset;
+					snapGuideX = guide;
+				}
+			});
+
+			// Check vertical snapping (Y-axis)
+			const movingCenterY = movingBounds.top + movingBounds.height / 2;
+			const movingBottom = movingBounds.top + movingBounds.height;
+
+			[
+				{
+					pos: snapPositions.top,
+					guide: snapPositions.top,
+					offset: movingBounds.top - movingObj.top!
+				},
+				{
+					pos: snapPositions.bottom,
+					guide: snapPositions.bottom,
+					offset: movingBounds.top - movingObj.top!
+				},
+				{
+					pos: snapPositions.centerY,
+					guide: snapPositions.centerY,
+					offset: movingCenterY - movingObj.top! - movingBounds.height / 2
+				},
+				{
+					pos: snapPositions.topToBottom,
+					guide: snapPositions.topToBottom,
+					offset: movingBounds.top - movingObj.top!
+				},
+				{
+					pos: snapPositions.bottomToTop,
+					guide: snapPositions.top,
+					offset: movingBottom - movingObj.top! - movingBounds.height
+				}
+			].forEach(({ pos, guide, offset }) => {
+				const distance = Math.abs(movingBounds.top - pos);
+				if (distance < minYDistance && distance <= SNAP_THRESHOLD) {
+					minYDistance = distance;
+					snapY = pos - offset;
+					snapGuideY = guide;
+				}
+			});
+		});
+
+		// Apply snapping
+		if (snapX !== null) {
+			movingObj.set('left', snapX);
+			movingObj.setCoords();
+			if (snapGuideX !== null) {
+				showSnapGuide('vertical', snapGuideX);
+			}
+		}
+
+		if (snapY !== null) {
+			movingObj.set('top', snapY);
+			movingObj.setCoords();
+			if (snapGuideY !== null) {
+				showSnapGuide('horizontal', snapGuideY);
+			}
+		}
+
+		// Only render if we actually snapped
+		if (snapX !== null || snapY !== null) {
+			canvas.requestRenderAll();
+		}
+	}
+
+	let snapTimeout: number | null = null;
+
+	function setupObjectSnapping(): void {
+		if (!canvas) return;
+
+		canvas.on('object:moving', (e) => {
+			const obj = e.target;
+			if (obj && !(obj as SnapGuide).isSnapGuide) {
+				// Throttle snapping calculations to reduce jitter
+				if (snapTimeout) {
+					clearTimeout(snapTimeout);
+				}
+				snapTimeout = window.setTimeout(() => {
+					handleObjectSnapping(obj);
+					snapTimeout = null;
+				}, 16); // ~60fps
+			}
+		});
+
+		canvas.on('object:modified', () => {
+			if (snapTimeout) {
+				clearTimeout(snapTimeout);
+				snapTimeout = null;
+			}
+			clearSnapGuides();
+		});
+
+		canvas.on('selection:cleared', () => {
+			if (snapTimeout) {
+				clearTimeout(snapTimeout);
+				snapTimeout = null;
+			}
+			clearSnapGuides();
+		});
+
+		canvas.on('mouse:up', () => {
+			if (snapTimeout) {
+				clearTimeout(snapTimeout);
+				snapTimeout = null;
+			}
+			// Clear guides immediately on mouse up
+			clearSnapGuides();
+		});
+
+		canvas.on('mouse:down', () => {
+			// Clear any existing guides when starting to move
+			clearSnapGuides();
+		});
+	}
+
+	function enableSnapping(): void {
+		setupObjectSnapping();
+	}
+
+	function disableSnapping(): void {
+		if (!canvas) return;
+
+		// Clear any pending snap timeout
+		if (snapTimeout) {
+			clearTimeout(snapTimeout);
+			snapTimeout = null;
+		}
+
+		// Remove all snap-related event listeners
+		canvas.off('object:moving');
+		canvas.off('object:modified');
+		canvas.off('selection:cleared');
+		canvas.off('mouse:up');
+		canvas.off('mouse:down');
+
+		// Clear all snap guides
+		clearSnapGuides();
+	}
+
+	// ================================
 	// Shape Operations
 	// ================================
 
@@ -683,10 +1007,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const object = new Circle({
 			...CIRCLE_OPTIONS,
-			fill: fillColor,
-			stroke: strokeColor,
-			strokeWidth: strokeWidth,
-			strokeDashArray: strokeDashArray
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -699,10 +1020,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const object = new Rect({
 			...RECTANGLE_OPTIONS,
-			fill: fillColor,
-			stroke: strokeColor,
-			strokeWidth: strokeWidth,
-			strokeDashArray: strokeDashArray
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -717,10 +1035,7 @@ export function createEditor(options: EditorOptions = {}) {
 			...RECTANGLE_OPTIONS,
 			rx: 50,
 			ry: 50,
-			fill: fillColor,
-			stroke: strokeColor,
-			strokeWidth: strokeWidth,
-			strokeDashArray: strokeDashArray
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -733,10 +1048,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const object = new Triangle({
 			...TRIANGLE_OPTIONS,
-			fill: fillColor,
-			stroke: strokeColor,
-			strokeWidth: strokeWidth,
-			strokeDashArray: strokeDashArray
+			fill: fillColor
 		});
 
 		const command = new AddElementCommand(canvas, object);
@@ -758,10 +1070,7 @@ export function createEditor(options: EditorOptions = {}) {
 			],
 			{
 				...TRIANGLE_OPTIONS,
-				fill: fillColor,
-				stroke: strokeColor,
-				strokeWidth: strokeWidth,
-				strokeDashArray: strokeDashArray
+				fill: fillColor
 			}
 		);
 
@@ -785,10 +1094,7 @@ export function createEditor(options: EditorOptions = {}) {
 			],
 			{
 				...DIAMOND_OPTIONS,
-				fill: fillColor,
-				stroke: strokeColor,
-				strokeWidth: strokeWidth,
-				strokeDashArray: strokeDashArray
+				fill: fillColor
 			}
 		);
 
@@ -1225,33 +1531,6 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.renderAll();
 	}
 
-	function changeStrokeColor(value: string): void {
-		if (!canvas) return;
-		strokeColor = value;
-		canvas.getActiveObjects().forEach((object) => {
-			object.set({ stroke: value });
-		});
-		canvas.renderAll();
-	}
-
-	function changeStrokeWidth(value: number): void {
-		if (!canvas) return;
-		strokeWidth = value;
-		canvas.getActiveObjects().forEach((object) => {
-			object.set({ strokeWidth: value });
-		});
-		canvas.renderAll();
-	}
-
-	function changeStrokeDashArray(value: number[]): void {
-		if (!canvas) return;
-		strokeDashArray = value;
-		canvas.getActiveObjects().forEach((object) => {
-			object.set({ strokeDashArray: value });
-		});
-		canvas.renderAll();
-	}
-
 	// ================================
 	// Layer Operations
 	// ================================
@@ -1433,24 +1712,6 @@ export function createEditor(options: EditorOptions = {}) {
 		set fillColor(value) {
 			fillColor = value;
 		},
-		get strokeColor() {
-			return strokeColor;
-		},
-		set strokeColor(value) {
-			strokeColor = value;
-		},
-		get strokeWidth() {
-			return strokeWidth;
-		},
-		set strokeWidth(value) {
-			strokeWidth = value;
-		},
-		get strokeDashArray() {
-			return strokeDashArray;
-		},
-		set strokeDashArray(value) {
-			strokeDashArray = value;
-		},
 		get hasSelection() {
 			return hasSelection;
 		},
@@ -1506,6 +1767,15 @@ export function createEditor(options: EditorOptions = {}) {
 		},
 		get getExactTextboxLocation() {
 			return getExactTextboxLocation;
+		},
+		get enableSnapping() {
+			return enableSnapping;
+		},
+		get disableSnapping() {
+			return disableSnapping;
+		},
+		get clearSnapGuides() {
+			return clearSnapGuides;
 		},
 		get replaceObject() {
 			return replaceObject;
@@ -1578,15 +1848,6 @@ export function createEditor(options: EditorOptions = {}) {
 		},
 		get changeFillColor() {
 			return changeFillColor;
-		},
-		get changeStrokeColor() {
-			return changeStrokeColor;
-		},
-		get changeStrokeWidth() {
-			return changeStrokeWidth;
-		},
-		get changeStrokeDashArray() {
-			return changeStrokeDashArray;
 		},
 		get bringForward() {
 			return bringForward;

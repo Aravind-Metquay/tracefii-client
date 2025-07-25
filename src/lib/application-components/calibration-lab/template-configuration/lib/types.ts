@@ -100,34 +100,34 @@ export const TEXT_OPTIONS = {
 	width: 200,
 	height: 50,
 	minWidth: 200
-} as const;
+};
 
 export const RECTANGLE_OPTIONS = {
 	width: 100,
 	height: 100,
 	left: 100,
 	top: 100
-} as const;
+};
 
 export const CIRCLE_OPTIONS = {
 	radius: 50,
 	left: 100,
 	top: 100
-} as const;
+};
 
 export const TRIANGLE_OPTIONS = {
 	width: 100,
 	height: 100,
 	left: 100,
 	top: 100
-} as const;
+};
 
 export const DIAMOND_OPTIONS = {
 	width: 100,
 	height: 100,
 	left: 100,
 	top: 100
-} as const;
+};
 
 // ============================================================================
 // MAIN INTERFACES
@@ -188,6 +188,13 @@ export interface Editor {
 	getActiveText: () => string | undefined;
 	changeText: (text: string) => void;
 	getExactTextboxLocation: (textbox?: FabricObject) => TextboxPosition | null;
+
+	// ========================================================================
+	// OBJECT SNAPPING OPERATIONS
+	// ========================================================================
+	enableSnapping: () => void;
+	disableSnapping: () => void;
+	clearSnapGuides: () => void;
 
 	// ========================================================================
 	// DATE OPERATIONS
