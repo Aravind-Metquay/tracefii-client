@@ -12,33 +12,53 @@
 			(column.isReadOnly ? ' bg-gray-50 cursor-not-allowed' : '')
 	);
 
-	const inputType = $derived(column.inputComponent?.type?.toLowerCase() ?? 'text');
+	const isNumberType = $derived(column.inputComponent?.type === 'Number');
 
-	function handleInput(e: Event) {
-		const targetValue = (e.target as HTMLInputElement).value;
+	function handleNumberChange(e: Event) {
+		const targetValue = (e.target as HTMLInputElement).value.trim();
 
-		if (inputType === 'number') {
-			if (targetValue === '') {
-				onChange('');
-				return;
-			}
-			const num = parseFloat(targetValue);
-			if (!isNaN(num)) {
-				onChange(num);
-			}
-		} else {
-			onChange(targetValue);
+		if (targetValue === '' || targetValue === '-') {
+			onChange('');
+			return;
 		}
+
+		let numValue = parseFloat(targetValue);
+		if (!isNaN(numValue)) {
+			const roundingDigits = column.inputComponent?.roundingDigits;
+
+			if (typeof roundingDigits === 'number' && roundingDigits >= 0) {
+				numValue = parseFloat(numValue.toFixed(roundingDigits));
+			}
+			onChange(numValue);
+		}
+	}
+
+	function handleTextChange(e: Event) {
+		const targetValue = (e.target as HTMLInputElement).value;
+		onChange(targetValue);
 	}
 </script>
 
-<input
-	class={inputClass}
-	aria-label={column.columnName}
-	id={column.columnId}
-	type={inputType}
-	readonly={column.isReadOnly}
-	disabled={column.isDisabled}
-	oninput={handleInput}
-	value={value ?? ''}
-/>
+{#if isNumberType}
+	<input
+		class={inputClass}
+		aria-label={column.columnName}
+		id={column.columnId}
+		type="number"
+		readonly={column.isReadOnly}
+		disabled={column.isDisabled}
+		onchange={handleNumberChange}
+		value={value ?? ''}
+	/>
+{:else}
+	<input
+		class={inputClass}
+		aria-label={column.columnName}
+		id={column.columnId}
+		type="text"
+		readonly={column.isReadOnly}
+		disabled={column.isDisabled}
+		oninput={handleTextChange}
+		value={value ?? ''}
+	/>
+{/if}

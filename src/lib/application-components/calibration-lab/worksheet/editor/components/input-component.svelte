@@ -3,27 +3,24 @@
 	import { getContext } from 'svelte';
 	import type { WorksheetManager } from '@/Types';
 
-  const { component } = $props<{ component: Component }>();
-  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
+	const { component } = $props<{ component: Component }>();
+	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
+	const currentActiveFunctionId = $derived(worksheetManager.getCurrentActiveFunction()?.functionId);
 
-  // Access the current function ID directly from the store
-  const currentActiveFunctionId = worksheetManager.getCurrentActiveFunction()?.functionId;
-
-  let currentValue = $derived(
+	let currentValue = $derived(
 		worksheetManager.getComponentValue(component.functionId, component.componentId)
 	);
 	//What do we need here?
-	//1. Get data of a component.
-	//2. Write data of a component.
-	//3. Changes should be automatically calculated and rendered here.
-	//4. Integrate Default value into getComponent Data
-	//5. Need to understand if props are already reactive or do they need to be derived to become reactive?
+	//1. Get data of a component. (Handled by $derived from worksheetManager)
+	//2. Write data of a component. (Handled by setComponentValue in event handlers)
+	//3. Changes should be automatically calculated and rendered here. (Svelte's reactivity with runes handles this)
+	//4. Integrate Default value into getComponent Data (This should be handled within the worksheetManager store logic)
+	//5. Need to understand if props are already reactive or do they need to be derived to become reactive? ($props() are reactive, using $derived is the correct pattern for computed values based on them)
 
-
-  const isNumberType = $derived(component.inputComponent?.type === "Number");
-  const isDisabled = $derived(component.isDisabled || component.isReadOnly);
-  const validationError = component.isValidationEnabled && component.validationExpression;
+	const isNumberType = $derived(component.inputComponent?.type === 'Number');
+	const isDisabled = $derived(component.isDisabled || component.isReadOnly);
+	const validationError = $derived(component.isValidationEnabled && component.validationExpression);
 
 	function handleNumberChange(e: Event) {
 		const value = (e.target as HTMLInputElement).value.trim();
@@ -34,17 +31,27 @@
 			return;
 		}
 
-		const numValue = parseFloat(value);
+		let numValue = parseFloat(value);
 		if (!isNaN(numValue)) {
-			component.functionId &&
+			const roundingDigits = component.inputComponent?.roundingDigits;
+
+			if (typeof roundingDigits === 'number' && roundingDigits >= 0) {
+				numValue = parseFloat(numValue.toFixed(roundingDigits));
+			}
+
+
+			if (component.functionId) {
 				worksheetManager.setComponentValue(component.functionId, component.componentId, numValue);
+			}
 		}
 	}
 
 	function handleTextChange(e: Event) {
 		const newValue = (e.target as HTMLInputElement).value;
-		component.functionId &&
+		console.log(newValue)
+		if (component.functionId) {
 			worksheetManager.setComponentValue(component.functionId, component.componentId, newValue);
+		}
 	}
 </script>
 
@@ -78,7 +85,7 @@
 				aria-invalid={validationError ? 'true' : undefined}
 				aria-errormessage={validationError ? `${component.componentId}-error` : undefined}
 				required={component.isRequired}
-				oninput={handleNumberChange}
+				onchange={handleNumberChange}
 			/>
 		{:else}
 			<input
