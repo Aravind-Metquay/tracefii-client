@@ -20,10 +20,10 @@
 	const dateFormat = $derived<string>(selectedObject?.customDateFormat ?? 'MM/DD/YYYY');
 
 	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 16);
-	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
-	const fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
-	const underline = $derived<boolean>(selectedObject?.underline ?? false);
-	const textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
+	let fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	let fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
+	let underline = $derived<boolean>(selectedObject?.underline ?? false);
+	let textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
 
 	let color = $derived<Colord>(
 		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
@@ -75,18 +75,18 @@
 	}
 
 	function handleFontWeightChange() {
-		const weight = Number(selectedObject?.fontWeight) || 400;
-		editor?.changeFontWeight?.(weight >= 700 ? 400 : 700);
+		editor?.changeFontWeight?.(fontWeight >= 700 ? 400 : 700);
+		fontWeight = editor?.getActiveFontWeight();
 	}
 
 	function handleFontStyleChange() {
-		const style = selectedObject?.fontStyle ?? 'normal';
-		editor?.changeFontStyle?.(style === 'italic' ? 'normal' : 'italic');
+		editor?.changeFontStyle?.(fontStyle === 'italic' ? 'normal' : 'italic');
+		fontStyle = editor?.getActiveFontStyle();
 	}
 
 	function handleFontUnderlineChange() {
-		const underline = selectedObject?.underline ?? false;
 		editor?.changeFontUnderline?.(!underline);
+		underline = editor?.getActiveFontUnderline();
 	}
 
 	function handleColorChange({ hex }: { hex: string | null }) {
@@ -95,6 +95,7 @@
 
 	function handleTextAlignChange(alignment: string) {
 		editor?.changeTextAlign?.(alignment);
+		textAlign = editor?.getActiveTextAlign();
 	}
 </script>
 
@@ -163,21 +164,21 @@
 	<!-- Font Styles -->
 	<div class="flex items-center gap-2">
 		<button
-			class={`rounded border p-2 ${getActiveFontWeight() >= 700 ? 'bg-gray-200' : ''}`}
+			class={`rounded border p-2 ${fontWeight >= 700 ? 'bg-gray-200' : ''}`}
 			onclick={handleFontWeightChange}
 		>
 			<Bold size={16} />
 		</button>
 
 		<button
-			class={`rounded border p-2 italic ${getActiveFontStyle() === 'italic' ? 'bg-gray-200' : ''}`}
+			class={`rounded border p-2 italic ${fontStyle === 'italic' ? 'bg-gray-200' : ''}`}
 			onclick={handleFontStyleChange}
 		>
 			<Italic size={16} />
 		</button>
 
 		<button
-			class={`rounded border p-2 underline ${getActiveFontUnderline() ? 'bg-gray-200' : ''}`}
+			class={`rounded border p-2 underline ${underline ? 'bg-gray-200' : ''}`}
 			onclick={handleFontUnderlineChange}
 		>
 			<Underline size={16} />

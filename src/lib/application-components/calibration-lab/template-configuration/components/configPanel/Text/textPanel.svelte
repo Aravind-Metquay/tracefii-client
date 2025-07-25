@@ -69,19 +69,19 @@
 	const textContent = $derived<string>(selectedObject?.text ?? '');
 	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 32);
 	const fontFamily = $derived<string>(selectedObject?.fontFamily ?? 'Arial');
-	const textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
+	let textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
 	let color = $derived<Colord>(
 		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
 	);
 
 	// Derived state for button variants with proper typing
-	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
-	const fontStyle = $derived.by(() => {
+	let fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	let fontStyle = $derived.by(() => {
 		const style = selectedObject?.fontStyle;
 		if (style === 'italic' || style === 'oblique') return style as 'normal' | 'italic' | 'oblique';
 		return 'normal' as const;
 	});
-	const underline = $derived<boolean>(selectedObject?.underline ?? false);
+	let underline = $derived<boolean>(selectedObject?.underline ?? false);
 
 	const isBold = $derived<boolean>(fontWeight >= 700);
 	const isItalic = $derived<boolean>(fontStyle === 'italic');
@@ -135,6 +135,7 @@
 	function handleFontWeightChange() {
 		const newWeight = fontWeight >= 700 ? 400 : 700;
 		console.log('⚖️ FONT WEIGHT CHANGE:', { from: fontWeight, to: newWeight });
+		fontWeight = newWeight;
 		editor?.changeFontWeight?.(newWeight);
 		// Force canvas re-render after font weight change
 		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
@@ -143,6 +144,7 @@
 	function handleFontStyleChange() {
 		const newStyle = fontStyle === 'italic' ? 'normal' : 'italic';
 		console.log('🎨 FONT STYLE CHANGE:', { from: fontStyle, to: newStyle });
+		fontStyle = newStyle;
 		editor?.changeFontStyle?.(newStyle);
 		// Force canvas re-render after font style change
 		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
@@ -151,6 +153,7 @@
 	function handleFontUnderlineChange() {
 		const newUnderline = !underline;
 		console.log('📏 UNDERLINE CHANGE:', { from: underline, to: newUnderline });
+		underline = newUnderline;
 		editor?.changeFontUnderline?.(newUnderline);
 		// Force canvas re-render after underline change
 		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
@@ -159,6 +162,7 @@
 	function handleTextAlignChange(alignment: string) {
 		console.log('📐 TEXT ALIGN CHANGE:', { from: textAlign, to: alignment });
 		editor?.changeTextAlign?.(alignment);
+		textAlign = alignment;
 		// Force canvas re-render after text align change
 		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 	}
