@@ -1,19 +1,15 @@
 <script lang="ts">
-	import type { Component } from '@/Types';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '@/Types';
-	// import { useGetAllAssetsOfOrgWithFilter } from '@/api/queries/assets-query';
+	import type { Component, WorksheetManager } from '@/Types';
+
 	let { component }: { component: Component } = $props();
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
-	// const referenceAssetsQuery = useGetAllAssetsOfOrgWithFilter()
-
-	var currentValue = worksheetManager.getComponentValue(
-		component.functionId,
-		component.componentId
+	let currentValue = $derived(
+		worksheetManager.getComponentValue(component.functionId, component.componentId)
 	);
-	var selectItems = component.selectComponent?.values ?? [];
-	function getSelectOptions() {
+
+	let options = $derived.by(() => {
 		switch (component.selectComponent?.type) {
 			case 'Yes or No':
 				return [
@@ -21,25 +17,19 @@
 					{ key: 'no', value: 'No' }
 				];
 			case 'Reference Asset':
-				return (
-					// assets.map((w: any) => ({
-					//   ...w,
-					//   key: w._id,
-					//   value: w.assetName
-					// })) ?? []
-					[]
-				);
+				// Your asset-fetching logic would go here
+				return [];
 			case 'Custom':
 			default:
-				return selectItems;
+				return component.selectComponent?.values ?? [];
 		}
-	}
-	var options = getSelectOptions();
+	});
 
-	var shouldShowPlaceholder =
-		!currentValue ||
-		(options.length > 0 && !options.find((opt: { value: any }) => opt.value === currentValue));
-	var isDisabled = component.isDisabled || component.isReadOnly;
+	let shouldShowPlaceholder = $derived(
+		!currentValue || (options.length > 0 && !options.find((opt) => opt.value === currentValue))
+	);
+
+	let isDisabled = $derived(component.isDisabled || component.isReadOnly);
 
 	function handleChange(e: Event) {
 		const value = (e.target as HTMLSelectElement).value;

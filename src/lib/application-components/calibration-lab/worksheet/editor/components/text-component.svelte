@@ -13,7 +13,6 @@
 
 	var isDisabled = component.isDisabled || component.isReadOnly;
 
-  //svelte action function to set the textarea height
 	function autoResize(textarea: HTMLTextAreaElement) {
 		function updateSize() {
 			textarea.style.height = 'auto';
@@ -78,7 +77,7 @@
 					? 'cursor-not-allowed bg-gray-50'
 					: ''} {component.isRequired ? 'border-red-500' : ''}"
 				placeholder={component.defaultValue || 'Enter text'}
-        use:autoResize
+        		use:autoResize
 			>
 				{currentValue}
 			</textarea>

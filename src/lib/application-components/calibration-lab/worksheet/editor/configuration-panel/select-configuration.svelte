@@ -51,6 +51,24 @@
 		const newValues = component.selectComponent.values.filter((_: any, i: number) => i !== index);
 		handleSelectUpdate({ values: newValues });
 	}
+
+	function handleTypeChange(event: Event) {
+		const newType = (event.currentTarget as HTMLSelectElement).value as SelectComponent['type'];
+		const updates: Partial<SelectComponent> = { type: newType };
+
+		if (newType === 'Yes or No') {
+			updates.values = [
+				{ key: 'yes', value: 'Yes' },
+				{ key: 'no', value: 'No' }
+			];
+		} else if (newType === 'Custom' && component.selectComponent.type !== 'Custom') {
+			updates.values = [];
+		} else if (newType === 'Reference Asset') {
+			updates.values = [];
+		}
+		handleSelectUpdate(updates);
+	}
+
 </script>
 
 {#if component?.selectComponent}
@@ -77,29 +95,19 @@
 			/>
 		</div>
 
-		<!-- Select Type -->
 		<div class="space-y-2">
 			<label class="block text-sm font-medium text-gray-700">Select Type</label>
 			<select
 				class="w-full rounded-md border p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
 				bind:value={component.selectComponent.type}
-				onchange={(e) =>
-					handleSelectUpdate({
-						type: e.currentTarget.value as 'Yes or No' | 'Reference Asset' | 'Custom',
-						values:
-							e.currentTarget.value === 'Yes or No'
-								? [
-										{ key: 'yes', value: 'Yes' },
-										{ key: 'no', value: 'No' }
-									]
-								: []
-					})}
+				onchange={handleTypeChange}
 			>
 				<option value="Yes or No">Yes or No</option>
 				<option value="Reference Asset">Reference Asset</option>
 				<option value="Custom">Custom</option>
 			</select>
 		</div>
+
 
 		<!-- Reference Worksheet (you can plug your own API here) -->
 		{#if component.selectComponent.type === 'Reference Asset'}
