@@ -2,6 +2,7 @@
 	import ColorPicker from 'svelte-awesome-color-picker';
 	import { colord, type Colord } from 'colord';
 	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
+	import Button from '@/components/ui/button/button.svelte';
 
 	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
 
@@ -20,10 +21,10 @@
 	const dateFormat = $derived<string>(selectedObject?.customDateFormat ?? 'MM/DD/YYYY');
 
 	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 16);
-	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
-	const fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
-	const underline = $derived<boolean>(selectedObject?.underline ?? false);
-	const textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
+	let fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	let fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
+	let underline = $derived<boolean>(selectedObject?.underline ?? false);
+	let textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
 
 	let color = $derived<Colord>(
 		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
@@ -75,18 +76,18 @@
 	}
 
 	function handleFontWeightChange() {
-		const weight = Number(selectedObject?.fontWeight) || 400;
-		editor?.changeFontWeight?.(weight >= 700 ? 400 : 700);
+		editor?.changeFontWeight?.(fontWeight >= 700 ? 400 : 700);
+		fontWeight = editor?.getActiveFontWeight();
 	}
 
 	function handleFontStyleChange() {
-		const style = selectedObject?.fontStyle ?? 'normal';
-		editor?.changeFontStyle?.(style === 'italic' ? 'normal' : 'italic');
+		editor?.changeFontStyle?.(fontStyle === 'italic' ? 'normal' : 'italic');
+		fontStyle = editor?.getActiveFontStyle();
 	}
 
 	function handleFontUnderlineChange() {
-		const underline = selectedObject?.underline ?? false;
 		editor?.changeFontUnderline?.(!underline);
+		underline = editor?.getActiveFontUnderline();
 	}
 
 	function handleColorChange({ hex }: { hex: string | null }) {
@@ -95,6 +96,7 @@
 
 	function handleTextAlignChange(alignment: string) {
 		editor?.changeTextAlign?.(alignment);
+		textAlign = editor?.getActiveTextAlign();
 	}
 </script>
 
@@ -162,45 +164,51 @@
 
 	<!-- Font Styles -->
 	<div class="flex items-center gap-2">
-		<button
-			class={`rounded border p-2 ${getActiveFontWeight() >= 700 ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={fontWeight >= 700 ? 'primary' : 'secondary'}
 			onclick={handleFontWeightChange}
 		>
 			<Bold size={16} />
-		</button>
+	    </Button>
 
-		<button
-			class={`rounded border p-2 italic ${getActiveFontStyle() === 'italic' ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={fontStyle === 'italic' ? 'primary' : 'secondary'}
 			onclick={handleFontStyleChange}
 		>
 			<Italic size={16} />
-		</button>
+		</Button>
 
-		<button
-			class={`rounded border p-2 underline ${getActiveFontUnderline() ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={underline ? 'primary' : 'secondary'}
 			onclick={handleFontUnderlineChange}
 		>
 			<Underline size={16} />
-		</button>
-		<button
-			class={`rounded border p-2 ${textAlign === 'left' ? 'bg-gray-200' : ''}`}
+	    </Button>
+		<Button
+			size="icon"
+			variant={textAlign === 'left' ? 'primary' : 'secondary'}
 			onclick={() => handleTextAlignChange('left')}
 		>
 			<AlignLeft size={16} />
-		</button>
+        </Button>
 
-		<button
-			class={`rounded border p-2 ${textAlign === 'center' ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={textAlign === 'center' ? 'primary' : 'secondary'}
 			onclick={() => handleTextAlignChange('center')}
 		>
 			<AlignCenter size={16} />
-		</button>
+		</Button>
 
-		<button
-			class={`rounded border p-2 ${textAlign === 'right' ? 'bg-gray-200' : ''}`}
+		<Button
+			size="icon"
+			variant={textAlign === 'right' ? 'primary' : 'secondary'}
 			onclick={() => handleTextAlignChange('right')}
 		>
 			<AlignRight size={16} />
-		</button>
+	    </Button>
 	</div>
 </div>
