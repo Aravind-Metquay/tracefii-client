@@ -102,7 +102,6 @@
 	}
 </script>
 
-<!-- Spinner Snippet -->
 {#snippet spinner()}
 	{#if loading}
 		<div class="relative {iconSize} animate-spin flex items-center justify-center">
@@ -113,7 +112,6 @@
 	{/if}
 {/snippet}
 
-<!-- Prefix Icon or Spinner -->
 {#snippet prefixSnip()}
 	{#if iconPrefix}
 		{@const Prefix = iconPrefix}
@@ -125,7 +123,6 @@
 	{/if}
 {/snippet}
 
-<!-- Suffix Icon -->
 {#snippet suffixSnip()}
 	{#if iconSuffix}
 		{@const Suffix = iconSuffix}
@@ -135,14 +132,13 @@
 	{/if}
 {/snippet}
 
-<!-- Button with shape -->
 {#snippet withShape()}
 	<button
 		bind:this={buttonElement}
 		type="button"
 		onclick={handleClick}
 		{disabled}
-		class="{buttonClass} relative overflow-hidden"
+		class="{buttonClass} relative overflow-hidden **focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-offset-black**"
 		{...rest}
 	>
 		{#if clicked}
@@ -156,14 +152,13 @@
 	</button>
 {/snippet}
 
-<!-- Button without shape -->
 {#snippet mainButton()}
 	<button
 		bind:this={buttonElement}
 		type="button"
 		onclick={handleClick}
 		{disabled}
-		class="{buttonClass} relative overflow-hidden"
+		class="{buttonClass} relative overflow-hidden **focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-offset-black**"
 		{...rest}
 	>
 		{#if clicked}
@@ -179,7 +174,6 @@
 	</button>
 {/snippet}
 
-<!-- Render appropriate variant -->
 {#if shape}
 	{@render withShape()}
 {:else}
