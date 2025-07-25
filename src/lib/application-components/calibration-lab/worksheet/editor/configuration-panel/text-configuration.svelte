@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
-	import type { Component, TextComponent } from '@/Types';
+	import type { Component, TextComponent , WorksheetManager} from '@/Types';
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
 	let { component }: { component: Component } = $props();

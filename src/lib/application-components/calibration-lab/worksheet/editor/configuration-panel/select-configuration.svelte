@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Code, Plus, X } from '@lucide/svelte';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 	import type { Component, SelectComponent } from '@/Types';
 
 	let { component, onExpressionModal } = $props();

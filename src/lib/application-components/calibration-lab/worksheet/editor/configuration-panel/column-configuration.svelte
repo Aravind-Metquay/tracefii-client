@@ -2,7 +2,7 @@
 	import type { TableColumn } from '@/Types';
 	import { Code } from '@lucide/svelte';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 
 	let { currentColumn, onExpressionModal } = $props();
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');

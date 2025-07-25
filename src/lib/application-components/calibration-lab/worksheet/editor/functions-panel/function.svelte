@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Repeat , Trash , GripVertical} from '@lucide/svelte';
-  import type { WorksheetManager } from '../store.svelte';
-  import type {Function} from '@/Types'
+  import type {Function , WorksheetManager} from '@/Types'
 
   let { fn , worksheetManager } : {fn : Function , worksheetManager : WorksheetManager} = $props();
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Component, TableColumn } from '@/Types';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 	import { AlertCircle, Repeat } from '@lucide/svelte';
 	import InputColumnComponent from './column-components/input-column-component.svelte';
 	import SelectColumnComponent from './column-components/select-column-component.svelte';

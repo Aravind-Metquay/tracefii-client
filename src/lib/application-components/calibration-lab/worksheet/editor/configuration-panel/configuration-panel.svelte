@@ -7,7 +7,7 @@
 	import SelectConfiguration from './select-configuration.svelte';
 	import TextConfiguration from './text-configuration.svelte';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 	const currentActiveColumn = $derived(worksheetManager.getCurrentActiveColumn());
@@ -83,27 +83,16 @@
 			</button>
 		{/if}
 	</div>
-
-	<!-- <ExpressionModal
-    type={type}
-    componentId={currentActiveComponent?.componentId}
-    isOpen={isOpen}
-    onClose={() => (isOpen = false)}
-    onOpenChange={(v) => (isOpen = v)}
-  />  -->
-
-
+	
 	<div class="flex-1 overflow-y-auto">
 		{#if currentActiveFunction && !currentActiveComponent}
 			<FunctionConfiguration
 				function={currentActiveFunction}
-				onExpressionModal={handleExpressionModal}
 			/>
 		{:else if currentActiveComponent}
 			{#if currentActiveComponent.componentType === 'Table' && currentActiveColumn && currentActiveColumn}
 				<ColumnConfiguration
 					currentColumn={currentActiveColumn}
-					currentComponent={currentActiveComponent}
 					onExpressionModal={handleExpressionModal}
 				/>
 			{:else if currentActiveComponent.componentType === 'Table'}

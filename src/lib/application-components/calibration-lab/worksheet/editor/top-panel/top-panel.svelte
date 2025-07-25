@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 	import { Button } from '@/components';
 	import AddComponentModal from './add-component-modal.svelte'
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');

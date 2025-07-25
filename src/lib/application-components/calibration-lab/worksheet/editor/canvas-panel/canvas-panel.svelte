@@ -1,6 +1,5 @@
 <script lang="ts">
-  import type { Component as ComponentType } from "@/Types";
-  import type { WorksheetManager } from "../store.svelte";
+  import type { Component as ComponentType, WorksheetManager } from "@/Types";
   import { getContext } from "svelte";
   import type { Component } from "svelte";
 

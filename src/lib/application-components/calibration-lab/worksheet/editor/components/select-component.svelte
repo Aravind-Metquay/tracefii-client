@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Component } from '@/Types';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 	// import { useGetAllAssetsOfOrgWithFilter } from '@/api/queries/assets-query';
 	let { component }: { component: Component } = $props();
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');

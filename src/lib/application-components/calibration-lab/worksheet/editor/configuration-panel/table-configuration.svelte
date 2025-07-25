@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Code } from '@lucide/svelte';
-	import type { WorksheetManager } from '../store.svelte';
+	import type { WorksheetManager } from '@/Types';
 	import { getContext } from 'svelte';
 	import type { Component, TableColumn, TableComponent } from '@/Types';
 
