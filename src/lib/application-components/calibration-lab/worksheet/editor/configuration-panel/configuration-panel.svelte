@@ -68,7 +68,7 @@
 </script>
 
 
-<div class="flex h-[700px] flex-col rounded-md bg-white">
+<div class="flex h-full flex-col rounded-md bg-white">
 	<div class="flex items-center justify-between border-b p-4">
 		<div>
 			<h2 class="text-sm font-medium">{titleInfo.title}</h2>

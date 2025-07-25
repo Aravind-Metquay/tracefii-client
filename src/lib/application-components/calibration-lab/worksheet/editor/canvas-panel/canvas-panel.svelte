@@ -25,7 +25,7 @@
   };
 </script>
 
-<div class="grid grid-cols-3 gap-6 p-4">
+<div class="grid grid-cols-3 gap-6 p-4 overflow-y-auto">
   {#each worksheetManager.getComponentsOfCurrentFunction() as component (component.componentId)}
     {@const Renderer = componentMap[component.componentType]}
 
