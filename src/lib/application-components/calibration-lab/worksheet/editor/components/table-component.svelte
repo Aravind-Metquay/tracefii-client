@@ -11,7 +11,9 @@
 	let worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
 	let isOpen: boolean = $state(false);
-	let tableData = worksheetManager.getComponentValue(component.functionId, component.componentId);
+	let tableData = $derived(
+		worksheetManager.getComponentValue(component.functionId, component.componentId)
+	);
 
 	function onOpen() {
 		isOpen = true;
@@ -58,17 +60,19 @@
 		return column;
 	}
 
-	const visibleColumns: TableColumn[] =
-		component.tableComponent?.columns.filter((column) => {
-			if (isGeneratedRepeatColumn(column.columnId)) return true;
-			if (column.isRepeatColumn) {
-				const hasGeneratedColumns = component.tableComponent?.columns.some((col) =>
-					col.columnId.startsWith(`${column.columnId}_repeat_`)
-				);
-				return !hasGeneratedColumns;
-			}
-			return true;
-		}) ?? [];
+	const visibleColumns = $derived.by(
+		() =>
+			component.tableComponent?.columns.filter((column) => {
+				if (isGeneratedRepeatColumn(column.columnId)) return true;
+				if (column.isRepeatColumn) {
+					const hasGeneratedColumns = component.tableComponent?.columns.some((col) =>
+						col.columnId.startsWith(`${column.columnId}_repeat_`)
+					);
+					return !hasGeneratedColumns;
+				}
+				return true;
+			}) ?? []
+	);
 </script>
 
 {#if component.componentType === 'Table' && component.tableComponent}

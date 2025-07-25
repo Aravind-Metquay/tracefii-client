@@ -472,28 +472,24 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		},
 
 		checkIfComponentLabelExistsInFunction(functionId: string, label: string): boolean {
-            const normalizedLabel = label.trim().toLowerCase();
-            return worksheet.components.some(
-                (c) =>
-                    c.functionId === functionId && c.label.trim().toLowerCase() === normalizedLabel
-            );
-        },
+			const normalizedLabel = label.trim().toLowerCase();
+			return worksheet.components.some(
+				(c) => c.functionId === functionId && c.label.trim().toLowerCase() === normalizedLabel
+			);
+		},
 
 		getAllComponents(): Component[] {
 			return worksheet.components;
 		},
 
 		getComponentsOfCurrentFunction(): Component[] {
-			if (worksheet.currentActiveElements.function) {
-				return worksheet.components.filter(
-					(com) => com.functionId === worksheet.currentActiveElements.function?.functionId
-				);
-			} else {
+			const activeFunction = worksheet.currentActiveElements.function;
+			if (!activeFunction) {
 				return [];
 			}
+			return worksheet.components.filter((com) => com.functionId === activeFunction.functionId);
 		},
 
-		// Table Columns
 		createNewColumn(newColumn: TableColumn) {
 			const tableComponent = this.getComponentById(newColumn.tableId);
 			if (!tableComponent) throw new Error('Table not found while creating column');
@@ -505,7 +501,10 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			}
 
 			if (tableComponent.tableComponent?.columns) {
-				tableComponent.tableComponent.columns.push(newColumn);
+				tableComponent.tableComponent.columns = [
+					...tableComponent.tableComponent.columns,
+					newColumn
+				];
 			} else {
 				tableComponent.tableComponent = {
 					tableName: tableComponent.tableComponent?.tableName ?? '',

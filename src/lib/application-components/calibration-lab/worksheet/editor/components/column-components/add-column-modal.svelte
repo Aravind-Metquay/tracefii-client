@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Input, Checkbox, Button, Modal, Select } from '@/components';
-	import type { Component, SelectItem as SelectItemType, TableColumn } from '@/Types';
+	import type { Component, SelectItem as SelectItemType, TableColumn, WorksheetManager } from '@/Types';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '../../store.svelte';
 
 	let { isOpen = $bindable(false) , currentTable }: { isOpen: boolean , currentTable : Component } = $props();
 
