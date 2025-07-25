@@ -7,7 +7,7 @@
 	export let editor: Editor;
 
 	let value = '';
-	let position: { left: number; top: number; width: number; height: number } | null = null;
+	let position: { top: number; width: number; height: number } | null = null;
 	let visible = false;
 	let showSuggestions = false;
 	let activeObject: Textbox | null = null;
@@ -41,7 +41,6 @@
 		const objTop = (active.top ?? 0) + (vpt ? vpt[5] : 0);
 
 		const newPosition = {
-			left: bounds.left + objLeft * zoom + window.scrollX,
 			top: bounds.top + objTop * zoom + window.scrollY,
 			width: Math.max((active.width ?? 100) * zoom, 200),
 			height: Math.max((active.height ?? 40) * zoom, 32)
@@ -229,7 +228,7 @@
 {#if visible && position}
 	<div
 		class="floating-editor"
-		style="left: {position.left}px; top: {position.top}px; width: {position.width}px; height: {position.height}px;"
+		style="top: {position.top}px; width: {position.width}px; height: {position.height}px;"
 	>
 		<textarea
 			bind:this={inputEl}
@@ -245,9 +244,10 @@
 {#if showSuggestions && position}
 	<div
 		class="suggestions-dropdown"
-		style="left: {position.left}px; top: {position.top +
-			position.height +
-			2}px; min-width: {Math.max(position.width, 200)}px;"
+		style="top: {position.top + position.height + 2}px; min-width: {Math.max(
+			position.width,
+			200
+		)}px;"
 	>
 		{#each allDynamicVariables as variable}
 			<div class="suggestion-item" onclick={() => handleSelect(variable)}>

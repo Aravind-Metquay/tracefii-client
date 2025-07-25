@@ -5,6 +5,7 @@
 
 	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
 	import FloatingFieldEditor from './FloatingFieldEditor.svelte';
+	import { Button } from '$lib/components/ui/button';
 
 	let { editor } = $props<{ editor: Editor }>();
 
@@ -27,8 +28,8 @@
 			console.log('🎨 Font Style:', selectedObject.fontStyle);
 			console.log('📐 Text Align:', selectedObject.textAlign);
 			console.log('🎨 Fill Color:', selectedObject.fill);
-			console.log('📍 Position:', { 
-				left: selectedObject.left, 
+			console.log('📍 Position:', {
+				left: selectedObject.left,
 				top: selectedObject.top,
 				width: selectedObject.width,
 				height: selectedObject.height
@@ -50,7 +51,7 @@
 			});
 			console.log('⏰ Timestamp:', new Date().toISOString());
 			console.groupEnd();
-			
+
 			// Trigger canvas rendering to ensure UI updates
 			editor?.canvas?.requestRenderAll();
 		} else if (selectedObject) {
@@ -68,13 +69,23 @@
 	const textContent = $derived<string>(selectedObject?.text ?? '');
 	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 32);
 	const fontFamily = $derived<string>(selectedObject?.fontFamily ?? 'Arial');
-	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
-	const fontStyle = $derived<string>(selectedObject?.fontStyle ?? 'normal');
-	const underline = $derived<boolean>(selectedObject?.underline ?? false);
 	const textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
 	let color = $derived<Colord>(
 		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
 	);
+
+	// Derived state for button variants with proper typing
+	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	const fontStyle = $derived.by(() => {
+		const style = selectedObject?.fontStyle;
+		if (style === 'italic' || style === 'oblique') return style as 'normal' | 'italic' | 'oblique';
+		return 'normal' as const;
+	});
+	const underline = $derived<boolean>(selectedObject?.underline ?? false);
+
+	const isBold = $derived<boolean>(fontWeight >= 700);
+	const isItalic = $derived<boolean>(fontStyle === 'italic');
+	const isUnderline = $derived<boolean>(underline);
 
 	// Log property changes for debugging
 	$effect(() => {
@@ -161,6 +172,26 @@
 		}
 	}
 
+	// Toggle text style functions
+	function toggleTextStyle(style: 'bold' | 'italic' | 'underline') {
+		switch (style) {
+			case 'bold':
+				handleFontWeightChange();
+				break;
+			case 'italic':
+				handleFontStyleChange();
+				break;
+			case 'underline':
+				handleFontUnderlineChange();
+				break;
+		}
+	}
+
+	// Change text alignment function
+	function changeTextAlign(alignment: string) {
+		handleTextAlignChange(alignment);
+	}
+
 	// Log when component mounts/unmounts
 	$effect(() => {
 		console.log('🚀 TEXT EDITOR COMPONENT MOUNTED');
@@ -209,60 +240,72 @@
 	</div>
 
 	<div class="flex items-center gap-2">
-		<button
-			class="rounded border p-2"
-			class:bg-gray-200={fontWeight >= 700}
-			onclick={handleFontWeightChange}
-			title="Bold"
+		<Button
+			size="icon"
+			variant={isBold ? 'primary' : 'secondary'}
+			onclick={() => {
+				toggleTextStyle('bold');
+				editor?.canvas?.requestRenderAll();
+			}}
 		>
-			<Bold size={16} />
-		</button>
+			<Bold class="h-4 w-4" />
+		</Button>
 
-		<button
-			class="rounded border p-2"
-			class:bg-gray-200={fontStyle === 'italic'}
-			onclick={handleFontStyleChange}
-			title="Italic"
+		<Button
+			size="icon"
+			variant={isItalic ? 'primary' : 'secondary'}
+			onclick={() => {
+				toggleTextStyle('italic');
+				editor?.canvas?.requestRenderAll();
+			}}
 		>
-			<Italic size={16} />
-		</button>
+			<Italic class="h-4 w-4" />
+		</Button>
 
-		<button
-			class="rounded border p-2"
-			class:bg-gray-200={underline}
-			onclick={handleFontUnderlineChange}
-			title="Underline"
+		<Button
+			size="icon"
+			variant={isUnderline ? 'primary' : 'secondary'}
+			onclick={() => {
+				toggleTextStyle('underline');
+				editor?.canvas?.requestRenderAll();
+			}}
 		>
-			<Underline size={16} />
-		</button>
+			<Underline class="h-4 w-4" />
+		</Button>
 
 		<div class="ml-auto flex items-center gap-2">
-			<button
-				class="rounded border p-2"
-				class:bg-gray-200={textAlign === 'left'}
-				onclick={() => handleTextAlignChange('left')}
-				title="Align Left"
+			<Button
+				size="icon"
+				variant={textAlign === 'left' ? 'primary' : 'secondary'}
+				onclick={() => {
+					changeTextAlign('left');
+					editor?.canvas?.requestRenderAll();
+				}}
 			>
-				<AlignLeft size={16} />
-			</button>
+				<AlignLeft class="h-4 w-4" />
+			</Button>
 
-			<button
-				class="rounded border p-2"
-				class:bg-gray-200={textAlign === 'center'}
-				onclick={() => handleTextAlignChange('center')}
-				title="Align Center"
+			<Button
+				size="icon"
+				variant={textAlign === 'center' ? 'primary' : 'secondary'}
+				onclick={() => {
+					changeTextAlign('center');
+					editor?.canvas?.requestRenderAll();
+				}}
 			>
-				<AlignCenter size={16} />
-			</button>
+				<AlignCenter class="h-4 w-4" />
+			</Button>
 
-			<button
-				class="rounded border p-2"
-				class:bg-gray-200={textAlign === 'right'}
-				onclick={() => handleTextAlignChange('right')}
-				title="Align Right"
+			<Button
+				size="icon"
+				variant={textAlign === 'right' ? 'primary' : 'secondary'}
+				onclick={() => {
+					changeTextAlign('right');
+					editor?.canvas?.requestRenderAll();
+				}}
 			>
-			<AlignRight size={16} />
-			</button>
+				<AlignRight class="h-4 w-4" />
+			</Button>
 		</div>
 	</div>
 </div>

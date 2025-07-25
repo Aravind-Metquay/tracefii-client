@@ -32,7 +32,8 @@ import {
 	CIRCLE_OPTIONS,
 	DIAMOND_OPTIONS,
 	RECTANGLE_OPTIONS,
-	TRIANGLE_OPTIONS
+	TRIANGLE_OPTIONS,
+	type TextboxPosition
 } from '../lib/types';
 // ================================
 // Type Extensions
@@ -634,6 +635,42 @@ export function createEditor(options: EditorOptions = {}) {
 			}
 		} catch (error) {
 			console.error('Failed to change text:', error);
+		}
+	}
+
+	function getExactTextboxLocation(textbox?: FabricObject): TextboxPosition | null {
+		if (!canvas) return null;
+
+		// Use provided textbox or get active object
+		const targetTextbox = textbox || canvas.getActiveObject();
+
+		if (!targetTextbox || targetTextbox.type !== 'textbox') {
+			return null;
+		}
+
+		try {
+			// Get the most accurate bounding rectangle
+			const boundingRect = targetTextbox.getBoundingRect();
+
+			// Get canvas element and its screen position
+			const canvasEl = canvas.getElement();
+			if (!canvasEl) return null;
+
+			const canvasBounds = canvasEl.getBoundingClientRect();
+			const zoom = canvas.getZoom() || 1;
+
+			// Convert canvas coordinates to screen coordinates
+			const screenPosition = {
+				left: canvasBounds.left + boundingRect.left * zoom + window.scrollX,
+				top: canvasBounds.top + boundingRect.top * zoom + window.scrollY,
+				width: boundingRect.width * zoom,
+				height: boundingRect.height * zoom
+			};
+
+			return screenPosition;
+		} catch (error) {
+			console.error('Failed to get exact textbox location:', error);
+			return null;
 		}
 	}
 
@@ -1425,77 +1462,212 @@ export function createEditor(options: EditorOptions = {}) {
 		},
 
 		// Functions
-		initializeCanvas,
-		syncCanvasState,
-		getWorkspace,
-		center,
-		addToCanvas,
-		autoZoom: autoResize.autoZoom,
-		addText,
-		addDate,
-		changeDateFormat,
-		updateDateValue,
-		getActiveDateValue,
-		getActiveDateFormat,
-		getActiveText,
-		changeText,
-		replaceObject,
-		addQRCode,
-		addBarcode,
-		addImage,
-		addCircle,
-		addRectangle,
-		addSoftRectangle,
-		addTriangle,
-		addInverseTriangle,
-		addDiamond,
-		deleteSelected,
-		setZoom,
-		zoomIn,
-		zoomOut,
-		changeSize,
-		changeBackground,
-		changeFontFamily,
-		changeFontSize,
-		changeFontWeight,
-		changeFontStyle,
-		changeFontUnderline,
-		changeTextAlign,
-		changeOpacity,
-		changeFillColor,
-		changeStrokeColor,
-		changeStrokeWidth,
-		changeStrokeDashArray,
-		bringForward,
-		sendBackwards,
-		savePng,
-		saveJpg,
-		saveSvg,
-		savePdf,
-		saveJson,
-		loadJson,
-		getActiveOpacity,
-		getActiveFontSize,
-		getActiveTextAlign,
-		getActiveFontUnderline,
-		getActiveFontLinethrough,
-		getActiveFontStyle,
-		getActiveFontWeight,
-		getActiveFontFamily,
-		getActiveFillColor,
-		getActiveScaleX,
-		getActiveScaleY,
-		onUndo: history.undo,
-		onRedo: history.redo,
-		onCopy: clipboard.copy,
-		onPaste: clipboard.paste,
+		get initializeCanvas() {
+			return initializeCanvas;
+		},
+		get syncCanvasState() {
+			return syncCanvasState;
+		},
+		get getWorkspace() {
+			return getWorkspace;
+		},
+		get center() {
+			return center;
+		},
+		get addToCanvas() {
+			return addToCanvas;
+		},
+		get autoZoom() {
+			return autoResize.autoZoom;
+		},
+		get addText() {
+			return addText;
+		},
+		get addDate() {
+			return addDate;
+		},
+		get changeDateFormat() {
+			return changeDateFormat;
+		},
+		get updateDateValue() {
+			return updateDateValue;
+		},
+		get getActiveDateValue() {
+			return getActiveDateValue;
+		},
+		get getActiveDateFormat() {
+			return getActiveDateFormat;
+		},
+		get getActiveText() {
+			return getActiveText;
+		},
+		get changeText() {
+			return changeText;
+		},
+		get getExactTextboxLocation() {
+			return getExactTextboxLocation;
+		},
+		get replaceObject() {
+			return replaceObject;
+		},
+		get addQRCode() {
+			return addQRCode;
+		},
+		get addBarcode() {
+			return addBarcode;
+		},
+		get addImage() {
+			return addImage;
+		},
+		get addCircle() {
+			return addCircle;
+		},
+		get addRectangle() {
+			return addRectangle;
+		},
+		get addSoftRectangle() {
+			return addSoftRectangle;
+		},
+		get addTriangle() {
+			return addTriangle;
+		},
+		get addInverseTriangle() {
+			return addInverseTriangle;
+		},
+		get addDiamond() {
+			return addDiamond;
+		},
+		get deleteSelected() {
+			return deleteSelected;
+		},
+		get setZoom() {
+			return setZoom;
+		},
+		get zoomIn() {
+			return zoomIn;
+		},
+		get zoomOut() {
+			return zoomOut;
+		},
+		get changeSize() {
+			return changeSize;
+		},
+		get changeBackground() {
+			return changeBackground;
+		},
+		get changeFontFamily() {
+			return changeFontFamily;
+		},
+		get changeFontSize() {
+			return changeFontSize;
+		},
+		get changeFontWeight() {
+			return changeFontWeight;
+		},
+		get changeFontStyle() {
+			return changeFontStyle;
+		},
+		get changeFontUnderline() {
+			return changeFontUnderline;
+		},
+		get changeTextAlign() {
+			return changeTextAlign;
+		},
+		get changeOpacity() {
+			return changeOpacity;
+		},
+		get changeFillColor() {
+			return changeFillColor;
+		},
+		get changeStrokeColor() {
+			return changeStrokeColor;
+		},
+		get changeStrokeWidth() {
+			return changeStrokeWidth;
+		},
+		get changeStrokeDashArray() {
+			return changeStrokeDashArray;
+		},
+		get bringForward() {
+			return bringForward;
+		},
+		get sendBackwards() {
+			return sendBackwards;
+		},
+		get savePng() {
+			return savePng;
+		},
+		get saveJpg() {
+			return saveJpg;
+		},
+		get saveSvg() {
+			return saveSvg;
+		},
+		get savePdf() {
+			return savePdf;
+		},
+		get saveJson() {
+			return saveJson;
+		},
+		get loadJson() {
+			return loadJson;
+		},
+		get getActiveOpacity() {
+			return getActiveOpacity;
+		},
+		get getActiveFontSize() {
+			return getActiveFontSize;
+		},
+		get getActiveTextAlign() {
+			return getActiveTextAlign;
+		},
+		get getActiveFontUnderline() {
+			return getActiveFontUnderline;
+		},
+		get getActiveFontLinethrough() {
+			return getActiveFontLinethrough;
+		},
+		get getActiveFontStyle() {
+			return getActiveFontStyle;
+		},
+		get getActiveFontWeight() {
+			return getActiveFontWeight;
+		},
+		get getActiveFontFamily() {
+			return getActiveFontFamily;
+		},
+		get getActiveFillColor() {
+			return getActiveFillColor;
+		},
+		get getActiveScaleX() {
+			return getActiveScaleX;
+		},
+		get getActiveScaleY() {
+			return getActiveScaleY;
+		},
+		get onUndo() {
+			return history.undo;
+		},
+		get onRedo() {
+			return history.redo;
+		},
+		get onCopy() {
+			return clipboard.copy;
+		},
+		get onPaste() {
+			return clipboard.paste;
+		},
 		get canUndo() {
 			return history.canUndo;
 		},
 		get canRedo() {
 			return history.canRedo;
 		},
-		history,
-		updateObjectSize
+		get history() {
+			return history;
+		},
+		get updateObjectSize() {
+			return updateObjectSize;
+		}
 	};
 }

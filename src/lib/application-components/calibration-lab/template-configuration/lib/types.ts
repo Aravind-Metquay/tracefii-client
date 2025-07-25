@@ -42,6 +42,14 @@ export type UnitType = 'cm' | 'mm' | 'in' | 'px';
 export type Dimensions = { width: string; height: string };
 export type Color = { r: number; g: number; b: number };
 
+// Position types for textbox location
+export interface TextboxPosition {
+	left: number;
+	top: number;
+	width: number;
+	height: number;
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -179,6 +187,7 @@ export interface Editor {
 	addText: (text?: string, textOptions?: any) => void;
 	getActiveText: () => string | undefined;
 	changeText: (text: string) => void;
+	getExactTextboxLocation: (textbox?: FabricObject) => TextboxPosition | null;
 
 	// ========================================================================
 	// DATE OPERATIONS
