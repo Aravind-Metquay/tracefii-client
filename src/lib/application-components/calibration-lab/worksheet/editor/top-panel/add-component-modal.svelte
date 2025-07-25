@@ -295,7 +295,6 @@
 				{/if}
 			</div>
 		{/if}
-
 		<div class="flex flex-wrap items-center gap-x-6 gap-y-3 pt-4">
 			{#if selectedComponent === 'Table'}
 				<div class="flex items-center space-x-2">
@@ -304,27 +303,27 @@
 						Show table name in certificate
 					</label>
 				</div>
+			{:else}
+				<div class="flex items-center space-x-2">
+					<Checkbox id="show-in-certificate" bind:checked={showInCertificate} />
+					<label for="show-in-certificate" class="cursor-pointer font-normal">
+						Show in certificate?
+					</label>
+				</div>
+				<div class="flex items-center space-x-2">
+					<Checkbox id="component-mandatory" bind:checked={isRequired} />
+					<label for="component-mandatory" class="cursor-pointer font-normal">Is Required?</label>
+				</div>
+				<div class="flex items-center space-x-2">
+					<Checkbox id="component-readonly" bind:checked={isReadOnly} />
+					<label for="component-readonly" class="cursor-pointer font-normal">Is readonly?</label>
+				</div>
+				<div class="flex items-center space-x-2">
+					<Checkbox id="component-disabled" bind:checked={isDisabled} />
+					<label for="component-disabled" class="cursor-pointer font-normal">Is Disabled?</label>
+				</div>
 			{/if}
-			<div class="flex items-center space-x-2">
-				<Checkbox id="show-in-certificate" bind:checked={showInCertificate} />
-				<label for="show-in-certificate" class="cursor-pointer font-normal">
-					Show in certificate?
-				</label>
-			</div>
-			<div class="flex items-center space-x-2">
-				<Checkbox id="component-mandatory" bind:checked={isRequired} />
-				<label for="component-mandatory" class="cursor-pointer font-normal">Is Required?</label>
-			</div>
-			<div class="flex items-center space-x-2">
-				<Checkbox id="component-readonly" bind:checked={isReadOnly} />
-				<label for="component-readonly" class="cursor-pointer font-normal">Is readonly?</label>
-			</div>
-			<div class="flex items-center space-x-2">
-				<Checkbox id="component-disabled" bind:checked={isDisabled} />
-				<label for="component-disabled" class="cursor-pointer font-normal">Is Disabled?</label>
-			</div>
 		</div>
-
 		<div class="flex justify-end pt-4">
 			<Button type="submit" size="small" disabled={!componentName.trim() || !!nameError}>
 				Add Component
