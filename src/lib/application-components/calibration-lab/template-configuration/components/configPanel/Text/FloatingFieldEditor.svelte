@@ -7,7 +7,7 @@
 	export let editor: Editor;
 
 	let value = '';
-	let position: { top: number; width: number; height: number } | null = null;
+	let position: { top: number; right: number; width: number; height: number } | null = null;
 	let visible = false;
 	let showSuggestions = false;
 	let activeObject: Textbox | null = null;
@@ -42,6 +42,7 @@
 
 		const newPosition = {
 			top: bounds.top + objTop * zoom + window.scrollY,
+			right: window.innerWidth - (bounds.left + objLeft * zoom) ,
 			width: Math.max((active.width ?? 100) * zoom, 200),
 			height: Math.max((active.height ?? 40) * zoom, 32)
 		};
@@ -228,7 +229,7 @@
 {#if visible && position}
 	<div
 		class="floating-editor"
-		style="top: {position.top}px; width: {position.width}px; height: {position.height}px;"
+		style="top: {position.top}px; right: {position.right}px; width: {position.width}px; height: {position.height}px;"
 	>
 		<textarea
 			bind:this={inputEl}
