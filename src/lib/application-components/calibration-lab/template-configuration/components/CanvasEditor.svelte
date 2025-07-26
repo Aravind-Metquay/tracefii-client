@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { Editor } from '../lib/types';
 	import Footer from './Footer.svelte';
-	import FloatingFieldEditor from './configPanel/Text/FloatingFieldEditor.svelte';
+	import TextExpressions from './configPanel/Text/TextExpressions.svelte';
+	import DateExpressions from './configPanel/Date/DateExpressions.svelte';
 
 	let { editor, backgroundColor } = $props<{
 		editor: Editor;
 		backgroundColor: { r: number; g: number; b: number };
-	}>();
+	}>();	
 
 	let canvasElement = $state<HTMLCanvasElement | undefined>();
 	let containerElement = $state<HTMLDivElement | undefined>();
@@ -77,7 +78,8 @@
 				"
 			></canvas>
 		</div>
-		<FloatingFieldEditor {editor} />
+		<TextExpressions {editor} />
+		<DateExpressions {editor} />
 	</div>
 	<Footer {editor} />
 </div>

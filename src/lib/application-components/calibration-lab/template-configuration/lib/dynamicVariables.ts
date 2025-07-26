@@ -1,4 +1,19 @@
-export const dynamicVariables = {
+// Date-specific variables for DateExpressions component
+export const dateVariables = {
+	'Instrument Dates': [
+		'$F_inst_cal_date',
+		'$F_inst_due_date',
+		'$F_inst_del_date',
+		'$F_inst_issue_date',
+		'$F_inst_rec_date'
+	],
+	'Work Dates': [
+		'$F_in_date'
+	]
+};
+
+// Text-specific variables for TextExpressions component
+export const textVariables = {
 	'Certificate Details': [
 		'$F_cal_by',
 		'$F_cal_by_sign',
@@ -53,11 +68,6 @@ export const dynamicVariables = {
 		'$F_inst_res',
 		'$F_inst_received',
 		'$F_inst_return',
-		'$F_inst_cal_date',
-		'$F_inst_due_date',
-		'$F_inst_del_date',
-		'$F_inst_issue_date',
-		'$F_inst_rec_date',
 		'$F_inst_acc',
 		'$F_inst_cal_point',
 		'$F_inst_lc',
@@ -102,7 +112,6 @@ export const dynamicVariables = {
 		'$F_revision_type',
 		'$F_revision_statement',
 		'$F_collection_delivery',
-		'$F_in_date',
 		'$F_department',
 		'$F_compliance',
 		'$F_scope',
@@ -114,12 +123,40 @@ export const dynamicVariables = {
 	]
 };
 
-// Flat list for validation
-export const allDynamicVariables = Object.values(dynamicVariables).flat();
+// Combined variables for backward compatibility
+export const dynamicVariables = {
+	...textVariables,
+	...dateVariables
+};
+
+// Flat arrays for easy access
+export const allDateVariables = Object.values(dateVariables).flat();
+export const allTextVariables = Object.values(textVariables).flat();
+export const allDynamicVariables = [...allDateVariables, ...allTextVariables];
+
+// Date variable descriptions
+export const dateVariableDescriptions: Record<string, string> = {
+	'$F_inst_cal_date': 'Calibration Date',
+	'$F_inst_due_date': 'Due Date',
+	'$F_inst_del_date': 'Delivery Date',
+	'$F_inst_issue_date': 'Issue Date',
+	'$F_inst_rec_date': 'Received Date',
+	'$F_in_date': 'Input Date'
+};
 
 // Utility to validate dynamic variable
 export const isValidDynamicVariable = (variable: string): boolean => {
 	return allDynamicVariables.includes(variable);
+};
+
+// Utility to validate date variable
+export const isValidDateVariable = (variable: string): boolean => {
+	return allDateVariables.includes(variable);
+};
+
+// Utility to validate text variable
+export const isValidTextVariable = (variable: string): boolean => {
+	return allTextVariables.includes(variable);
 };
 
 // Utility to extract dynamic variables from text
@@ -127,4 +164,9 @@ export const extractDynamicVariables = (text: string): string[] => {
 	const regex = /{{\s*([$a-zA-Z0-9_]+)\s*}}/g;
 	const matches = [...text.matchAll(regex)];
 	return matches.map((m) => m[1]).filter(isValidDynamicVariable);
+};
+
+// Utility to get date variable description
+export const getDateVariableDescription = (variable: string): string => {
+	return dateVariableDescriptions[variable] || '';
 };
