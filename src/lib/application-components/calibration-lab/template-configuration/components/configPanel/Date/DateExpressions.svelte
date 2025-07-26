@@ -3,7 +3,6 @@
 	import {
 		dateVariables,
 		textVariables,
-		allDateVariables,
 		getDateVariableDescription
 	} from '../../../lib/dynamicVariables';
 	import type { Editor } from '../../../lib/types';
@@ -25,7 +24,6 @@
 
 		const active = canvas.getActiveObject() as Textbox;
 
-		// Only show for date textboxes (customType === 'date')
 		if (!active || active.type !== 'textbox' || (active as any).customType !== 'date') {
 			visible = false;
 			showSuggestions = false;
@@ -35,12 +33,6 @@
 		}
 
 		const activeText = active.text || '';
-		console.log(
-			'DateExpressions - Active text:',
-			activeText,
-			'customType:',
-			(active as any).customType
-		);
 
 		const canvasEl = canvas.getElement();
 		if (!canvasEl) return;
@@ -78,13 +70,6 @@
 		showSuggestions = shouldShowSuggestions;
 
 		setTimeout(() => canvas.requestRenderAll(), 0);
-	}
-
-	function handleChange(val: string) {
-		value = val;
-		showSuggestions = val.endsWith('{{');
-		editor?.changeText?.(val);
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 	}
 
 	function handleSelect(variable: string) {
