@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { allDynamicVariables } from '../../../lib/dynamicVariables';
+	import {
+		dateVariables,
+		textVariables,
+		allDateVariables,
+		getDateVariableDescription
+	} from '../../../lib/dynamicVariables';
 	import type { Editor } from '../../../lib/types';
 	import type { Textbox } from 'fabric';
 
@@ -20,7 +25,8 @@
 
 		const active = canvas.getActiveObject() as Textbox;
 
-		if (!active || active.type !== 'textbox' || (active as any).customType === 'date') {
+		// Only show for date textboxes (customType === 'date')
+		if (!active || active.type !== 'textbox' || (active as any).customType !== 'date') {
 			visible = false;
 			showSuggestions = false;
 			position = null;
@@ -29,6 +35,13 @@
 		}
 
 		const activeText = active.text || '';
+		console.log(
+			'DateExpressions - Active text:',
+			activeText,
+			'customType:',
+			(active as any).customType
+		);
+
 		const canvasEl = canvas.getElement();
 		if (!canvasEl) return;
 
@@ -54,6 +67,13 @@
 		const shouldBeVisible = !isInNativeEditMode && activeText.length > 0;
 		const shouldShowSuggestions = activeText.endsWith('{{');
 
+		console.log(
+			'DateExpressions - Should show suggestions:',
+			shouldShowSuggestions,
+			'Text ends with {{:',
+			activeText.endsWith('{{')
+		);
+
 		visible = shouldBeVisible;
 		showSuggestions = shouldShowSuggestions;
 
@@ -70,20 +90,26 @@
 	function handleSelect(variable: string) {
 		if (!activeObject) return;
 
+		// When user types {{ and selects a variable, replace {{ with {{variable}}
 		const newText = value.endsWith('{{')
 			? value.slice(0, -2) + `{{${variable}}}`
 			: value + `{{${variable}}}`;
 
 		value = newText;
 		showSuggestions = false;
-		editor?.changeText?.(newText);
 
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
-		setTimeout(() => {
-			inputEl?.focus();
-			const len = newText.length;
-			inputEl?.setSelectionRange(len, len);
-		}, 0);
+		// Update the fabric textbox directly since changeText excludes date textboxes
+		activeObject.set('text', newText);
+
+		// If the textbox is in editing mode, we need to update the editing text as well
+		if (activeObject.isEditing) {
+			(activeObject as any).hiddenTextarea.value = newText;
+			(activeObject as any).updateFromTextArea();
+		}
+
+		editor?.canvas?.requestRenderAll();
+
+		console.log('DateExpressions - Selected variable:', variable, 'New text:', newText);
 	}
 
 	function handleKeyDown(e: KeyboardEvent) {
@@ -124,7 +150,7 @@
 
 		const textEditingEnteredHandler = (e: any) => {
 			const target = e.target;
-			if (target && target.type === 'textbox' && (target as any).customType !== 'date') {
+			if (target && target.type === 'textbox' && (target as any).customType === 'date') {
 				isInNativeEditMode = true;
 				activeObject = target;
 				value = target.text || '';
@@ -139,7 +165,7 @@
 
 		const textEditingExitedHandler = (e: any) => {
 			const target = e.target;
-			if (target && target.type === 'textbox' && (target as any).customType !== 'date') {
+			if (target && target.type === 'textbox' && (target as any).customType === 'date') {
 				isInNativeEditMode = false;
 				const text = target.text || '';
 				value = text;
@@ -159,12 +185,20 @@
 
 		const textChangedHandler = (e: any) => {
 			const target = e.target;
-			if (target && target.type === 'textbox' && (target as any).customType !== 'date') {
+			console.log(
+				'DateExpressions - Text changed:',
+				target?.text,
+				'customType:',
+				(target as any)?.customType
+			);
+
+			if (target && target.type === 'textbox' && (target as any).customType === 'date') {
 				const text = target.text || '';
 				value = text;
 				activeObject = target;
 
 				if (text.endsWith('{{')) {
+					console.log('DateExpressions - Showing suggestions for:', text);
 					showSuggestions = true;
 					updatePosition();
 				} else {
@@ -175,7 +209,7 @@
 
 		const mouseDoubleClickHandler = (e: any) => {
 			const target = e.target;
-			if (target && target.type === 'textbox' && (target as any).customType !== 'date') {
+			if (target && target.type === 'textbox' && (target as any).customType === 'date') {
 				setTimeout(() => {
 					updatePosition();
 					if (inputEl) {
@@ -228,72 +262,60 @@
 
 {#if showSuggestions && position}
 	<div
-		class="suggestions-dropdown"
+		class="scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 pointer-events-auto fixed z-[10000] max-h-[300px] w-80 overflow-x-hidden overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg"
 		style="top: {position.top + 15}px; right:{position.right - 120}px "
 	>
-		{#each allDynamicVariables as variable}
-			<div class="suggestion-item" onclick={() => handleSelect(variable)}>
-				<span class="variable-text">{`{{${variable}}}`}</span>
+		<div class="border-b border-gray-200 last:border-b-0">
+			<div
+				class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wider text-gray-700 uppercase"
+			>
+				Date Variables
 			</div>
-		{/each}
+			{#each Object.entries(dateVariables) as [category, variables]}
+				<div class="border-b border-gray-100 last:border-b-0">
+					<div
+						class="bg-gray-25 border-b border-gray-100 px-3 py-1.5 text-xs font-medium text-gray-500"
+					>
+						{category}
+					</div>
+					{#each variables as variable}
+						<div
+							class="flex cursor-pointer flex-col gap-0.5 border-b border-gray-50 px-3 py-2 transition-colors duration-150 last:border-b-0 hover:bg-blue-50"
+							onclick={() => handleSelect(variable)}
+						>
+							<span class="font-mono text-xs font-medium text-blue-600">{`{{${variable}}}`}</span>
+							<span class="text-xs text-gray-500 italic"
+								>{getDateVariableDescription(variable)}</span
+							>
+						</div>
+					{/each}
+				</div>
+			{/each}
+		</div>
+
+		<div class="border-b border-gray-200 last:border-b-0">
+			<div
+				class="border-b border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wider text-gray-700 uppercase"
+			>
+				Text Variables
+			</div>
+			{#each Object.entries(textVariables) as [category, variables]}
+				<div class="border-b border-gray-100 last:border-b-0">
+					<div
+						class="bg-gray-25 border-b border-gray-100 px-3 py-1.5 text-xs font-medium text-gray-500"
+					>
+						{category}
+					</div>
+					{#each variables as variable}
+						<div
+							class="cursor-pointer border-b border-gray-50 px-3 py-2 transition-colors duration-150 last:border-b-0 hover:bg-blue-50"
+							onclick={() => handleSelect(variable)}
+						>
+							<span class="font-mono text-xs font-medium text-blue-600">{`{{${variable}}}`}</span>
+						</div>
+					{/each}
+				</div>
+			{/each}
+		</div>
 	</div>
 {/if}
-
-<style>
-	.suggestions-dropdown {
-		position: fixed;
-		z-index: 10000;
-		background: white;
-		border: 1px solid #d1d5db;
-		border-radius: 6px;
-		box-shadow:
-			0 10px 15px -3px rgba(0, 0, 0, 0.1),
-			0 4px 6px -2px rgba(0, 0, 0, 0.05);
-		max-height: 200px;
-		overflow-y: auto;
-		overflow-x: hidden;
-		pointer-events: auto;
-		width: 250px;
-	}
-
-	.suggestion-item {
-		padding: 8px 12px;
-		cursor: pointer;
-		border-bottom: 1px solid #f3f4f6;
-		transition: background-color 0.15s ease;
-	}
-
-	.suggestion-item:last-child {
-		border-bottom: none;
-	}
-
-	.suggestion-item:hover {
-		background-color: #eff6ff;
-	}
-
-	.variable-text {
-		font-family: 'Courier New', Consolas, monospace;
-		font-size: 12px;
-		color: #2563eb;
-		font-weight: 500;
-	}
-
-	/* Ensure proper scrollbar styling */
-	.suggestions-dropdown::-webkit-scrollbar {
-		width: 6px;
-	}
-
-	.suggestions-dropdown::-webkit-scrollbar-track {
-		background: #f1f5f9;
-		border-radius: 3px;
-	}
-
-	.suggestions-dropdown::-webkit-scrollbar-thumb {
-		background: #cbd5e1;
-		border-radius: 3px;
-	}
-
-	.suggestions-dropdown::-webkit-scrollbar-thumb:hover {
-		background: #94a3b8;
-	}
-</style>
