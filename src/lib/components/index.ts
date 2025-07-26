@@ -19,6 +19,9 @@ export { default as Input } from './input/input.svelte'
 // SearchInput
 export { default as SearchInput } from './input/searchInput.svelte'
 
+//Drawer
+export {default as Drawer} from './drawer/drawer.svelte'
+
 // Menu
 export * as Menu from './menu/index.js';
 
