@@ -163,4 +163,10 @@ body {
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
 	@apply bg-gray-400;
 }
-
+/* Fabric.js canvas customizations */
+.canvas-container {
+	position: relative;
+}
+.canvas-container .upper-canvas {
+	position: absolute !important;
+}
