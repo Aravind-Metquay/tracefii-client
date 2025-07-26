@@ -34,7 +34,7 @@
 				console.log("Why is this not invoked")
 				setContext('auth',auth.user)
 			}else{
-				goto('/')
+				// goto('/')
 			}
 		}
 	})

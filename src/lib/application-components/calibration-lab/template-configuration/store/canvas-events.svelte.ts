@@ -1,54 +1,67 @@
-export function createCanvasEvents() {
-  let mousePos = $state({ x: 0, y: 0 });
-  let isPressed = $state(false);
-  let dragStart = $state(null);
-  let canvas = $state(null);
-  
-  let isDragging = $derived(isPressed && dragStart !== null);
-  let dragDistance = $derived(
-    isDragging ? Math.sqrt(
-      Math.pow(mousePos.x - dragStart.x, 2) + 
-      Math.pow(mousePos.y - dragStart.y, 2)
-    ) : 0
-  );
-  
-  function attachEvents(canvasElement) {
-    canvas = canvasElement;
-    
-    const handleMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mousePos = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    };
-    
-    const handleMouseDown = (e) => {
-      isPressed = true;
-      dragStart = { ...mousePos };
-    };
-    
-    const handleMouseUp = () => {
-      isPressed = false;
-      dragStart = null;
-    };
-    
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    
-    return () => {
-      canvas?.removeEventListener('mousemove', handleMouseMove);
-      canvas?.removeEventListener('mousedown', handleMouseDown);
-      canvas?.removeEventListener('mouseup', handleMouseUp);
-    };
-  }
-  
-  return {
-    get mousePos() { return mousePos; },
-    get isPressed() { return isPressed; },
-    get isDragging() { return isDragging; },
-    get dragDistance() { return dragDistance; },
-    attachEvents
-  };
+import type { Canvas, FabricObject } from 'fabric';
+
+interface CanvasEventsOptions {
+	canvas: Canvas | null;
+	setSelectedObjects: (objects: FabricObject[]) => void;
+	clearSelectionCallback?: () => void;
+	save: () => void;
+	onObjectModified?: () => void;
+}
+
+export function createCanvasEvents({
+	canvas,
+	setSelectedObjects,
+	clearSelectionCallback,
+	save,
+	onObjectModified
+}: CanvasEventsOptions) {
+	function attachEvents(canvasElement: HTMLCanvasElement) {
+		if (!canvas) return;
+
+		// Canvas selection events
+		canvas.on('selection:created', (e: any) => {
+			setSelectedObjects(e.selected || []);
+		});
+
+		canvas.on('selection:updated', (e: any) => {
+			setSelectedObjects(e.selected || []);
+		});
+
+		canvas.on('selection:cleared', () => {
+			setSelectedObjects([]);
+			clearSelectionCallback?.();
+		});
+
+		// History save events
+		canvas.on('object:modified', () => {
+			save();
+			onObjectModified?.();
+		});
+
+		canvas.on('object:added', () => {
+			save();
+		});
+
+		canvas.on('object:removed', () => {
+			save();
+		});
+
+		// Window-level context menu prevention
+		const handleContextMenu = (e: MouseEvent) => {
+			e.preventDefault();
+		};
+
+		if (typeof window !== 'undefined') {
+			window.addEventListener('contextmenu', handleContextMenu);
+		}
+
+		// Cleanup on destroy
+		return () => {
+			if (typeof window !== 'undefined') {
+				window.removeEventListener('contextmenu', handleContextMenu);
+			}
+		};
+	}
+
+	return { attachEvents };
 }

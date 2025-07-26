@@ -1,5 +1,8 @@
 <script lang="ts">
-	import Editor from '@/application-components/calibration-lab/template-configuration/Editor.svelte';
+	import Editor from '@/application-components/calibration-lab/template-configuration/EditorLayout.svelte';
+	import { appState as importedAppState } from '@/application-components/calibration-lab/template-configuration/store/app-state.svelte.ts';
+
+	let appState = importedAppState;
 </script>
 
-<Editor />
+<Editor bind:appState />

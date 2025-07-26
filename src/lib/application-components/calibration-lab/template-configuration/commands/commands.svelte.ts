@@ -1,72 +1,86 @@
+import type { Canvas, FabricObject } from 'fabric';
+
 export class Command {
-  execute() { 
-    throw new Error('Must implement execute method'); 
-  }
-  
-  undo() { 
-    throw new Error('Must implement undo method'); 
-  }
+	execute() {
+		throw new Error('Must implement execute method');
+	}
+
+	undo() {
+		throw new Error('Must implement undo method');
+	}
 }
 
 export class AddElementCommand extends Command {
-  constructor(canvas, element) {
-    super();
-    this.canvas = canvas;
-    this.element = element;
-  }
-  
-  execute() {
-    this.canvas.add(this.element);
-    this.canvas.renderAll();
-  }
-  
-  undo() {
-    this.canvas.remove(this.element);
-    this.canvas.renderAll();
-  }
+	canvas: Canvas;
+	element: FabricObject;
+
+	constructor(canvas: Canvas, element: FabricObject) {
+		super();
+		this.canvas = canvas;
+		this.element = element;
+		if (!this.canvas) return;
+	}
+
+	execute() {
+		if (!this.canvas) return;
+		this.canvas.add(this.element);
+		this.canvas.renderAll();
+	}
+
+	undo() {
+		if (!this.canvas) return;
+		this.canvas.remove(this.element);
+		this.canvas.renderAll();
+	}
 }
 
 export class TransformCommand extends Command {
-  constructor(object, newProperties) {
-    super();
-    this.object = object;
-    this.newProperties = newProperties;
-    this.oldProperties = {};
-    
-    // Store original properties
-    Object.keys(newProperties).forEach(key => {
-      this.oldProperties[key] = object[key];
-    });
-  }
-  
-  execute() {
-    this.object.set(this.newProperties);
-    this.object.canvas?.renderAll();
-  }
-  
-  undo() {
-    this.object.set(this.oldProperties);
-    this.object.canvas?.renderAll();
-  }
+	object: FabricObject;
+	newProperties: any;
+	oldProperties: any;
+
+	constructor(object: FabricObject, newProperties: any) {
+		super();
+		this.object = object;
+		this.newProperties = newProperties;
+		this.oldProperties = {};
+
+		// Store original properties
+		Object.keys(newProperties).forEach((key) => {
+			this.oldProperties[key] = (object as any)[key];
+		});
+	}
+
+	execute() {
+		this.object.set(this.newProperties);
+		(this.object as any).canvas?.renderAll();
+	}
+
+	undo() {
+		this.object.set(this.oldProperties);
+		(this.object as any).canvas?.renderAll();
+	}
 }
 
 export class MacroCommand extends Command {
-  constructor(commands = []) {
-    super();
-    this.commands = commands;
-  }
-  
-  execute() {
-    this.commands.forEach(cmd => cmd.execute());
-  }
-  
-  undo() {
-    for (let i = this.commands.length - 1; i >= 0; i--) {
-      this.commands[i].undo();
-    }
-  }
-  
-  addCommand(command) {
-    this.commands.push(command);
-  }
+	commands: Command[];
+
+	constructor(commands: Command[] = []) {
+		super();
+		this.commands = commands;
+	}
+
+	execute() {
+		this.commands.forEach((cmd: Command) => cmd.execute());
+	}
+
+	undo() {
+		for (let i = this.commands.length - 1; i >= 0; i--) {
+			this.commands[i].undo();
+		}
+	}
+
+	addCommand(command: Command) {
+		this.commands.push(command);
+	}
 }
