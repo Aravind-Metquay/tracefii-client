@@ -1,9 +1,8 @@
 <script lang="ts">
   import { fade, fly } from 'svelte/transition';
 
-  // Props now include `children` for the new render tag syntax.
   let {
-    children, // The default snippet passed from the parent
+    children,
     open = $bindable(false),
     position = 'right' as 'top' | 'bottom' | 'left' | 'right',
     size = '320px',
@@ -11,6 +10,7 @@
     closeOnOutsideClick = true,
     closeOnEscape = true,
     preventScroll = true,
+    nonModal = false,
     ariaLabel = 'Drawer',
     ariaDescribedBy = undefined as string | undefined,
     onOpen = () => {},
@@ -19,8 +19,6 @@
     onCloseComplete = () => {},
   } = $props();
 
-  // State, Derived State, and Effects remain the same as they are part of the component's logic,
-  // not its template syntax.
   let drawerElement = $state<HTMLElement | null>(null);
   let isTransitioning = $state(false);
   let previouslyFocusedElement = $state<Element | null>(null);
@@ -33,7 +31,6 @@
 
   const isVertical = $derived(position === 'top' || position === 'bottom');
   const transformAxis = $derived(isVertical ? 'y' : 'x');
-  const transformDirection = $derived(position === 'bottom' || position === 'right' ? 1 : -1);
 
   const drawerStyleString = $derived(`
     position: fixed;
@@ -55,15 +52,17 @@
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   `);
-  
+
   $effect(() => {
     if (typeof window === 'undefined') return;
 
     if (open) {
-      // OPEN LOGIC
       previouslyFocusedElement = document.activeElement;
       isTransitioning = true;
-      if (preventScroll) lockScroll();
+
+      if (preventScroll && !nonModal) {
+        lockScroll();
+      }
       onOpen();
 
       const openTimeout = setTimeout(() => {
@@ -74,9 +73,11 @@
 
       return () => {
         clearTimeout(openTimeout);
-        // CLOSE LOGIC
         isTransitioning = true;
-        if (preventScroll) restoreScroll();
+
+        if (preventScroll && !nonModal) {
+          restoreScroll();
+        }
         onClose();
 
         setTimeout(() => {
@@ -89,8 +90,6 @@
       };
     }
   });
-
-  // --- Helper Functions (unchanged) ---
 
   function lockScroll() {
     const outer = document.createElement('div');
@@ -136,7 +135,7 @@
       open = false;
     }
 
-    if (event.key === 'Tab') {
+    if (event.key === 'Tab' && !nonModal) {
       const focusable = Array.from(drawerElement?.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS) ?? []);
       if (focusable.length === 0) return;
       
@@ -161,7 +160,7 @@
 
   function getTransitionParams() {
     return {
-      [transformAxis]: 100,
+      [transformAxis]: position === 'right' || position === 'bottom' ? 100 : -100,
       duration,
       opacity: 1
     };
@@ -171,23 +170,25 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-  <div
-    class="drawer-backdrop"
-    onclick={handleBackdropClick}
-    transition:fade={{ duration: duration / 2 }}
-    style="
-      position: fixed;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 40;
-    "
-  ></div>
+  {#if !nonModal}
+    <div
+      class="drawer-backdrop"
+      onclick={handleBackdropClick}
+      transition:fade={{ duration: duration / 2 }}
+      style="
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+      "
+    ></div>
+  {/if}
   
   <div
     bind:this={drawerElement}
     class="drawer"
     role="dialog"
-    aria-modal="true"
+    aria-modal={!nonModal}
     aria-label={ariaLabel}
     aria-describedby={ariaDescribedBy}
     tabindex="-1"
@@ -203,10 +204,10 @@
     outline: none;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    will-change: transform;
+    will-change: transform; 
   }
   .drawer:focus-visible {
-    outline: 2px solid #3b82f6; /* Tailwind's blue-500 */
+    outline: 2px solid #3b82f6; 
     outline-offset: -2px;
   }
   @media (prefers-reduced-motion: reduce) {

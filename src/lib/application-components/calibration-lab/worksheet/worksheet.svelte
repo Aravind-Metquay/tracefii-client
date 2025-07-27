@@ -13,6 +13,6 @@
 
 <button onclick={()=>open = true}>OPen</button>
 <!-- <Editor /> -->
-<Drawer bind:open={open} position="bottom">
+<Drawer bind:open={open} position="bottom" nonModal={true}>
   <ExpressionEditor />
 </Drawer>
