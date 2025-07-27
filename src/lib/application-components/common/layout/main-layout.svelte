@@ -31,7 +31,7 @@
 		class="mb-4 flex cursor-pointer items-center justify-between border-b px-1 hover:bg-gray-100"
 	>
 		<div class="flex items-center gap-2 p-3">
-			<div class="flex h-7 w-7 items-center justify-center rounded-md bg-slate-800 text-white">
+			<div class="flex h-8 w-7 items-center justify-center rounded-md bg-slate-800 text-white">
 				<Command size={16} />
 			</div>
 			<span class="text-md font-semibold">Tracefii</span>
