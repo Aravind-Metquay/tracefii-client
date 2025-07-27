@@ -1,19 +1,17 @@
-<script lang='ts'>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import Button from '@/components/button/button.svelte';
 	import Input from '@/components/input/input.svelte';
-	import { auth , login } from '@/svelte-auth0';
+	import { auth, login } from '@/svelte-auth0';
 
 	let email = $state('');
 	let password = $state('');
 
-	$effect(()=>{
-		if(auth.isLoading){
-			if(auth.isAuthenticated){
-				goto('/dashboard')
-			}
+	$effect(() => {
+		if (!auth.isLoading && auth.isAuthenticated) {
+			goto('/dashboard');
 		}
-	})
+	});
 </script>
 
 <div class="flex h-full w-full items-center justify-center bg-gray-50">
