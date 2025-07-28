@@ -1,4 +1,5 @@
 <script>
+	import GridTable from "@/application-components/common/grid-table/grid-table.svelte";
 	import Button from "@/components/button/button.svelte";
 	import Tooltip from "@/components/tooltip/tooltip.svelte";
 	import { Building2, EllipsisVertical, Info } from "@lucide/svelte";
@@ -15,7 +16,7 @@
             </Tooltip>
         </div>
         <div>
-            <Button variant="tertiary" size="tiny">
+            <Button variant="secondary" size="tiny">
                 <EllipsisVertical size="16" />
             </Button>
         </div>
@@ -23,7 +24,11 @@
     <div class="h-8 border-b">
 
     </div>
-    <div class="h-12 border-b">
-
+    <div class="h-12 flex items-center gap-2 p-2">
+        <Button size="small" variant="secondary">Sort</Button>
+        <Button size="small" variant="secondary">Filter</Button>
+    </div>
+    <div>
+        <GridTable />
     </div>
 </main>
