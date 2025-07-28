@@ -33,10 +33,12 @@ export function createClipboard({ canvas }: ClipboardOptions) {
 			if (cloned.type === 'activeSelection') {
 				(cloned as ActiveSelection).canvas = canvas;
 				(cloned as ActiveSelection).forEachObject((obj: FabricObject) => {
+					console.log("DEBUG: An object is being added from clipboard.svelte.ts inside store from function paste if condition if (cloned.type === 'activeSelection') ");
 					canvas.add(obj);
 				});
 				(cloned as ActiveSelection).setCoords();
 			} else {
+				console.log("DEBUG: An object is being added from clipboard.svelte.ts inside store from function paste else condition");
 				canvas.add(cloned);
 			}
 			canvas.setActiveObject(cloned);

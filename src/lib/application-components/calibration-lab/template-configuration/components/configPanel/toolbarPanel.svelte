@@ -12,14 +12,23 @@
 	}
 
 	function duplicate() {
-		if (editor?.onCopy && editor?.onPaste) {
-			editor.onCopy();
-			editor.onPaste();
-		}
+		
+		 editor?.simpleDuplicate?.();
 	}
 
 	function deleteElement() {
-		if (editor?.delete) editor.delete();
+	
+		
+		
+		if (editor?.deleteSelected)
+		{
+			editor.deleteSelected();
+			console.log('Element deleted');
+		} 
+		else {
+			console.log('Delete function not available in editor');
+			alert('Delete function is not available in the editor.');
+		}
 	}
 </script>
 

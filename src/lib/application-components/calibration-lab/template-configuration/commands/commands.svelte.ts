@@ -11,6 +11,7 @@ export class Command {
 }
 
 export class AddElementCommand extends Command {
+	
 	canvas: Canvas;
 	element: FabricObject;
 
@@ -22,9 +23,15 @@ export class AddElementCommand extends Command {
 	}
 
 	execute() {
+		// debugger;
 		if (!this.canvas) return;
+		console.log("DEBUG: An object is being added from commands.svelte.ts class AddElementCommand that extends Command class");
 		this.canvas.add(this.element);
-		this.canvas.renderAll();
+		this.canvas.setActiveObject(this.element);
+		// this.canvas.renderAll();
+		 setTimeout(() => {
+        this.canvas?.renderAll();
+    }, 0);
 	}
 
 	undo() {
@@ -83,4 +90,32 @@ export class MacroCommand extends Command {
 	addCommand(command: Command) {
 		this.commands.push(command);
 	}
+}
+
+export class DeleteElementCommand implements Command {
+    private canvas: Canvas;
+    private objectsToRemove: FabricObject[];
+
+    constructor(canvas: Canvas, objects: FabricObject[]) {
+        this.canvas = canvas;
+        // Clone the objects to keep a record for the undo action
+        this.objectsToRemove = objects.map(o => o); 
+    }
+
+    execute(): void {
+        console.log("Executing DeleteElementCommand...");
+        this.objectsToRemove.forEach(obj => {
+            this.canvas.remove(obj);
+        });
+        this.canvas.discardActiveObject();
+        this.canvas.renderAll();
+    }
+
+    undo(): void {
+        console.log("Undoing DeleteElementCommand...");
+        this.objectsToRemove.forEach(obj => {
+            this.canvas.add(obj);
+        });
+        this.canvas.renderAll();
+    }
 }

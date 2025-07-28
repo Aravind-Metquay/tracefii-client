@@ -90,6 +90,7 @@ function drawGuide(side: string, pos: number, obj: FabricObject): void {
 	}
 
 	obj.guides[side] = ln;
+	console.log("DEBUG: An object is being added from fabric-smart-objects drawGuide function");
 	canvas.add(ln);
 	canvas.renderAll();
 }
@@ -479,6 +480,7 @@ export class SmartObjectSnapping {
 		}
 
 		obj.guides[side] = line;
+		console.log("DEBUG: An object is being added from fabric-smart-object.ts private drawGuide function");
 		this.canvas.add(line);
 		this.canvas.renderAll();
 	}
@@ -614,6 +616,7 @@ export class SnappyRect extends FabricObject {
 		}
 
 		this.guides[side] = ln;
+		console.log("DEBUG: An object is being added from fabric-smart-object.ts _drawGuide inside SnappyRect that extends FabricObject");
 		this.canvas.add(ln);
 	}
 }

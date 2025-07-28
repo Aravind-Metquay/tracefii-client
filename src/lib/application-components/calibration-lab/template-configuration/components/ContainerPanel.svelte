@@ -129,7 +129,7 @@
 	<div class="space-y-6 p-4">
 		<CircleArrowLeft class="h-7 w-7 flex-shrink-0 cursor-pointer text-black " />
 
-		<!-- <h1 class="text-2xl font-semibold">Untitled Design</h1> -->
+		
 		 {#if isEditing}
   			<input
     			type="text"

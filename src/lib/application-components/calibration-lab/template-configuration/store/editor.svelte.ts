@@ -9,10 +9,11 @@ import {
 	Polygon,
 	Point,
 	Shadow,
-	Line
+	Line,
+	 ActiveSelection 
 } from 'fabric';
 import { createHistory } from './history.svelte';
-import { AddElementCommand } from '../commands/commands.svelte';
+import { AddElementCommand,DeleteElementCommand } from '../commands/commands.svelte';
 import JsBarcode from 'jsbarcode';
 import * as QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
@@ -31,6 +32,9 @@ import {
 	TRIANGLE_OPTIONS,
 	type TextboxPosition
 } from '../lib/types';
+
+// import * as fabric from 'fabric'
+
 // ================================
 // Type Extensions
 // ================================
@@ -85,6 +89,8 @@ interface EditorOptions {
 	lockWorkspaceBounds?: boolean;
 }
 
+
+let isDeletingInternally = false;
 // ================================
 // Utility Functions
 // ================================
@@ -141,10 +147,13 @@ export function createEditor(options: EditorOptions = {}) {
 	let fillColor = $state(options.fillColor || FILL_COLOR);
 	let workspaceSize = $state({ width: 600, height: 600 });
 
+
+
 	// Composables
 	const history = createHistory({
 		canvas,
-		saveCallback: options.saveCallback
+		saveCallback: options.saveCallback,
+		//  onStateLoaded: refreshEditorState
 	});
 
 	const clipboard = createClipboard({ canvas });
@@ -279,6 +288,26 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.setViewportTransform(vpt);
 	}
 
+	function refreshEditorState(): void {
+    if (!canvas) return;
+    
+    // Update selectedObjects based on current canvas state
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        if (activeObject.type === 'activeSelection') {
+            selectedObjects = (activeObject as any).getObjects() || [];
+        } else {
+            selectedObjects = [activeObject];
+        }
+    } else {
+        selectedObjects = [];
+    }
+    
+    // Re-trigger any reactive updates
+    canvas.renderAll();
+}
+
+
 	// ================================
 	// Canvas Initialization
 	// ================================
@@ -300,7 +329,7 @@ export function createEditor(options: EditorOptions = {}) {
 			// The 'canvas' variable now exists, so we can attach listeners.
 			// ==================================================================
 			canvas.on('selection:created', (e) => {
-				if (e.selected) {
+				if (e.selected ) {
 					selectedObjects = e.selected;
 				}
 			});
@@ -312,7 +341,7 @@ export function createEditor(options: EditorOptions = {}) {
 			});
 
 			canvas.on('selection:cleared', () => {
-				selectedObjects = [];
+					selectedObjects = [];
 			});
 			// ==================================================================
 
@@ -344,7 +373,8 @@ export function createEditor(options: EditorOptions = {}) {
 					offsetY: 2
 				})
 			});
-
+			
+			console.log("DEBUG: An object is being added from editor.svelte.ts inside initialize Canvas function");
 			canvas.add(workspace);
 			canvas.centerObject(workspace);
 
@@ -392,7 +422,10 @@ export function createEditor(options: EditorOptions = {}) {
 			enableSnapping();
 
 			canvas.requestRenderAll();
-			history.save();
+			//  history.save();
+			  setTimeout(() => {
+            history.init();
+        }, 0);
 
 			return canvas;
 		} catch (error) {
@@ -431,6 +464,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 	function addToCanvas(object: FabricObject): void {
 		if (!canvas) return;
+		console.log("DEBUG: An object is being added from editor.svelte.ts inside addtto canvas function");
 		canvas.add(object);
 		center(object);
 		canvas.setActiveObject(object);
@@ -487,7 +521,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 			const command = new AddElementCommand(canvas, textObj);
 			history.execute(command);
-			addToCanvas(textObj);
+			// addToCanvas(textObj);
 		} catch (error) {
 			console.error('Failed to add text:', error);
 		}
@@ -522,7 +556,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 			const command = new AddElementCommand(canvas, dateText);
 			history.execute(command);
-			addToCanvas(dateText);
+			// addToCanvas(dateText);
 		} catch (error) {
 			console.error('Failed to add date:', error);
 		}
@@ -674,6 +708,75 @@ export function createEditor(options: EditorOptions = {}) {
 		}
 	}
 
+
+
+async function simpleDuplicate(): Promise<void> {
+    if (!canvas || selectedObjects.length === 0) {
+        return;
+    }
+
+    const originalObject = selectedObjects[0];
+
+    // Case 1: Handle Textbox and Date objects (this part is correct)
+    if (originalObject.type === 'textbox') {
+        const originalTextbox = originalObject as Textbox;
+        let newObject: Textbox;
+
+        if (originalTextbox.customType === 'date') {
+            newObject = new Textbox(originalTextbox.text || '', {
+                left: (originalTextbox.left ?? 0) + 20,
+                top: (originalTextbox.top ?? 0) + 20,
+                fill: originalTextbox.fill,
+                fontSize: originalTextbox.fontSize,
+                fontFamily: originalTextbox.fontFamily,
+                customType: originalTextbox.customType,
+                customDateValue: originalTextbox.customDateValue,
+                customDateFormat: originalTextbox.customDateFormat,
+            });
+        } else {
+            newObject = new Textbox(originalTextbox.text || 'copy', {
+                left: (originalTextbox.left ?? 0) + 20,
+                top: (originalTextbox.top ?? 0) + 20,
+                fill: originalTextbox.fill,
+                fontSize: originalTextbox.fontSize,
+                fontFamily: originalTextbox.fontFamily,
+                fontWeight: originalTextbox.fontWeight,
+                fontStyle: originalTextbox.fontStyle,
+                underline: originalTextbox.underline,
+                styles: JSON.parse(JSON.stringify(originalTextbox.styles || {})),
+            });
+        }
+        canvas.add(newObject);
+        canvas.setActiveObject(newObject);
+        
+    // ✅ Case 2: CORRECTED logic for Image objects
+    } else if (originalObject.type === 'image') {
+        const originalImage = originalObject as FabricImage;
+        
+        // Use await directly and pass the options object as the second argument
+        const newImage = await FabricImage.fromURL(originalImage.getSrc(), { 
+            crossOrigin: 'anonymous' 
+        });
+
+        // Copy the essential properties
+        newImage.set({
+            left: (originalImage.left ?? 0) + 20,
+            top: (originalImage.top ?? 0) + 20,
+            angle: originalImage.angle,
+            scaleX: originalImage.scaleX,
+            scaleY: originalImage.scaleY,
+        });
+        
+        canvas.add(newImage);
+        canvas.setActiveObject(newImage);
+
+    } else {
+        console.warn(`Simple duplicate is not yet implemented for type: "${originalObject.type}"`);
+        return;
+    }
+
+    canvas.renderAll();
+}
 	// ================================
 	// Object Snapping System
 	// ================================
@@ -769,6 +872,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const guide = createSnapGuide(type, position);
 		snapGuides.push(guide);
+		console.log("DEBUG: An object is being added from editor.svelte.ts inside showSnapGuide function");
 		canvas.add(guide);
 	}
 
@@ -1012,7 +1116,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		// addToCanvas(object);
 	}
 
 	function addRectangle(): void {
@@ -1025,7 +1129,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		// addToCanvas(object);
 	}
 
 	function addSoftRectangle(): void {
@@ -1040,7 +1144,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		// addToCanvas(object);
 	}
 
 	function addTriangle(): void {
@@ -1053,7 +1157,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		// addToCanvas(object);
 	}
 
 	function addInverseTriangle(): void {
@@ -1076,7 +1180,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		// addToCanvas(object);
 	}
 
 	function addDiamond(): void {
@@ -1100,7 +1204,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		// addToCanvas(object);
 	}
 
 	// ================================
@@ -1132,7 +1236,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, img);
 		history.execute(command);
-		addToCanvas(img);
+		// addToCanvas(img);
 	}
 
 	async function addBarcode(): Promise<void> {
@@ -1177,7 +1281,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, img);
 		history.execute(command);
-		addToCanvas(img);
+		// addToCanvas(img);
 	}
 
 	// Replacing previouys QRCODE
@@ -1187,6 +1291,7 @@ export function createEditor(options: EditorOptions = {}) {
 		// The calling function is responsible for setting the new object's properties.
 		// This function just performs the swap on the canvas.
 		canvas.remove(oldObject);
+		console.log("DEBUG: An object is being added from editor.svelte.ts inside editor.svelte inside replaceObject function");
 		canvas.add(newObject);
 		canvas.setActiveObject(newObject);
 		canvas.requestRenderAll();
@@ -1229,7 +1334,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 				const command = new AddElementCommand(canvas, image);
 				history.execute(command);
-				addToCanvas(image);
+				// addToCanvas(image);
 			} catch (err) {
 				console.error('Failed to load image:', err);
 			}
@@ -1360,17 +1465,23 @@ export function createEditor(options: EditorOptions = {}) {
 	// Selection and Deletion
 	// ================================
 
-	function deleteSelected(): void {
-		if (!canvas) return;
 
-		canvas.getActiveObjects().forEach((object) => {
-			if (canvas) canvas.remove(object);
-		});
+	
 
-		canvas.discardActiveObject();
-		canvas.renderAll();
-		history.save();
-	}
+function deleteSelected(): void {
+    if (!canvas || selectedObjects.length === 0) {
+        return;
+    }
+
+    // Create an instance of our new command with the selected objects
+    const command = new DeleteElementCommand(canvas, selectedObjects);
+
+    // Tell the history system to execute it
+    history.execute(command);
+    
+    // Clear the local selection state
+    selectedObjects = [];
+}
 
 	// ================================
 	// Zoom Operations
@@ -1674,6 +1785,53 @@ export function createEditor(options: EditorOptions = {}) {
 		return true;
 	}
 
+	canvas?.on('after:render', () => {
+    // Ensure workspace stays in the back and maintains its properties
+    const workspace = getWorkspace();
+    if (workspace) {
+        workspace.set({
+            selectable: false,
+            hasControls: false,
+            hoverCursor: 'default',
+            moveCursor: 'default'
+        });
+    }
+});
+
+function refreshSelectionState() {
+    if (!canvas) return;
+    
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        if (activeObject.type === 'activeSelection') {
+            selectedObjects = (activeObject as any).getObjects() || [];
+        } else {
+            selectedObjects = [activeObject];
+        }
+    } else {
+        selectedObjects = [];
+    }
+}
+
+
+const originalUndo = history.undo;
+const originalRedo = history.redo;
+
+history.undo = () => {
+    originalUndo();
+    // Small delay to let canvas finish loading
+    setTimeout(() => {
+        refreshSelectionState();
+    }, 10);
+};
+
+history.redo = () => {
+    originalRedo();
+    // Small delay to let canvas finish loading  
+    setTimeout(() => {
+        refreshSelectionState();
+    }, 10);
+};
 	// ================================
 	// Public API
 	// ================================
@@ -1694,6 +1852,9 @@ export function createEditor(options: EditorOptions = {}) {
 		get selectedObjects() {
 			return selectedObjects;
 		},
+
+
+		
 		get zoom() {
 			return zoom;
 		},
@@ -1723,6 +1884,8 @@ export function createEditor(options: EditorOptions = {}) {
 		},
 
 		// Functions
+
+	
 		get initializeCanvas() {
 			return initializeCanvas;
 		},
@@ -1810,6 +1973,15 @@ export function createEditor(options: EditorOptions = {}) {
 		get deleteSelected() {
 			return deleteSelected;
 		},
+
+
+		get simpleDuplicate() {
+        return simpleDuplicate;
+    },
+		 get history() {
+        	return history;
+    },
+
 		get setZoom() {
 			return setZoom;
 		},
@@ -1924,9 +2096,7 @@ export function createEditor(options: EditorOptions = {}) {
 		get canRedo() {
 			return history.canRedo;
 		},
-		get history() {
-			return history;
-		},
+		
 		get updateObjectSize() {
 			return updateObjectSize;
 		}
