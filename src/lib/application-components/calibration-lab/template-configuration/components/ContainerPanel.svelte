@@ -22,6 +22,11 @@
 		editor
 	}: Props = $props();
 
+	let title: string = $state('Untitled Design');
+  	let isEditing: boolean = $state(false);
+	let inputElement: HTMLInputElement | null = $state(null);
+
+
 	function handleTypeChange(type: TemplateType) {
 		selectedType = type;
 		onTypeChange?.(type);
@@ -101,6 +106,18 @@
 		);
 	}
 
+	 $effect(() => {
+   			 if (isEditing) {
+      				inputElement?.focus();
+    		}
+ 	 });
+
+  function handleSave() {
+    isEditing = false;
+   
+    console.log('Title saved:', title);
+  }
+
 	$effect(() => {
 		if (dimensions.width && dimensions.height && unit) {
 			handleDimensionChange();
@@ -112,7 +129,24 @@
 	<div class="space-y-6 p-4">
 		<CircleArrowLeft class="h-7 w-7 flex-shrink-0 cursor-pointer text-black " />
 
-		<h1 class="text-2xl font-semibold">Untitled Design</h1>
+		<!-- <h1 class="text-2xl font-semibold">Untitled Design</h1> -->
+		 {#if isEditing}
+  			<input
+    			type="text"
+    			 bind:this={inputElement}
+				 bind:value={title}
+    			onblur={handleSave}
+    			onkeydown={(e) => e.key === 'Enter' && handleSave()}
+    		class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-2xl font-semibold placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+  			/>
+		{:else}
+  		<h1 
+   			 onclick={() => (isEditing = true)} 
+    			 class="text-2xl font-semibold cursor-pointer"
+  		>
+    {title}
+  </h1>
+{/if}
 
 		<div class="space-y-4">
 			<!-- Type Selection -->
