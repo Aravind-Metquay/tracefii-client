@@ -540,41 +540,144 @@ export function createEditor(options: EditorOptions = {}) {
 		return cleanOptions;
 	}
 
-	function addText(text = 'Text', textOptions = {}): void {
-		if (!canvas) return;
+	// function addText(text = 'Text', textOptions = {}): void {
+	// 	if (!canvas) return;
 
-		try {
-			// Sanitize textOptions to remove problematic read-only properties
-			const cleanTextOptions = sanitizeFabricOptions(textOptions);
+	// 	try {
+	// 		// Sanitize textOptions to remove problematic read-only properties
+	// 		const cleanTextOptions = sanitizeFabricOptions(textOptions);
 
-			// Base options for the textbox
-			const baseOptions = {
-				left: 100,
-				top: 100,
-				fill: fillColor,
-				fontFamily: fontFamily,
-				fontSize: FONT_SIZE,
-				fontWeight: FONT_WEIGHT,
-				width: 200,
-				height: 50
-			};
+	// 		// Base options for the textbox
+	// 		const baseOptions = {
+	// 			left: 100,
+	// 			top: 100,
+	// 			fill: fillColor,
+	// 			fontFamily: fontFamily,
+	// 			fontSize: FONT_SIZE,
+	// 			fontWeight: FONT_WEIGHT,
+	// 			width: 200,
+	// 			height: 50
+	// 		};
 
-			// Create the textbox
-			const textObj = new Textbox(text, {
-				...baseOptions,
-				...cleanTextOptions
-			});
+	// 		// Create the textbox
+	// 		const textObj = new Textbox(text, {
+	// 			...baseOptions,
+	// 			...cleanTextOptions
+	// 		});
 
-			// Set custom properties directly instead of using Object.assign
-			textObj.variableValues = (window as any).variableValues || {};
+	// 		// Set custom properties directly instead of using Object.assign
+	// 		textObj.variableValues = (window as any).variableValues || {};
 
-			const command = new AddElementCommand(canvas, textObj);
-			history.execute(command);
-			// addToCanvas(textObj);
-		} catch (error) {
-			console.error('Failed to add text:', error);
-		}
-	}
+	// 		const command = new AddElementCommand(canvas, textObj);
+	// 		history.execute(command);
+	// 		// addToCanvas(textObj);
+	// 	} catch (error) {
+	// 		console.error('Failed to add text:', error);
+	// 	}
+	// }
+
+function addText(text = 'Text', textOptions = {}): void {
+    if (!canvas) return;
+
+    try {
+        const cleanTextOptions = sanitizeFabricOptions(textOptions);
+
+        const baseOptions = {
+            left: 100,
+            top: 100,
+            fill: fillColor,
+            fontFamily: fontFamily,
+            fontSize: FONT_SIZE,
+            fontWeight: FONT_WEIGHT,
+            width: 200, // Initial width
+            // Prevent skewing by disabling non-uniform scaling
+            lockUniScaling: false, // Allow non-uniform scaling but handle it properly
+            noScaleCache: false,
+            objectCaching: false
+        };
+
+        const textObj = new Textbox(text, {
+            ...baseOptions,
+            ...cleanTextOptions
+        });
+
+        // Store original dimensions for calculations
+        let originalWidth = textObj.width || 200;
+        let originalFontSize = textObj.fontSize || FONT_SIZE;
+        let isScaling = false;
+
+        // ✅ FIXED: Proper handling of text scaling without skewing
+        textObj.on('scaling', function (this: Textbox) {
+            if (isScaling) return; // Prevent recursive calls
+            isScaling = true;
+
+            // Calculate the scale factors
+            const scaleX = this.scaleX || 1;
+            const scaleY = this.scaleY || 1;
+
+            // Update width based on horizontal scaling
+            if (this.width) {
+                this.set('width', originalWidth * scaleX);
+            }
+
+            // Update font size based on vertical scaling
+            if (this.fontSize) {
+                this.set('fontSize', originalFontSize * scaleY);
+            }
+
+            // Reset scale factors to prevent distortion
+            this.set({
+                scaleX: 1,
+                scaleY: 1
+            });
+
+            // Update original values for next scaling operation
+            originalWidth = this.width || originalWidth;
+            originalFontSize = this.fontSize || originalFontSize;
+
+            // Force canvas refresh
+            this.setCoords();
+            canvas?.renderAll();
+            
+            isScaling = false;
+        });
+
+        // Alternative approach: Use 'modified' event for cleaner handling
+        textObj.on('modified', function (this: Textbox) {
+            // This fires after scaling is complete
+            if (this.scaleX !== 1 || this.scaleY !== 1) {
+                const scaleX = this.scaleX || 1;
+                const scaleY = this.scaleY || 1;
+
+                // Apply scaling to properties instead of transform
+                if (this.width) {
+                    this.set('width', this.width * scaleX);
+                }
+                if (this.fontSize) {
+                    this.set('fontSize', this.fontSize * scaleY);
+                }
+
+                // Reset scale
+                this.set({
+                    scaleX: 1,
+                    scaleY: 1
+                });
+
+                this.setCoords();
+                canvas?.renderAll();
+            }
+        });
+
+        // Store variable values
+        textObj.variableValues = (window as any).variableValues || {};
+        
+        const command = new AddElementCommand(canvas, textObj);
+        history.execute(command);
+        
+    } catch (error) {
+        console.error('Failed to add text:', error);
+    }
+}
 
 	function addDate(): void {
 		if (!canvas) return;

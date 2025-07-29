@@ -17,7 +17,10 @@ export class AppState {
 		defaultState: this.uiState.defaultState,
 		defaultWidth: 800,
 		defaultHeight: 400,
-		saveCallback: () => console.log('Saved'),
+		saveCallback: () =>{ 
+			console.log('Saved');
+		
+		},
 		clearSelectionCallback: () => console.log('Selection cleared')
 	});
 
@@ -54,23 +57,30 @@ export class AppState {
 	setDefaultState = (state: string): void => {
 		this.uiState.defaultState = state;
 	};
+	saveStateToLocalStorage = (): void => {
+    if (!this.editor.canvas) return;
+    const json = JSON.stringify(this.editor.canvas.toJSON());
+    localStorage.setItem('canvasState', json);
+    console.log('State saved to Local Storage.');
+};
 
 	loadState = (json: string): void => {
-		const canvas = this.editor.canvas;
-		const autoZoom = this.editor.autoZoom;
-		const canvasHistory = this.editor.history.canvasHistory;
-		const setHistoryIndex = this.editor.history.setHistoryIndex;
+    const canvas = this.editor.canvas;
+    const autoZoom = this.editor.autoZoom;
+    const history = this.editor.history; // Get the history object
 
-		if (!canvas) return;
-		const data = JSON.parse(json);
-		canvas.loadFromJSON(data, () => {
-			canvasHistory.update((history) => {
-				const currentState = JSON.stringify(canvas.toJSON());
-				return [currentState];
-			});
-			setHistoryIndex(0);
-			autoZoom();
-		});
-	};
+    if (!canvas) return;
+
+    const data = JSON.parse(json);
+    canvas.loadFromJSON(data, () => {
+        // 1. Reset the history stack
+        history.init();
+        // 2. Save the loaded state as the new initial state
+        history.save(); 
+        // 3. Perform auto-zoom
+        autoZoom();
+        console.log('State loaded and history has been reset.');
+    });
+};
 }
 export const appState = new AppState();
