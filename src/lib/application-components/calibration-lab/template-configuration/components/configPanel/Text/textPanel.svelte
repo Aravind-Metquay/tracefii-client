@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ColorPicker from 'svelte-awesome-color-picker';
 	import { colord, type Colord } from 'colord';
 	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
+	import { tick } from 'svelte';
 
 	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -19,9 +19,43 @@
 	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 32);
 	const fontFamily = $derived<string>(selectedObject?.fontFamily ?? 'Arial');
 	let textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
-	let color = $derived<Colord>(
-		colord(typeof selectedObject?.fill === 'string' ? selectedObject.fill : '#000000')
-	);
+	
+	// FIX: Use a reactive state variable instead of derived for color
+	let color = $state<Colord>(colord('#000000'));
+	
+	// Update color when selected object changes - more robust approach
+	$effect(() => {
+		const currentObject = editor?.selectedObjects?.[0] as ExtendedFabricObject;
+		console.log('Effect triggered - Current object:', currentObject);
+		console.log('Current object fill:', currentObject?.fill);
+		console.log('Current color state:', color.toHex());
+		
+		if (currentObject) {
+			// Get the fill color - handle different possible formats
+			let fillColor = '#000000'; // default
+			
+			if (typeof currentObject.fill === 'string') {
+				fillColor = currentObject.fill;
+			} else if (currentObject.fill && typeof currentObject.fill === 'object') {
+				// Handle gradient or pattern fills - use a default
+				fillColor = '#000000';
+			}
+			
+			console.log('Determined fill color:', fillColor);
+			
+			const newColor = colord(fillColor);
+			const newHex = newColor.toHex();
+			const currentHex = color.toHex();
+			
+			console.log('New hex:', newHex, 'Current hex:', currentHex);
+			
+			// Always update the color and force re-render when selection changes
+			if (newHex !== currentHex) {
+				console.log('Updating color from', currentHex, 'to', newHex);
+				color = newColor;
+			}
+		}
+	});
 
 	// Derived state for button variants with proper typing
 	let fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
@@ -88,6 +122,8 @@
 
 	function handleColorChange({ hex }: { hex: string | null }) {
 		if (hex) {
+			// Update the local color state
+			color = colord(hex);
 			editor?.changeFillColor?.(hex);
 			setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 		}
@@ -149,7 +185,15 @@
 
 	<div class="flex flex-col gap-1">
 		<label for="text-color" class="text-sm text-gray-700">Text Color</label>
-		<ColorPicker bind:color onInput={handleColorChange} />
+		<div class="flex items-center gap-2">
+			<input
+				type="color"
+				value={color.toHex()}
+				onchange={(e) => handleColorChange({ hex: (e.target as HTMLInputElement).value })}
+				class="w-12 h-8 rounded border border-gray-300 cursor-pointer"
+			/>
+			<span class="text-sm text-gray-600">{color.toHex().toUpperCase()}</span>
+		</div>
 	</div>
 
 	<div class="flex items-center gap-2">
