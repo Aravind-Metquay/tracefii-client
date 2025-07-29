@@ -16,7 +16,7 @@
 
 	// Derive all properties from the selected object with enhanced default handling
 	const textContent = $derived<string>(selectedObject?.text ?? '');
-	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 32);
+	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 24);
 	const fontFamily = $derived<string>(selectedObject?.fontFamily ?? 'Arial');
 	let textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
 	let color = $derived<Colord>(

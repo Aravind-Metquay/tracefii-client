@@ -172,10 +172,17 @@
 				<label for="background-color" class="block text-xs font-medium text-gray-600"
 					>Background Color</label
 				>
-				<div class="items-center gap-3 rounded-md p-2 text-xs">
-					<ColorPicker hex={rgbToHex(backgroundColor)} onInput={handleColorChange} />
+				<div class="items-center gap-3 rounded-md p-2 text-xs ">
+					<ColorPicker hex={rgbToHex(backgroundColor)} onInput={handleColorChange} 
+					   />
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+<style>
+/* Adding border to Color swatch in colorPicker */
+:global(.color.s-6XetcStkmAOZ) {
+  border: 1px solid #dbdbdb;
+}
+</style>

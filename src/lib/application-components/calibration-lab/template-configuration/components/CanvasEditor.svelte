@@ -7,7 +7,7 @@
 	let { editor, backgroundColor } = $props<{
 		editor: Editor;
 		backgroundColor: { r: number; g: number; b: number };
-	}>();	
+	}>();
 
 	let canvasElement = $state<HTMLCanvasElement | undefined>();
 	let containerElement = $state<HTMLDivElement | undefined>();
@@ -65,7 +65,7 @@
 	<div class="min-h-0 w-full flex-1">
 		<div
 			bind:this={containerElement}
-			class="relative flex h-full w-full items-center justify-center overflow-hidden"
+			class="relative flex h-full w-full items-center justify-center"
 		>
 			<!-- Canvas takes full container size -->
 			<canvas

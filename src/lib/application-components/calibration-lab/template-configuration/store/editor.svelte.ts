@@ -487,7 +487,6 @@ export function createEditor(options: EditorOptions = {}) {
 
 			const command = new AddElementCommand(canvas, textObj);
 			history.execute(command);
-			addToCanvas(textObj);
 		} catch (error) {
 			console.error('Failed to add text:', error);
 		}
@@ -522,7 +521,6 @@ export function createEditor(options: EditorOptions = {}) {
 
 			const command = new AddElementCommand(canvas, dateText);
 			history.execute(command);
-			addToCanvas(dateText);
 		} catch (error) {
 			console.error('Failed to add date:', error);
 		}
@@ -1132,7 +1130,6 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, img);
 		history.execute(command);
-		addToCanvas(img);
 	}
 
 	async function addBarcode(): Promise<void> {
@@ -1177,7 +1174,6 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, img);
 		history.execute(command);
-		addToCanvas(img);
 	}
 
 	// Replacing previouys QRCODE
@@ -1229,7 +1225,6 @@ export function createEditor(options: EditorOptions = {}) {
 
 				const command = new AddElementCommand(canvas, image);
 				history.execute(command);
-				addToCanvas(image);
 			} catch (err) {
 				console.error('Failed to load image:', err);
 			}
@@ -1549,14 +1544,15 @@ export function createEditor(options: EditorOptions = {}) {
 
 	function sendBackwards(): void {
 		if (!canvas) return;
-		canvas.getActiveObjects().forEach((object) => {
-			if (canvas) canvas.sendObjectBackwards(object);
-		});
-		if (canvas) canvas.renderAll();
 		const workspace = getWorkspace();
 		if (workspace && canvas) {
 			canvas.sendObjectToBack(workspace);
 		}
+		canvas.getActiveObjects().forEach((object) => {
+			if (canvas) canvas.sendObjectBackwards(object);
+		});
+		if (canvas) canvas.renderAll();
+		console.log(canvas._objects);
 	}
 
 	// ================================
