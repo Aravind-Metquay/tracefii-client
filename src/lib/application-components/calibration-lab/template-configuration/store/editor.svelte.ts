@@ -40,6 +40,13 @@ import {
 // ================================
 
 declare module 'fabric' {
+	 interface Canvas {
+
+		moveTo(object: FabricObject, index: number): this;
+        sendToBack(object: FabricObject): this;
+    bringForward(object: FabricObject, intersecting?: boolean): this;
+		sendBackwards(object: FabricObject, intersecting?: boolean): this;
+	}
 	interface FabricObject {
 		name?: string;
 		customType?: string;
@@ -90,7 +97,7 @@ interface EditorOptions {
 }
 
 
-let isDeletingInternally = false;
+// let isDeletingInternally = false;
 // ================================
 // Utility Functions
 // ================================
@@ -145,15 +152,33 @@ export function createEditor(options: EditorOptions = {}) {
 	let viewport = $state({ x: 0, y: 0 });
 	let fontFamily = $state(options.fontFamily || FONT_FAMILY);
 	let fillColor = $state(options.fillColor || FILL_COLOR);
-	let workspaceSize = $state({ width: 600, height: 600 });
+	let workspaceSize = $state({ width: 800, height: 800 });
+
+	function reapplyCanvasConfig() {
+		console.log('Applying simplified config after undo/redo...');
+		if (!canvas) return;
+
+		const workspace = getWorkspace();
+		if (workspace) {
+			// Make the workspace non-interactive so it doesn't block other objects.
+			// This is a safe alternative to moving it to the back.
+			workspace.set({ evented: false });
+			// Re-apply the clipping path.
+			canvas.clipPath = workspace;
+		} else {
+			console.error('Workspace not found after state load!');
+		}
+
+		refreshSelectionState();
+		canvas.renderAll();
+	}
 
 
 
-	// Composables
 	const history = createHistory({
-		canvas,
+		getCanvas: () => canvas,
 		saveCallback: options.saveCallback,
-		//  onStateLoaded: refreshEditorState
+		onStateLoaded: reapplyCanvasConfig
 	});
 
 	const clipboard = createClipboard({ canvas });
@@ -163,7 +188,7 @@ export function createEditor(options: EditorOptions = {}) {
 		redo: history.redo,
 		copy: clipboard.copy,
 		paste: clipboard.paste,
-		save: history.save,
+		save:() => history.save(['name']),
 		canvas
 	});
 
@@ -196,6 +221,20 @@ export function createEditor(options: EditorOptions = {}) {
 			| Rect
 			| undefined;
 	}
+
+	function refreshSelectionState() {
+ 		if (!canvas) return;
+ 		const activeObject = canvas.getActiveObject();
+ 		if (activeObject) {
+ 			if (activeObject.type === 'activeSelection') {
+ 				selectedObjects = (activeObject as ActiveSelection).getObjects() || [];
+ 			} else {
+ 				selectedObjects = [activeObject];
+ 			}
+ 		} else {
+ 			selectedObjects = [];
+ 		}
+ 	}
 
 	function constrainObjectToWorkspace(obj: FabricObject, workspace: Rect): void {
 		if (!obj || !workspace || obj === workspace) return;
@@ -308,6 +347,9 @@ export function createEditor(options: EditorOptions = {}) {
 }
 
 
+
+
+
 	// ================================
 	// Canvas Initialization
 	// ================================
@@ -319,7 +361,7 @@ export function createEditor(options: EditorOptions = {}) {
 		try {
 			// initializeVariableValues();
 			canvas = new Canvas(canvasElement, {
-				width: options.defaultWidth || 600,
+				width: options.defaultWidth || 800,
 				height: options.defaultHeight || 800,
 				renderOnAddRemove: true,
 				preserveObjectStacking: true,
@@ -364,6 +406,7 @@ export function createEditor(options: EditorOptions = {}) {
 				fill: 'white',
 				selectable: false,
 				hasControls: false,
+				evented: false,
 				hoverCursor: 'default',
 				moveCursor: 'default',
 				shadow: new Shadow({
@@ -378,11 +421,14 @@ export function createEditor(options: EditorOptions = {}) {
 			canvas.add(workspace);
 			canvas.centerObject(workspace);
 
-			if (options.lockWorkspaceBounds !== false) {
+			// if (options.lockWorkspaceBounds !== false) {
 				canvas.clipPath = workspace;
-			}
+			// }
 
 			canvas.backgroundColor = '#f8fafc';
+			canvas.on('selection:created', (e) => (selectedObjects = e.selected || []));
+		canvas.on('selection:updated', (e) => (selectedObjects = e.selected || []));
+		canvas.on('selection:cleared', () => (selectedObjects = []));
 
 			if (options.lockWorkspaceBounds !== false) {
 				setupWorkspaceBoundaryConstraints();
@@ -421,7 +467,7 @@ export function createEditor(options: EditorOptions = {}) {
 			// Initialize object snapping
 			enableSnapping();
 
-			canvas.requestRenderAll();
+			// canvas.requestRenderAll();
 			//  history.save();
 			  setTimeout(() => {
             history.init();
@@ -470,6 +516,9 @@ export function createEditor(options: EditorOptions = {}) {
 		canvas.setActiveObject(object);
 		canvas.renderAll();
 	}
+
+
+
 
 	// ================================
 	// Text and Date Operations
@@ -1295,7 +1344,7 @@ async function simpleDuplicate(): Promise<void> {
 		canvas.add(newObject);
 		canvas.setActiveObject(newObject);
 		canvas.requestRenderAll();
-		history.save(); // Save the state after replacement
+		history.save(['name']); // Save the state after replacement
 	}
 
 	// ================================
@@ -1531,7 +1580,7 @@ function deleteSelected(): void {
 				}
 			});
 			autoResize.autoZoom();
-			history.save();
+			history.save(['name']);
 		}
 	}
 
@@ -1541,7 +1590,7 @@ function deleteSelected(): void {
 		if (workspace) {
 			workspace.set({ fill: value });
 			canvas.renderAll();
-			history.save();
+			history.save(['name']);
 		}
 	}
 
@@ -1649,7 +1698,7 @@ function deleteSelected(): void {
 	function bringForward(): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
-			if (canvas) canvas.bringObjectForward(object);
+			if (canvas) canvas.bringForward(object);
 		});
 		if (canvas) canvas.renderAll();
 		const workspace = getWorkspace();
@@ -1661,7 +1710,7 @@ function deleteSelected(): void {
 	function sendBackwards(): void {
 		if (!canvas) return;
 		canvas.getActiveObjects().forEach((object) => {
-			if (canvas) canvas.sendObjectBackwards(object);
+			if (canvas) canvas.sendBackwards(object);
 		});
 		if (canvas) canvas.renderAll();
 		const workspace = getWorkspace();
@@ -1798,40 +1847,27 @@ function deleteSelected(): void {
     }
 });
 
-function refreshSelectionState() {
-    if (!canvas) return;
-    
-    const activeObject = canvas.getActiveObject();
-    if (activeObject) {
-        if (activeObject.type === 'activeSelection') {
-            selectedObjects = (activeObject as any).getObjects() || [];
-        } else {
-            selectedObjects = [activeObject];
-        }
-    } else {
-        selectedObjects = [];
-    }
-}
 
 
-const originalUndo = history.undo;
-const originalRedo = history.redo;
 
-history.undo = () => {
-    originalUndo();
-    // Small delay to let canvas finish loading
-    setTimeout(() => {
-        refreshSelectionState();
-    }, 10);
-};
+// const originalUndo = history.undo;
+// const originalRedo = history.redo;
 
-history.redo = () => {
-    originalRedo();
-    // Small delay to let canvas finish loading  
-    setTimeout(() => {
-        refreshSelectionState();
-    }, 10);
-};
+// history.undo = () => {
+//     originalUndo();
+//     // Small delay to let canvas finish loading
+//     setTimeout(() => {
+//         refreshSelectionState();
+//     }, 10);
+// };
+
+// history.redo = () => {
+//     originalRedo();
+//     // Small delay to let canvas finish loading  
+//     setTimeout(() => {
+//         refreshSelectionState();
+//     }, 10);
+// };
 	// ================================
 	// Public API
 	// ================================

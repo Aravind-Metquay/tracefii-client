@@ -46,7 +46,7 @@
 		if (editor?.history?.undo) {
 			editor.history.undo();
 			// Force render after undo
-			 editor.canvas?.requestRenderAll();
+			//  editor.canvas?.requestRenderAll();
 		}
 	}
 
@@ -54,7 +54,7 @@
 		if (editor?.history?.redo) {
 			editor.history.redo();
 			// Force render after redo
-			 editor.canvas?.requestRenderAll();
+			//  editor.canvas?.requestRenderAll();
 		}
 	}
 
