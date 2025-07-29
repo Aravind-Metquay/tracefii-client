@@ -102,7 +102,7 @@
 	];
 </script>
 
-	<div style="width: 100%; max-width: 85vw;" class='wx-material-theme text-sm overflow-x-scroll'>
+	<div style="width: 100%; max-width: 85vw;" class='wx-material-theme text-sm'>
 		<Grid {data} {columns} />
 	</div>
 

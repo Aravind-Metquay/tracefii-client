@@ -6,7 +6,6 @@
 		Mail,
 		Phone,
 		ChartBar,
-		Command
 	} from '@lucide/svelte';
 	import SidebarIcon from './sidebar-icon.svelte';
 
@@ -31,8 +30,8 @@
 		class="mb-4 flex cursor-pointer items-center justify-between border-b px-1 hover:bg-gray-100"
 	>
 		<div class="flex items-center gap-2 p-3">
-			<div class="flex h-8 w-7 items-center justify-center rounded-md bg-slate-800 text-white">
-				<Command size={16} />
+			<div class="flex h-8 w-7 items-center justify-center rounded-md">
+				<img class="rounded-md" src="https://static.wixstatic.com/media/bc33ce_f7ade799cadc4bdd93fb9e125e3b460e~mv2.png/v1/fill/w_192,h_192,lg_1,usm_0.66_1.00_0.01/bc33ce_f7ade799cadc4bdd93fb9e125e3b460e~mv2.png"/>
 			</div>
 			<span class="text-md font-semibold">Tracefii</span>
 		</div>

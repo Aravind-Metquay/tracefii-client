@@ -6,6 +6,11 @@
 </script>
 
 
+<svelte:head>
+    <title>Customers | All customers</title>
+    <meta name="description" content="A Svelte page">
+</svelte:head>
+
 <main class="w-full h-full">
     <div class="p-2 flex items-center justify-between border-b">
         <div class="flex items-center p-2 gap-2">
