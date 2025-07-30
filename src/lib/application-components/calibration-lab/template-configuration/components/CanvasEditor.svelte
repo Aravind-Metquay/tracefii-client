@@ -1,85 +1,54 @@
-<script lang="ts">
-	import type { Editor } from '../lib/types';
-	import Footer from './Footer.svelte';
-	import TextExpressions from './configPanel/Text/TextExpressions.svelte';
-	import DateExpressions from './configPanel/Date/DateExpressions.svelte';
+<script>
+	import { Button } from '@/components/ui/button';
+	import FabricCanvas from './FabricCanvas.svelte';
 
-	let { editor, backgroundColor } = $props<{
-		editor: Editor;
-		backgroundColor: { r: number; g: number; b: number };
-	}>();	
+	let { editor } = $props();
 
-	let canvasElement = $state<HTMLCanvasElement | undefined>();
-	let containerElement = $state<HTMLDivElement | undefined>();
-
-	function rgbToHex(rgb: { r: number; g: number; b: number }): string {
-		return (
-			'#' +
-			[rgb.r, rgb.g, rgb.b]
-				.map((x) => {
-					const hex = x.toString(16);
-					return hex.length === 1 ? '0' + hex : hex;
-				})
-				.join('')
-		);
+	function handleZoomIn() {
+		editor.setZoom(editor.zoom + 0.1);
 	}
 
-	$effect(() => {
-		if (!canvasElement || !containerElement) {
-			return;
-		}
+	function handleZoomOut() {
+		editor.setZoom(editor.zoom - 0.1);
+	}
 
-		// 2. Initialize the canvas via the editor if it hasn't been already.
-		if (!editor.canvas) {
-			console.log(' Initializing Fabric.js canvas...');
-			editor.initializeCanvas(canvasElement, containerElement);
-
-			// The autoZoom function from your editor handles initial fitting and centering.
-			// This is much cleaner than calculating zoom/pan manually here.
-			editor.autoZoom?.();
-		}
-
-		// 3. Update the background color. This runs on init and when the prop changes.
-		const hexColor = rgbToHex(backgroundColor);
-		editor.changeBackground(hexColor);
-
-		// 4. Set up the ResizeObserver to handle responsive resizing.
-		const resizeObserver = new ResizeObserver(() => {
-			// Let the editor's autoZoom function handle the resizing logic.
-			editor.autoZoom?.();
-		});
-
-		resizeObserver.observe(containerElement);
-
-		// 5. Return a cleanup function.
-		// This runs when the component is destroyed to prevent memory leaks.
-		return () => {
-			console.log('Cleaning up canvas editor...');
-			resizeObserver.disconnect();
-			// The editor itself can handle disposing the canvas if needed.
-		};
-	});
+	function handleZoomReset() {
+		editor.setZoom(1);
+	}
 </script>
 
-<div class="flex h-full w-full flex-col">
-	<div class="min-h-0 w-full flex-1">
-		<div
-			bind:this={containerElement}
-			class="relative flex h-full w-full items-center justify-center overflow-hidden"
-		>
-			<!-- Canvas takes full container size -->
-			<canvas
-				bind:this={canvasElement}
-				class="block max-h-full max-w-full"
-				style="
-					width: 100%; 
-					height: 100%; 
-					display: block;
-				"
-			></canvas>
-		</div>
-		<TextExpressions {editor} />
-		<DateExpressions {editor} />
+<div class="canvas-editor flex h-full flex-col">
+	<!-- Main canvas content -->
+	<div class="canvas-content flex-1">
+		<FabricCanvas {editor} />
 	</div>
-	<Footer {editor} />
+
+	<!-- Footer -->
+	<div
+		class="canvas-footer flex flex-wrap items-center justify-between gap-4 p-4"
+	>
+		<!-- Zoom Controls -->
+		<div class="zoom-controls flex items-center gap-2">
+			<Button onclick={handleZoomOut} size="sm">-</Button>
+			<span class="w-12 text-center text-sm">{Math.round(editor.zoom * 100)}%</span>
+			<Button onclick={handleZoomIn} size="sm">+</Button>
+			<Button onclick={handleZoomReset} size="sm" variant="outline">Reset</Button>
+		</div>
+
+		<!-- Undo/Redo Toolbar -->
+		<div class="main-toolbar flex items-center gap-2">
+			<Button onclick={editor.undo} disabled={!editor.canUndo} size="sm" variant="outline">
+				↶ Undo
+			</Button>
+			<Button onclick={editor.redo} disabled={!editor.canRedo} size="sm" variant="outline">
+				↷ Redo
+			</Button>
+		</div>
+
+		<!-- Export Buttons -->
+		<div class="export-controls flex items-center gap-2">
+			<Button onclick={editor.exportToPNG} size="sm" variant="outline">PNG</Button>
+			<Button onclick={editor.exportToJSON} size="sm" variant="outline">JSON</Button>
+		</div>
+	</div>
 </div>
