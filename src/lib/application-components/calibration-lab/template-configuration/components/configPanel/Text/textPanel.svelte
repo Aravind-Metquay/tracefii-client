@@ -1,89 +1,55 @@
 <script lang="ts">
+	import ColorPicker from 'svelte-awesome-color-picker';
 	import { colord, type Colord } from 'colord';
 	import type { Editor, ExtendedFabricObject } from '../../../lib/types';
-	import { tick } from 'svelte';
 
 	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 
 	let { editor } = $props<{ editor: Editor }>();
 
-	// --- Derived State ---
-	// Get the currently selected object from the editor
+	// --- State ---
 	const selectedObject = $derived<ExtendedFabricObject | undefined>(
 		editor?.selectedObjects?.[0] as ExtendedFabricObject
 	);
 
-	// Derive all properties from the selected object with enhanced default handling
-	const textContent = $derived<string>(selectedObject?.text ?? '');
 	const fontSize = $derived<number>(Number(selectedObject?.fontSize) || 32);
 	const fontFamily = $derived<string>(selectedObject?.fontFamily ?? 'Arial');
 	let textAlign = $derived<string>(selectedObject?.textAlign ?? 'left');
-	
-	// FIX: Use a reactive state variable instead of derived for color
 	let color = $state<Colord>(colord('#000000'));
-	
-	// Update color when selected object changes - more robust approach
+	let hexColor = $derived(color.toHex())
+	// --- Effects ---
+	// Update color when the selected object changes
 	$effect(() => {
 		const currentObject = editor?.selectedObjects?.[0] as ExtendedFabricObject;
-		console.log('Effect triggered - Current object:', currentObject);
-		console.log('Current object fill:', currentObject?.fill);
-		console.log('Current color state:', color.toHex());
-		
-		if (currentObject) {
-			// Get the fill color - handle different possible formats
-			let fillColor = '#000000'; // default
-			
-			if (typeof currentObject.fill === 'string') {
-				fillColor = currentObject.fill;
-			} else if (currentObject.fill && typeof currentObject.fill === 'object') {
-				// Handle gradient or pattern fills - use a default
-				fillColor = '#000000';
-			}
-			
-			console.log('Determined fill color:', fillColor);
-			
-			const newColor = colord(fillColor);
-			const newHex = newColor.toHex();
-			const currentHex = color.toHex();
-			
-			console.log('New hex:', newHex, 'Current hex:', currentHex);
-			
-			// Always update the color and force re-render when selection changes
-			if (newHex !== currentHex) {
-				console.log('Updating color from', currentHex, 'to', newHex);
-				color = newColor;
-			}
+		let fillColor = '#000000'; // Default color
+
+		if (currentObject?.fill && typeof currentObject.fill === 'string') {
+			fillColor = currentObject.fill;
+		}
+
+		console.log('Selected object color:', fillColor);
+		const newColor = colord(fillColor);
+		if (newColor.toHex() !== color.toHex()) {
+			color = newColor;
 		}
 	});
 
-	// Derived state for button variants with proper typing
-	let fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
-	let fontStyle = $derived.by(() => {
+	// --- Derived State for UI ---
+	const fontWeight = $derived<number>(Number(selectedObject?.fontWeight) || 400);
+	const fontStyle = $derived.by(() => {
 		const style = selectedObject?.fontStyle;
-		if (style === 'italic' || style === 'oblique') return style as 'normal' | 'italic' | 'oblique';
-		return 'normal' as const;
+		return style === 'italic' || style === 'oblique' ? style : 'normal';
 	});
-	let underline = $derived<boolean>(selectedObject?.underline ?? false);
+	const underline = $derived<boolean>(selectedObject?.underline ?? false);
 
 	const isBold = $derived<boolean>(fontWeight >= 700);
 	const isItalic = $derived<boolean>(fontStyle === 'italic');
 	const isUnderline = $derived<boolean>(underline);
 
 	// --- Event Handlers ---
-	// All handlers call methods on the main 'editor' object to apply changes.
-
-	function handleTextChange(value: string) {
-		editor?.changeText?.(value);
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
-	}
-
 	function handleFontSizeChange(size: number) {
-		// Prevent invalid values
-		if (isNaN(size) || size <= 0) {
-			console.warn('Invalid font size:', size);
-			return;
-		}
+		if (isNaN(size) || size <= 0) return;
 		editor?.changeFontSize?.(size);
 		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 	}
@@ -93,64 +59,34 @@
 		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 	}
 
-	function handleFontWeightChange() {
-		const newWeight = fontWeight >= 700 ? 400 : 700;
-		fontWeight = newWeight;
-		editor?.changeFontWeight?.(newWeight);
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
-	}
-
-	function handleFontStyleChange() {
-		const newStyle = fontStyle === 'italic' ? 'normal' : 'italic';
-		fontStyle = newStyle;
-		editor?.changeFontStyle?.(newStyle);
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
-	}
-
-	function handleFontUnderlineChange() {
-		const newUnderline = !underline;
-		underline = newUnderline;
-		editor?.changeFontUnderline?.(newUnderline);
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
-	}
-
-	function handleTextAlignChange(alignment: string) {
-		editor?.changeTextAlign?.(alignment);
-		textAlign = alignment;
-		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
-	}
-
 	function handleColorChange({ hex }: { hex: string | null }) {
 		if (hex) {
-			// Update the local color state
 			color = colord(hex);
 			editor?.changeFillColor?.(hex);
 			setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 		}
 	}
 
-	// Toggle text style functions
 	function toggleTextStyle(style: 'bold' | 'italic' | 'underline') {
-		switch (style) {
-			case 'bold':
-				handleFontWeightChange();
-				break;
-			case 'italic':
-				handleFontStyleChange();
-				break;
-			case 'underline':
-				handleFontUnderlineChange();
-				break;
+		if (style === 'bold') {
+			const newWeight = isBold ? 400 : 700;
+			editor?.changeFontWeight?.(newWeight);
+		} else if (style === 'italic') {
+			const newStyle = isItalic ? 'normal' : 'italic';
+			editor?.changeFontStyle?.(newStyle);
+		} else if (style === 'underline') {
+			const newUnderline = !underline;
+			editor?.changeFontUnderline?.(newUnderline);
 		}
+		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 	}
 
-	// Change text alignment function
 	function changeTextAlign(alignment: string) {
-		handleTextAlignChange(alignment);
+		textAlign = alignment;
+		editor?.changeTextAlign?.(alignment);
+		setTimeout(() => editor?.canvas?.requestRenderAll(), 0);
 	}
 </script>
-
-<!-- <FloatingFieldEditor {editor} /> -->
 
 <div class="space-y-4">
 	<div class="grid grid-cols-2 gap-2">
@@ -183,84 +119,40 @@
 		</div>
 	</div>
 
+	<!-- <div class="flex flex-col gap-1">
+		<label class="text-sm text-gray-700">Text Color</label>
+		{#key color.toHex()}
+			<ColorPicker color={color.toHex()} onInput={handleColorChange} />
+		{/key}
+	</div> -->
+
 	<div class="flex flex-col gap-1">
-		<label for="text-color" class="text-sm text-gray-700">Text Color</label>
-		<div class="flex items-center gap-2">
-			<input
-				type="color"
-				value={color.toHex()}
-				onchange={(e) => handleColorChange({ hex: (e.target as HTMLInputElement).value })}
-				class="w-12 h-8 rounded border border-gray-300 cursor-pointer"
-			/>
-			<span class="text-sm text-gray-600">{color.toHex().toUpperCase()}</span>
-		</div>
-	</div>
+	<label class="text-sm text-gray-700">Text Color</label>
+	<p>Value being sent to picker: <strong>{color.toHex()}</strong></p>
+	{#key color.toHex()}
+		<ColorPicker bind:hex={hexColor} onInput={handleColorChange} />
+	{/key}
+</div>
 
 	<div class="flex items-center gap-2">
-		<Button
-			size="icon"
-			variant={isBold ? 'primary' : 'secondary'}
-			onclick={() => {
-				toggleTextStyle('bold');
-				editor?.canvas?.requestRenderAll();
-			}}
-		>
+		<Button size="icon" variant={isBold ? 'primary' : 'secondary'} onclick={() => toggleTextStyle('bold')}>
 			<Bold class="h-4 w-4" />
 		</Button>
-
-		<Button
-			size="icon"
-			variant={isItalic ? 'primary' : 'secondary'}
-			onclick={() => {
-				toggleTextStyle('italic');
-				editor?.canvas?.requestRenderAll();
-			}}
-		>
+		<Button size="icon" variant={isItalic ? 'primary' : 'secondary'} onclick={() => toggleTextStyle('italic')}>
 			<Italic class="h-4 w-4" />
 		</Button>
-
-		<Button
-			size="icon"
-			variant={isUnderline ? 'primary' : 'secondary'}
-			onclick={() => {
-				toggleTextStyle('underline');
-				editor?.canvas?.requestRenderAll();
-			}}
-		>
+		<Button size="icon" variant={isUnderline ? 'primary' : 'secondary'} onclick={() => toggleTextStyle('underline')}>
 			<Underline class="h-4 w-4" />
 		</Button>
 
 		<div class="ml-auto flex items-center gap-2">
-			<Button
-				size="icon"
-				variant={textAlign === 'left' ? 'primary' : 'secondary'}
-				onclick={() => {
-					changeTextAlign('left');
-					editor?.canvas?.requestRenderAll();
-				}}
-			>
+			<Button size="icon" variant={textAlign === 'left' ? 'primary' : 'secondary'} onclick={() => changeTextAlign('left')}>
 				<AlignLeft class="h-4 w-4" />
 			</Button>
-
-			<Button
-				size="icon"
-				variant={textAlign === 'center' ? 'primary' : 'secondary'}
-				onclick={() => {
-					changeTextAlign('center');
-					editor?.canvas?.requestRenderAll();
-				}}
-			>
+			<Button size="icon" variant={textAlign === 'center' ? 'primary' : 'secondary'} onclick={() => changeTextAlign('center')}>
 				<AlignCenter class="h-4 w-4" />
 			</Button>
-
-			<Button
-				size="icon"
-				variant={textAlign === 'right' ? 'primary' : 'secondary'}
-				onclick={() => {
-					changeTextAlign('right');
-					editor?.canvas?.requestRenderAll();
-				}}
-			>
+			<Button size="icon" variant={textAlign === 'right' ? 'primary' : 'secondary'} onclick={() => changeTextAlign('right')}>
 				<AlignRight class="h-4 w-4" />
 			</Button>
 		</div>
