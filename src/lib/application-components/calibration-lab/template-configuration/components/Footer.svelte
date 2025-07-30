@@ -79,7 +79,7 @@
 	}
 
 	function handleExportJPEG() {
-		if (editor?.saveJpeg) editor.saveJpeg();
+		if (editor?.saveJpg) editor.saveJpg();
 		isDownloadDropdownOpen = false;
 	}
 
