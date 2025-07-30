@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { setContext } from "svelte";
-	import Editor from "./editor/editor.svelte";
-	import ExpressionEditor from "./editor/expression-editor/editor.svelte";
-	import { Drawer } from "@/components";
-    
+	import { setContext } from 'svelte';
+	import Editor from './editor/editor.svelte';
+	import ExpressionEditor from './editor/expression-editor/editor.svelte';
+	import { Drawer, Modal } from '@/components';
 
-    let {worksheetManager} = $props()
-    setContext("worksheetManager" , worksheetManager)
-    let open : boolean = $state(false)
+	let expression: string = $state('');
+	let { worksheetManager } = $props();
+	setContext('worksheetManager', worksheetManager);
+	let isOpen: boolean = $state(false);
 </script>
 
-
-<button onclick={()=>open = true}>OPen</button>
+<button onclick={() => (isOpen = true)}>OPen</button>
 <!-- <Editor /> -->
-<Drawer bind:open={open} position="bottom" nonModal={true}>
-  <ExpressionEditor />
-</Drawer>
+
+<Modal.Root bind:isOpen title="Add Expression" size="large">
+	<ExpressionEditor />
+</Modal.Root>

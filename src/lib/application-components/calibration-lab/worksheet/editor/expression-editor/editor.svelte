@@ -1,16 +1,22 @@
 <script lang="ts">
-	import { EditorView, Decoration, WidgetType, ViewPlugin, type ViewUpdate } from '@codemirror/view';
+	import {
+		EditorView,
+		Decoration,
+		WidgetType,
+		ViewPlugin,
+		type ViewUpdate
+	} from '@codemirror/view';
 	import { EditorState, RangeSet, RangeSetBuilder } from '@codemirror/state';
 	import { autocompletion, snippet, type CompletionContext } from '@codemirror/autocomplete';
 
 	let editorContainer = $state<HTMLDivElement | null>();
 
 	interface SchemaNode {
-		type: 'object' | 'array' | 'variable' | 'function';
+		type: 'object' | 'variable';
 		children?: { [key: string]: SchemaNode };
-		dataType?: 'T' | 'N' | 'D'; 
+		dataType?: 'T' | 'N' | 'B' | 'D'; 
 	}
-
+	
 	const schema: SchemaNode = {
 		type: 'object',
 		children: {
@@ -38,7 +44,29 @@
 			}
 		}
 	};
-	
+
+	// const schema: SchemaNode = {
+	// 	type: 'object',
+	// 	children: {
+	// 		'Boiler-Feed-Water-Test': {
+	// 			type: 'object',
+	// 			children: {
+	// 				pH: { type: 'variable', dataType: 'N' },
+	// 				'Conductivity (µS/cm)': { type: 'variable', dataType: 'N' },
+	// 				'Select Boiler': { type: 'variable', dataType: 'T' },
+
+	// 				'Test Results': {
+	// 					type: 'object',
+	// 					children: {
+	// 						Parameter: { type: 'variable', dataType: 'T' },
+	// 						Value: { type: 'variable', dataType: 'N' },
+	// 						Unit: { type: 'variable', dataType: 'T' }
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// };
 
 	function getNodeForPath(path: string, schemaNode: SchemaNode): SchemaNode | null {
 		const parts = path.split('.');
@@ -57,7 +85,7 @@
 		'#1d4ed8', // Level 2: dark blue
 		'#7c3aed', // Level 3: dark purple
 		'#be185d', // Level 4: dark pink
-		'#b91c1c'  // Level 5: dark red
+		'#b91c1c' // Level 5: dark red
 	];
 
 	class VariableChipWidget extends WidgetType {
@@ -79,7 +107,7 @@
 			span.className = 'cm-variable-chip';
 
 			const parts = this.name.split('.');
-			const displayName = parts[parts.length - 1]; 
+			const displayName = parts[parts.length - 1];
 			const depth = parts.length;
 
 			const color = levelColors[(depth - 1) % levelColors.length];
@@ -110,11 +138,13 @@
 		return { from: word?.from ?? context.pos, options: formulaCompletions, validFor: /^\w*$/ };
 	}
 
-
 	function variableAutocomplete(context: CompletionContext) {
 		const match = context.matchBefore(/[\w\.]+/);
 		if (!match) {
-			const options = Object.keys(schema.children ?? {}).map(name => ({ label: name, type: schema.children![name].type }));
+			const options = Object.keys(schema.children ?? {}).map((name) => ({
+				label: name,
+				type: schema.children![name].type
+			}));
 			return { from: context.pos, options, validFor: /^\w*$/ };
 		}
 		const text = match.text;
@@ -143,7 +173,7 @@
 			.map((name) => ({
 				label: name,
 				type: currentNode.children![name].type,
-				boost: name.toLowerCase() === activePart.toLowerCase() ? 10 : 0,
+				boost: name.toLowerCase() === activePart.toLowerCase() ? 10 : 0
 			}));
 		return {
 			from: match.from + pathPrefix.join('.').length + (pathPrefix.length > 0 ? 1 : 0),
@@ -151,7 +181,6 @@
 			validFor: /^\w*$/
 		};
 	}
-
 
 	const variablePathRegex = /\b[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*\b/g;
 	const variableChipPlugin = ViewPlugin.fromClass(
@@ -173,7 +202,7 @@
 					let match;
 					while ((match = variablePathRegex.exec(text))) {
 						const path = match[0];
-						
+
 						const node = getNodeForPath(path, schema);
 
 						if (!node || node.type !== 'variable') {
@@ -186,8 +215,12 @@
 						if (selection.from <= end && selection.to >= start) {
 							continue;
 						}
-						
-						builder.add(start, end, Decoration.replace({ widget: new VariableChipWidget(path, node.dataType) }));
+
+						builder.add(
+							start,
+							end,
+							Decoration.replace({ widget: new VariableChipWidget(path, node.dataType) })
+						);
 					}
 				}
 				return builder.finish();
@@ -198,42 +231,42 @@
 		}
 	);
 
-	let expression : string = $state('');
+	let expression: string = $state('');
 
 	$effect(() => {
 		if (editorContainer) {
-			// editorContainer.innerHTML = '';
 			const state = EditorState.create({
 				doc: expression,
 				extensions: [
 					autocompletion({ override: [formulaAutocomplete, variableAutocomplete] }),
 					variableChipPlugin,
 					EditorView.baseTheme({
+						'.cm-content, .cm-gutter': {
+							minHeight: '144px'
+						},
 						'.cm-completionIcon-object': { '&:after': { content: "'{}'" } },
 						'.cm-completionIcon-variable': { '&:after': { content: "'v'" } },
-						'.cm-completionLabel.cm-completion-object': { color: '#9a348e' },
+						'.cm-completionLabel.cm-completion-object': { color: '#9a348e' }
 					})
 				]
 			});
-			new EditorView({ state, parent: editorContainer });
+			const view = new EditorView({ state, parent: editorContainer });
 		}
 	});
 </script>
 
-<div class="p-6 h-full">
-	<div class="overflow-hidden rounded-md border h-full">
-		<div bind:this={editorContainer}></div>
-	</div>
+<div class="flex min-h-36 flex-col overflow-hidden rounded-md border">
+	<div bind:this={editorContainer} class="h-full w-full flex-1"></div>
 </div>
 
 <style>
 	:global(.cm-variable-chip) {
 		color: #f0fdf4;
-		padding: 3px 4px 3px 8px; 
+		padding: 3px 4px 3px 8px;
 		border-radius: 12px;
-		display: inline-flex; 
+		display: inline-flex;
 		align-items: center;
-		gap: 6px; 
+		gap: 6px;
 		line-height: 1;
 		font-family: sans-serif;
 		font-size: 13px;
@@ -248,7 +281,7 @@
 		width: 16px;
 		height: 16px;
 		text-align: center;
-		line-height: 16px; 
+		line-height: 16px;
 		font-size: 10px;
 		font-weight: 500;
 		font-family: monospace;
