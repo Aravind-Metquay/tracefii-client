@@ -77,6 +77,9 @@ importers:
       filepond-plugin-image-preview:
         specifier: ^4.6.12
         version: 4.6.12(filepond@4.32.8)
+      html2canvas:
+        specifier: ^1.4.1
+        version: 1.4.1
       jsbarcode:
         specifier: ^3.12.1
         version: 3.12.1
@@ -95,6 +98,9 @@ importers:
       svelte-awesome-color-picker:
         specifier: ^4.0.2
         version: 4.0.2(svelte@5.35.2)
+      svelte-dnd-action:
+        specifier: ^0.9.64
+        version: 0.9.64(svelte@5.35.2)
       svelte-filepond:
         specifier: ^0.2.2
         version: 0.2.2(filepond@4.32.8)
@@ -2450,6 +2456,11 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
 
+  svelte-dnd-action@0.9.64:
+    resolution: {integrity: sha512-kbbnOTuVc+VINheraVyEQ7K11jXdQii6JNTGpsyIuwUqmda030eT3rPpqckD8UVh1DuyYH3xqyJDTWb8S610Jg==}
+    peerDependencies:
+      svelte: '>=3.23.0 || ^5.0.0-next.0'
+
   svelte-eslint-parser@0.43.0:
     resolution: {integrity: sha512-GpU52uPKKcVnh8tKN5P4UZpJ/fUDndmq7wfsvoVXsyP+aY0anol7Yqo01fyrlaWGMFfm4av5DyrjlaXdLRJvGA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -3733,8 +3744,7 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  base64-arraybuffer@1.0.2:
-    optional: true
+  base64-arraybuffer@1.0.2: {}
 
   base64-js@1.5.1: {}
 
@@ -3908,7 +3918,6 @@ snapshots:
   css-line-break@2.1.0:
     dependencies:
       utrie: 1.0.2
-    optional: true
 
   cssesc@3.0.0: {}
 
@@ -4393,7 +4402,6 @@ snapshots:
     dependencies:
       css-line-break: 2.1.0
       text-segmentation: 1.0.3
-    optional: true
 
   http-proxy-agent@5.0.0:
     dependencies:
@@ -5143,6 +5151,10 @@ snapshots:
     transitivePeerDependencies:
       - picomatch
 
+  svelte-dnd-action@0.9.64(svelte@5.35.2):
+    dependencies:
+      svelte: 5.35.2
+
   svelte-eslint-parser@0.43.0(svelte@5.35.2):
     dependencies:
       eslint-scope: 7.2.2
@@ -5272,7 +5284,6 @@ snapshots:
   text-segmentation@1.0.3:
     dependencies:
       utrie: 1.0.2
-    optional: true
 
   tiny-case@1.0.3:
     optional: true
@@ -5377,7 +5388,6 @@ snapshots:
   utrie@1.0.2:
     dependencies:
       base64-arraybuffer: 1.0.2
-    optional: true
 
   uuid@11.1.0: {}
 
