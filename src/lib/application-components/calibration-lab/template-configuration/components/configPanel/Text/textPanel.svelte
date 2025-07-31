@@ -128,7 +128,7 @@
 
 	<div class="flex flex-col gap-1">
 	<label class="text-sm text-gray-700">Text Color</label>
-	<p>Value being sent to picker: <strong>{color.toHex()}</strong></p>
+	<!-- <p>Value being sent to picker: <strong>{color.toHex()}</strong></p> -->
 	{#key color.toHex()}
 		<ColorPicker bind:hex={hexColor} onInput={handleColorChange} />
 	{/key}
