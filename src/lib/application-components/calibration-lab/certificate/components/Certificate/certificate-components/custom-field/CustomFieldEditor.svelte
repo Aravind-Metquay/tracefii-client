@@ -5,12 +5,12 @@
 		isOpen = $bindable(false),
 		fieldId = $bindable(null),
 		isNewField = $bindable(false),
-		onClose
+		onclose
 	}: {
 		isOpen?: boolean;
 		fieldId?: string | null;
 		isNewField?: boolean;
-		onClose?: () => void;
+		onclose?: () => void;
 	} = $props();
 
 	let formData = $state({
@@ -114,7 +114,7 @@
 	function handleClose() {
 		isOpen = false;
 		fieldId = null;
-		onClose?.();
+		onclose?.();
 	}
 
 	function addTableRow() {

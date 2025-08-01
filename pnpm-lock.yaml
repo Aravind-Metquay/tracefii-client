@@ -50,6 +50,9 @@ importers:
       '@tanstack/table-core':
         specifier: ^8.21.3
         version: 8.21.3
+      '@thisux/sveltednd':
+        specifier: ^0.0.20
+        version: 0.0.20(svelte@5.35.2)
       auth0-js:
         specifier: ^9.28.0
         version: 9.28.0
@@ -98,9 +101,6 @@ importers:
       svelte-awesome-color-picker:
         specifier: ^4.0.2
         version: 4.0.2(svelte@5.35.2)
-      svelte-dnd-action:
-        specifier: ^0.9.64
-        version: 0.9.64(svelte@5.35.2)
       svelte-filepond:
         specifier: ^0.2.2
         version: 0.2.2(filepond@4.32.8)
@@ -815,6 +815,31 @@ packages:
   '@tanstack/table-core@8.21.3':
     resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
     engines: {node: '>=12'}
+
+  '@thisux/sveltednd@0.0.12':
+    resolution: {integrity: sha512-9edVcakYkoCzU6pNIwmJ6Cf+9anECod26Ue/rL3Ssf5LyuLaBLXtBx4H4U8YwQCkwtMeSGFf0OsiMpPpFjvCcg==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@thisux/sveltednd@0.0.14':
+    resolution: {integrity: sha512-Vbq69SU3HUomPg6oCXtb89OG89hka0YIkdaErYibn3waK7tYE66IcQxD/Fzg8YNW3EVsXoA9kc7kW5EUBCSQGg==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@thisux/sveltednd@0.0.17':
+    resolution: {integrity: sha512-lRninjw439phhA8xAHqCpMAX0hnwFMdbXW4M0XJgAdnGxeum+QsLiIC4P3HnkNXAygsVKUqxRcbS84CxDZ9hPw==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@thisux/sveltednd@0.0.18':
+    resolution: {integrity: sha512-MO+iR9ZRHApvtwgWujmqwUbhv9mKs0jLOmeG4tn98GmU1/9wVOi02jrNqeggKg3c8dXz6pMmUHfOfmcq7WwYZg==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@thisux/sveltednd@0.0.20':
+    resolution: {integrity: sha512-VE0HopIlHIvNOfSZ1SsiIzl1AmTU0VSd2Nz2Q2nIdqIUsT/UP4hiLw2ed2jFqTKTbqC+kbCYL9vuBpkYnEw+Kw==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -2456,11 +2481,6 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
 
-  svelte-dnd-action@0.9.64:
-    resolution: {integrity: sha512-kbbnOTuVc+VINheraVyEQ7K11jXdQii6JNTGpsyIuwUqmda030eT3rPpqckD8UVh1DuyYH3xqyJDTWb8S610Jg==}
-    peerDependencies:
-      svelte: '>=3.23.0 || ^5.0.0-next.0'
-
   svelte-eslint-parser@0.43.0:
     resolution: {integrity: sha512-GpU52uPKKcVnh8tKN5P4UZpJ/fUDndmq7wfsvoVXsyP+aY0anol7Yqo01fyrlaWGMFfm4av5DyrjlaXdLRJvGA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -3432,6 +3452,30 @@ snapshots:
       svelte: 5.35.2
 
   '@tanstack/table-core@8.21.3': {}
+
+  '@thisux/sveltednd@0.0.12(svelte@5.35.2)':
+    dependencies:
+      svelte: 5.35.2
+
+  '@thisux/sveltednd@0.0.14(svelte@5.35.2)':
+    dependencies:
+      '@thisux/sveltednd': 0.0.12(svelte@5.35.2)
+      svelte: 5.35.2
+
+  '@thisux/sveltednd@0.0.17(svelte@5.35.2)':
+    dependencies:
+      '@thisux/sveltednd': 0.0.14(svelte@5.35.2)
+      svelte: 5.35.2
+
+  '@thisux/sveltednd@0.0.18(svelte@5.35.2)':
+    dependencies:
+      '@thisux/sveltednd': 0.0.17(svelte@5.35.2)
+      svelte: 5.35.2
+
+  '@thisux/sveltednd@0.0.20(svelte@5.35.2)':
+    dependencies:
+      '@thisux/sveltednd': 0.0.18(svelte@5.35.2)
+      svelte: 5.35.2
 
   '@tootallnate/once@2.0.0':
     optional: true
@@ -5150,10 +5194,6 @@ snapshots:
       typescript: 5.8.3
     transitivePeerDependencies:
       - picomatch
-
-  svelte-dnd-action@0.9.64(svelte@5.35.2):
-    dependencies:
-      svelte: 5.35.2
 
   svelte-eslint-parser@0.43.0(svelte@5.35.2):
     dependencies:
