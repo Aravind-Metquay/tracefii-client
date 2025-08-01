@@ -24,7 +24,7 @@
 		</div>
 		<!-- Center Canvas Area -->
 		<div
-			class="flex items-start justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50"
+			class="flex items-start justify-center overflow-auto rounded-lg"
 		>
 			{#if selectedSection}
 				<ModalSection />
