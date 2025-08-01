@@ -1,4 +1,5 @@
 export interface Margin {
+	margin:number;
 	top: number;
 	right: number;
 	bottom: number;
@@ -58,6 +59,7 @@ const initialCertificateState: CertificateState = {
 		width: 210, // A4 width in mm
 		height: 297, // A4 height in mm
 		margin: {
+			margin:10,
 			top: 20,
 			right: 20,
 			bottom: 20,
