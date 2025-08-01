@@ -3,6 +3,13 @@
 	import jsPDF from 'jspdf';
 	import html2canvas from 'html2canvas';
 
+	const pageDimensions = {
+		A4: { width: 210, height: 297 },
+		A5: { width: 148, height: 210 },
+		A6: { width: 105, height: 148 },
+		Letter: { width: 215.9, height: 279.4 }
+	};
+
 	$effect(() => {
 	if (certificate.page.margin.linked) {
 		const newMargin = certificate.page.margin.margin;
@@ -11,6 +18,17 @@
 		certificate.page.margin.bottom = newMargin;
 		certificate.page.margin.left = newMargin;
 	}
+
+	const format = certificate.page.format as keyof typeof pageDimensions;
+		const dimensions = pageDimensions[format];
+
+		// Update width and height if a standard format is selected
+		// This currently assumes the unit is 'mm'
+		if (dimensions) {
+			certificate.page.width = dimensions.width;
+			certificate.page.height = dimensions.height;
+		}
+	
 });
 
 	async function triggerExport() {
@@ -87,6 +105,8 @@
 						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:outline-none"
 					>
 						<option>A4</option>
+						<option>A5</option>
+						<option>A6</option>
 						<option>Letter</option>
 						<option>Custom</option>
 					</select>
@@ -110,6 +130,7 @@
 							id="width"
 							type="number"
 							bind:value={certificate.page.width}
+							disabled={certificate.page.format !== 'Custom'}
 							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:outline-none"
 						/>
 					</div>
@@ -121,6 +142,7 @@
 							id="height"
 							type="number"
 							bind:value={certificate.page.height}
+							disabled={certificate.page.format !== 'Custom'}
 							class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:outline-none"
 						/>
 					</div>
