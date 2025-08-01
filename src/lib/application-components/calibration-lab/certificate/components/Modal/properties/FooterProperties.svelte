@@ -1,39 +1,42 @@
 <script lang="ts">
 	import { certificate } from '@/certificate/lib/store.svelte';
-	
+
 	// Footer properties
 	let showSignatures = $state(certificate.data.showSignatures !== false);
 	let showPageNumbers = $state(certificate.data.showPageNumbers !== false);
-	let footerText = $state(certificate.data.footerText || 'This certificate shall not be reproduced except in full, without written approval of the laboratory.');
+	let footerText = $state(
+		certificate.data.footerText ||
+			'This certificate shall not be reproduced except in full, without written approval of the laboratory.'
+	);
 	let calibratedBy = $state(certificate.data.calibratedBy || '');
 	let reviewedBy = $state(certificate.data.reviewedBy || '');
 	let approvedBy = $state(certificate.data.approvedBy || '');
-	
+
 	function updateShowSignatures(value: boolean) {
 		showSignatures = value;
 		certificate.data.showSignatures = value;
 	}
-	
+
 	function updateShowPageNumbers(value: boolean) {
 		showPageNumbers = value;
 		certificate.data.showPageNumbers = value;
 	}
-	
+
 	function updateFooterText(value: string) {
 		footerText = value;
 		certificate.data.footerText = value;
 	}
-	
+
 	function updateCalibratedBy(value: string) {
 		calibratedBy = value;
 		certificate.data.calibratedBy = value;
 	}
-	
+
 	function updateReviewedBy(value: string) {
 		reviewedBy = value;
 		certificate.data.reviewedBy = value;
 	}
-	
+
 	function updateApprovedBy(value: string) {
 		approvedBy = value;
 		certificate.data.approvedBy = value;
@@ -132,28 +135,4 @@
 			</div>
 		</div>
 	{/if}
-
-	<!-- Additional Settings -->
-	<div class="rounded-lg border border-gray-200 p-4">
-		<h4 class="mb-3 text-sm font-medium text-gray-900">Additional Settings</h4>
-		<div class="space-y-3">
-			<div class="text-sm text-gray-600">
-				<p>Configure additional footer elements such as:</p>
-				<ul class="mt-2 list-disc list-inside space-y-1 text-xs">
-					<li>Company logo in footer</li>
-					<li>Contact information</li>
-					<li>Accreditation statements</li>
-					<li>QR codes or barcodes</li>
-				</ul>
-			</div>
-			<button
-				class="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-				onclick={() => {
-					console.log('Configure advanced footer settings');
-				}}
-			>
-				Advanced Footer Settings
-			</button>
-		</div>
-	</div>
 </div>

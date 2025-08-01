@@ -3,8 +3,8 @@
 	import PaginatedCertificateArea from './components/Certificate/PaginatedCertificateArea.svelte';
 	import SettingsPanel from './components/SettingsPanel/SettingsPanel.svelte';
 	import TopPanel from './components/TopPanel/TopPanel.svelte';
-	import SectionRenderer from './components/Modal/SectionRenderer/SectionRenderer.svelte';
-	import SectionSettingsPanel from './components/SectionSettings/SectionSettingsPanel.svelte';
+	import ModalSection from './components/Modal/modalSection/modalSection.svelte';
+	import SectionSettingsPanel from './components/Modal/SectionSettings/SectionSettingsPanel.svelte';
 	import { getSelectedSection } from './lib/sectionStore.svelte';
 
 	let selectedSection = $derived(getSelectedSection());
@@ -27,7 +27,7 @@
 			class="flex items-start justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50"
 		>
 			{#if selectedSection}
-				<SectionRenderer />
+				<ModalSection />
 			{:else}
 				<div class="flex h-full w-full items-start justify-center rounded-md p-2">
 					<!-- A4 Container: 210mm × 297mm at 96 DPI ≈ 794px × 1123px [ Adjusted a bit to fit the screen] -->

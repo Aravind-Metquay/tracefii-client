@@ -1,16 +1,20 @@
 <script lang="ts">
-	import { getSelectedSection, setSelectedSection, clearSelectedSection } from '../../lib/sectionStore.svelte';
+	import {
+		getSelectedSection,
+		setSelectedSection,
+		clearSelectedSection
+	} from '../../../lib/sectionStore.svelte';
 	import { certificate } from '@/certificate/lib/store.svelte';
-	
+
 	// Import property components
-	import HeaderProperties from '../Properties/HeaderProperties.svelte';
-	import CustomerDetailsProperties from '../Properties/CustomerDetailsProperties.svelte';
-	import CalibrationDataProperties from '../Properties/CalibrationDataProperties.svelte';
-	import ReferenceInstrumentProperties from '../Properties/ReferenceInstrumentProperties.svelte';
-	import FooterProperties from '../Properties/FooterProperties.svelte';
-	
+	import HeaderProperties from '../properties/HeaderProperties.svelte';
+	import CustomerDetailsProperties from '../properties/CustomerDetailsProperties.svelte';
+	import CalibrationDataProperties from '../properties/CalibrationDataProperties.svelte';
+	import ReferenceInstrumentProperties from '../properties/ReferenceInstrumentProperties.svelte';
+	import FooterProperties from '../properties/FooterProperties.svelte';
+
 	let selectedSection = $derived(getSelectedSection());
-	
+
 	// Component mapping for properties
 	const propertyComponentMap: Record<string, any> = {
 		HeaderSection: HeaderProperties,
@@ -19,7 +23,7 @@
 		ReferenceInstrumentSection: ReferenceInstrumentProperties,
 		FooterSection: FooterProperties
 	};
-	
+
 	function updateSectionName(newName: string) {
 		if (selectedSection) {
 			const sectionIndex = certificate.sections.findIndex((s: any) => s.id === selectedSection.id);
@@ -27,20 +31,6 @@
 				certificate.sections[sectionIndex].name = newName;
 				// Update the selected section reference
 				setSelectedSection({ ...selectedSection, name: newName });
-			}
-		}
-	}
-
-	function updateSectionPosition(x: number, y: number) {
-		if (selectedSection) {
-			const sectionIndex = certificate.sections.findIndex((s) => s.id === selectedSection.id);
-			if (sectionIndex !== -1) {
-				// Ensure the section has a position property
-				if (!(certificate.sections[sectionIndex] as any).position) {
-					(certificate.sections[sectionIndex] as any).position = { x: 0, y: 0 };
-				}
-				(certificate.sections[sectionIndex] as any).position.x = x;
-				(certificate.sections[sectionIndex] as any).position.y = y;
 			}
 		}
 	}
@@ -111,7 +101,7 @@
 		{/if}
 
 		<!-- Common Actions -->
-		<div class="border-t border-gray-200 mt-6 pt-6">
+		<div class="mt-6 border-t border-gray-200 pt-6">
 			<div class="space-y-3">
 				<button
 					class="w-full rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"

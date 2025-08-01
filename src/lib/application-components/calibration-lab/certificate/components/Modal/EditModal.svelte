@@ -1,7 +1,7 @@
 <script lang="ts">
-	import SectionSettingsPanel from '../SectionSettings/SectionSettingsPanel.svelte';
-	import SectionRenderer from './SectionRenderer/SectionRenderer.svelte';
-	import ComponentList from './ComponentList/ComponentList.svelte';
+	import SectionSettingsPanel from '../Modal/SectionSettings/SectionSettingsPanel.svelte';
+	import ModalSection from './modalSection/modalSection.svelte';
+	import ComponentList from './components/ComponentList.svelte';
 	import { certificate } from '@/certificate/lib/store.svelte';
 	import { setSelectedSection, clearSelectedSection } from '../../lib/sectionStore.svelte';
 
@@ -73,7 +73,7 @@
 				<!-- Center Panel - Selected Component -->
 				<div class="flex-1 bg-white">
 					<div class="h-full">
-						<SectionRenderer />
+						<ModalSection />
 					</div>
 				</div>
 

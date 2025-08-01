@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { certificate } from '@/certificate/lib/store.svelte';
 	import { getSelectedSection, setSelectedSection } from '../../../lib/sectionStore.svelte';
 
 	// Import all certificate components

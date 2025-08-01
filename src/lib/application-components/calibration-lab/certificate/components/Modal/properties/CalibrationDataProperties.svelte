@@ -92,23 +92,4 @@
 			oninput={(e) => updateTraceabilityStatement((e.target as HTMLTextAreaElement).value)}
 		></textarea>
 	</div>
-
-	<!-- Data Configuration -->
-	<div class="rounded-lg border border-gray-200 p-4">
-		<h4 class="mb-3 text-sm font-medium text-gray-900">Data Configuration</h4>
-		<div class="space-y-3">
-			<div class="text-sm text-gray-600">
-				<p>Calibration data is typically populated from worksheet results.</p>
-				<p class="mt-2">Configure data source and formatting options here.</p>
-			</div>
-			<button
-				class="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-				onclick={() => {
-					console.log('Configure data source');
-				}}
-			>
-				Configure Data Source
-			</button>
-		</div>
-	</div>
 </div>
