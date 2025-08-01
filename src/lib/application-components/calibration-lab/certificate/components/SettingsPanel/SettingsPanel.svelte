@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { certificate } from '@/calibration-lab/certificate/lib/store.svelte';
 	import jsPDF from 'jspdf';
-	import html2canvas from 'html2canvas';
+	import html2canvas from 'html2canvas-pro';
 
 	$effect(() => {
 	if (certificate.page.margin.linked) {
@@ -13,70 +13,14 @@
 	}
 });
 
-	async function triggerExport() {
-		try {
-			const certificatePages = document.querySelectorAll(
-				'.certificate-page:not(.measurement-page)'
-			);
-			if (certificatePages.length === 0) {
-				alert('Certificate preview not found');
-				return;
-			}
-
-			// Convert dimensions from mm to points (1 mm = 2.834645669 points)
-			const mmToPoints = 2.834645669;
-			const pdfWidth = certificate.page.width * mmToPoints;
-			const pdfHeight = certificate.page.height * mmToPoints;
-
-			const pdf = new jsPDF({
-				orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
-				unit: 'pt',
-				format: [pdfWidth, pdfHeight]
-			});
-
-			// Process each page
-			for (let i = 0; i < certificatePages.length; i++) {
-				const pageElement = certificatePages[i] as HTMLElement;
-				const canvas = await html2canvas(pageElement, {
-					scale: 2, // Higher quality
-					useCORS: true,
-					allowTaint: true
-				});
-				const imgData = canvas.toDataURL('image/png');
-
-				if (i > 0) {
-					pdf.addPage();
-				}
-				pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-			}
-
-			pdf.save(`certificate-${certificate.data.certificateNo}.pdf`);
-		} catch (error) {
-			console.error('Error generating PDF:', error);
-			alert('Error generating PDF. Please try again.');
-		}
-	}
+	
 </script>
 
-<div class="bg-white">
-	<div class="p-6">
-		<div class="sticky top-0 z-10 bg-white pb-4">
-			<div class="flex gap-3">
-				<button
-					class="flex-1 rounded-lg bg-gray-100 px-4 py-3 font-medium text-gray-800 transition-colors hover:bg-gray-200"
-				>
-					Edit
-				</button>
-				<button
-					class="flex-1 rounded-lg bg-black px-4 py-3 font-medium text-white transition-colors hover:bg-gray-800"
-					onclick={triggerExport}
-				>
-					Download PDF
-				</button>
-			</div>
-		</div>
+<div class="flex h-full flex-col gap-6  p-6">
+	
+	
 
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+		<div class="rounded-lg  p-4">
 			<h3 class="mb-2 text-lg font-semibold text-gray-900">Page Setup</h3>
 			<div class="space-y-3">
 				<div>
@@ -222,7 +166,6 @@
 			</div>
 		</div>
 	</div>
-</div>
 
 <style>
 	/* Hide scrollbar for Chrome, Safari and Opera */

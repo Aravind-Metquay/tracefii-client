@@ -53,6 +53,7 @@ export interface CertificateState {
 
 // Define the initial structure of your certificate
 const initialCertificateState: CertificateState = {
+
 	page: {
 		format: 'A4',
 		unit: 'mm',
@@ -88,6 +89,7 @@ const initialCertificateState: CertificateState = {
 	customFields: {},
 	data: {
 		certificateNo: 'UAL/000087/25',
+		certificateTitle:"",
 		customer: {
 			name: 'Metquay Inc',
 			address: ''
