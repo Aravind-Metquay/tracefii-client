@@ -1,22 +1,16 @@
 <script lang="ts">
 	import { certificate } from '@/certificate/lib/store.svelte';
-	import { dndzone } from 'svelte-dnd-action';
 	import CustomFieldEditor from '../Certificate/certificate-components/custom-field/CustomFieldEditor.svelte';
-
-	const flipDurationMs = 300;
+	import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
+	import { flip } from 'svelte/animate';
+	import { fade, scale, slide } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 
 	let showCustomFieldEditor = $state(false);
 	let editingFieldId = $state<string | null>(null);
 	let isNewField = $state(false);
-
-	// These handlers update the state when the user drags and drops a section.
-	function handleDndConsider(e: CustomEvent) {
-		certificate.sections = e.detail.items;
-	}
-
-	function handleDndFinalize(e: CustomEvent) {
-		certificate.sections = e.detail.items;
-	}
+	let isDragging = $state(false);
+	let dragOverIndex = $state<number | null>(null);
 
 	function createCustomField() {
 		isNewField = true;
@@ -24,26 +18,31 @@
 		showCustomFieldEditor = true;
 	}
 
-	function editCustomField(section: any) {
+	function editSection(section: any) {
 		if (section.isCustom && section.customData?.fieldId) {
 			isNewField = false;
 			editingFieldId = section.customData.fieldId;
 			showCustomFieldEditor = true;
+		} else {
+			// Handle section editing
+			console.log('Edit section:', section.name);
+			// Add your section editing logic here
 		}
 	}
 
-	function deleteCustomField(section: any) {
+	function deleteSection(section: any) {
 		if (section.isCustom && section.customData?.fieldId) {
 			if (confirm(`Are you sure you want to delete "${section.name}"?`)) {
-				// Remove from custom fields
 				delete certificate.customFields[section.customData.fieldId];
-
-				// Remove from sections
+				certificate.sections = certificate.sections.filter((s) => s.id !== section.id);
+			}
+		} else {
+			// Handle section deletion
+			if (confirm(`Are you sure you want to remove "${section.name}" from the certificate?`)) {
 				certificate.sections = certificate.sections.filter((s) => s.id !== section.id);
 			}
 		}
 	}
-
 	function closeEditor() {
 		showCustomFieldEditor = false;
 		editingFieldId = null;
@@ -57,79 +56,165 @@
 
 	<div class="mb-6">
 		<button
-			class="w-full rounded-lg bg-black px-4 py-3 font-medium text-white transition-colors hover:bg-gray-800"
+			class="w-full rounded-lg bg-black px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95"
 			onclick={createCustomField}
 		>
 			+ Add Custom Field
 		</button>
 	</div>
 
-	<ul
-		class="flex-1 space-y-3 overflow-y-auto"
-		use:dndzone={{ items: certificate.sections, flipDurationMs }}
-		onconsider={handleDndConsider}
-		onfinalize={handleDndFinalize}
-	>
-		{#each certificate.sections as section (section.id)}
-			<li
-				class="group flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-gray-300 hover:bg-gray-50"
-			>
-				<!-- Drag handle icon -->
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="16"
-					height="16"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="flex-shrink-0 text-gray-400 group-hover:text-gray-600"
+	<!-- Droppable container -->
+	<div class="flex-1 overflow-y-auto">
+		<!-- Drop indicators positioned absolutely -->
+		{#if isDragging}
+			<div class="pointer-events-none absolute inset-0 z-50">
+				{#each certificate.sections as _, index}
+					{#if dragOverIndex === index}
+						<div
+							style="position: absolute; top: {index * 76 - 6}px; left: 16px; right: 16px;"
+							in:scale={{ duration: 200, start: 0.8 }}
+							out:scale={{ duration: 150, start: 0.8 }}
+						></div>
+					{/if}
+				{/each}
+				<!-- Drop indicator after last item -->
+				{#if dragOverIndex === certificate.sections.length}
+					<div
+						class="mx-4 h-0.5 rounded-full bg-blue-500 shadow-lg"
+						style="position: absolute; top: {certificate.sections.length * 76 -
+							6}px; left: 16px; right: 16px;"
+						in:scale={{ duration: 200, start: 0.8 }}
+						out:scale={{ duration: 150, start: 0.8 }}
+					></div>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Sections list - each li is now the only child -->
+		<ul class="relative space-y-3">
+			{#each certificate.sections as section, index (section.id)}
+				<li
+					class="group relative flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md
+					{isDragging && dragOverIndex === index
+						? 'scale-105 transform border-blue-400 bg-blue-50 shadow-lg'
+						: ''}
+					{isDragging ? 'hover:scale-105' : ''}"
+					use:draggable={{
+						container: 'sections',
+						dragData: section,
+						callbacks: {
+							onDragStart: () => {
+								isDragging = true;
+							},
+							onDragEnd: () => {
+								isDragging = false;
+								dragOverIndex = null;
+							}
+						}
+					}}
+					animate:flip={{ duration: 400, easing: cubicOut }}
+					in:fade={{ duration: 300, delay: index * 50 }}
+					out:slide={{ duration: 200, axis: 'y' }}
+					use:droppable={{
+						container: `section-${index}`,
+						callbacks: {
+							onDragEnter: () => {
+								if (isDragging) dragOverIndex = index;
+							},
+							onDragLeave: () => {
+								dragOverIndex = null;
+							},
+							onDrop: (state: DragDropState<any>) => {
+								const { draggedItem } = state;
+								const fromIndex = certificate.sections.findIndex(
+									(s: any) => s.id === draggedItem.id
+								);
+								if (fromIndex === -1 || fromIndex === index) return;
+
+								const updated = [...certificate.sections];
+								const [removed] = updated.splice(fromIndex, 1);
+								updated.splice(index, 0, removed);
+								certificate.sections = updated;
+
+								// Reset drag state with smooth transition
+								setTimeout(() => {
+									isDragging = false;
+									dragOverIndex = null;
+								}, 100);
+							}
+						}
+					}}
 				>
-					<circle cx="12" cy="5" r="1"></circle>
-					<circle cx="12" cy="12" r="1"></circle>
-					<circle cx="12" cy="19" r="1"></circle>
-				</svg>
+					<!-- Drag indicator overlay -->
+					{#if isDragging && dragOverIndex === index}
+						<div
+							class="bg-opacity-50 pointer-events-none absolute inset-0 rounded-lg border-2 border-dashed border-blue-400 bg-blue-100"
+							in:fade={{ duration: 200 }}
+							out:fade={{ duration: 150 }}
+						></div>
+					{/if}
 
-				<span class="flex-1 font-medium text-gray-900">{section.name}</span>
+					<!-- Drag handle icon -->
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="relative z-10 flex-shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-blue-500"
+						class:text-blue-500={isDragging}
+						class:scale-110={isDragging}
+					>
+						<circle cx="9" cy="5" r="1"></circle>
+						<circle cx="15" cy="5" r="1"></circle>
+						<circle cx="9" cy="12" r="1"></circle>
+						<circle cx="15" cy="12" r="1"></circle>
+						<circle cx="9" cy="19" r="1"></circle>
+						<circle cx="15" cy="19" r="1"></circle>
+					</svg>
 
-				{#if section.isCustom}
-					<div class="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+					<span
+						class="relative z-10 flex-1 font-medium text-gray-900 transition-colors duration-200"
+						>{section.name}</span
+					>
+
+					<div
+						class="relative z-10 flex translate-x-2 gap-2 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
+					>
 						<button
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-colors hover:bg-gray-200"
+							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95"
 							onclick={(e) => {
 								e.stopPropagation();
-								editCustomField(section);
+								editSection(section);
 							}}
-							title="Edit custom field"
+							title={section.isCustom ? 'Edit custom field' : 'Edit section'}
 						>
-							✏️
+							Edit
 						</button>
 						<button
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-colors hover:bg-red-100 hover:text-red-600"
+							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-110 hover:bg-red-100 hover:text-red-600 active:scale-95"
 							onclick={(e) => {
 								e.stopPropagation();
-								deleteCustomField(section);
+								deleteSection(section);
 							}}
-							title="Delete custom field"
+							title={section.isCustom ? 'Delete custom field' : 'Remove section'}
 						>
 							🗑️
 						</button>
 					</div>
-				{:else}
-					<span class="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
-						>Built-in</span
-					>
-				{/if}
-			</li>
-		{/each}
-	</ul>
+				</li>
+			{/each}
+		</ul>
+	</div>
 
 	<CustomFieldEditor
 		bind:isOpen={showCustomFieldEditor}
 		bind:fieldId={editingFieldId}
 		bind:isNewField
-		onClose={closeEditor}
+		onclose={closeEditor}
 	/>
 </div>
