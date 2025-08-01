@@ -5,7 +5,7 @@
 </script>
 
 <main
-	class="grid h-screen w-screen grid-cols-[320px_1fr_360px] gap-4 overflow-hidden bg-gray-100 p-4"
+	class="grid h-screen w-screen grid-cols-[320px_1fr_340px] gap-3 overflow-hidden bg-gray-100 p-3"
 >
 	<!-- Left Panel -->
 	<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -13,10 +13,13 @@
 	</div>
 
 	<!-- Center Canvas Area -->
-	<div
-		class="flex items-start justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-8"
-	>
-		<PaginatedCertificateArea />
+	<div class="flex items-start justify-center overflow-auto rounded-lg">
+		<div class="flex h-full w-full rounded-md items-start justify-center p-2">
+			<!-- A4 Container: 210mm × 297mm at 96 DPI ≈ 794px × 1123px [ Adjusted a bit to fit the screen] -->
+			<div class="min-h-[1123px] w-[774px]">
+				<PaginatedCertificateArea />
+			</div>
+		</div>
 	</div>
 
 	<!-- Right Panel -->

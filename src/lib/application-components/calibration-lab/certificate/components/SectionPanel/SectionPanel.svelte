@@ -24,9 +24,7 @@
 			editingFieldId = section.customData.fieldId;
 			showCustomFieldEditor = true;
 		} else {
-			// Handle section editing
 			console.log('Edit section:', section.name);
-			// Add your section editing logic here
 		}
 	}
 
@@ -37,12 +35,12 @@
 				certificate.sections = certificate.sections.filter((s) => s.id !== section.id);
 			}
 		} else {
-			// Handle section deletion
 			if (confirm(`Are you sure you want to remove "${section.name}" from the certificate?`)) {
 				certificate.sections = certificate.sections.filter((s) => s.id !== section.id);
 			}
 		}
 	}
+
 	function closeEditor() {
 		showCustomFieldEditor = false;
 		editingFieldId = null;
@@ -50,24 +48,24 @@
 	}
 </script>
 
-<div class="flex h-full flex-col p-6">
+<!-- Full container with horizontal overflow hidden -->
+<div class="relative flex h-full flex-1 flex-col overflow-x-hidden overflow-y-auto p-6">
 	<h2 class="mb-2 text-xl font-bold text-gray-900">Sections</h2>
 	<p class="mb-6 text-sm text-gray-600">Drag to reorder the certificate sections.</p>
 
 	<div class="mb-6">
 		<button
-			class="w-full rounded-lg bg-black px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95"
+			class="w-full rounded-lg bg-black px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-[0.97]"
 			onclick={createCustomField}
 		>
 			+ Add Custom Field
 		</button>
 	</div>
 
-	<!-- Droppable container -->
-	<div class="flex-1 overflow-y-auto">
-		<!-- Drop indicators positioned absolutely -->
+	<!-- Section list wrapper with overflow-x-hidden -->
+	<div class="relative flex-1 overflow-x-hidden overflow-y-auto">
 		{#if isDragging}
-			<div class="pointer-events-none absolute inset-0 z-50">
+			<div class="pointer-events-none absolute inset-0 z-50 overflow-x-hidden">
 				{#each certificate.sections as _, index}
 					{#if dragOverIndex === index}
 						<div
@@ -77,7 +75,6 @@
 						></div>
 					{/if}
 				{/each}
-				<!-- Drop indicator after last item -->
 				{#if dragOverIndex === certificate.sections.length}
 					<div
 						class="mx-4 h-0.5 rounded-full bg-blue-500 shadow-lg"
@@ -90,15 +87,14 @@
 			</div>
 		{/if}
 
-		<!-- Sections list - each li is now the only child -->
 		<ul class="relative space-y-3">
 			{#each certificate.sections as section, index (section.id)}
 				<li
 					class="group relative flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md
 					{isDragging && dragOverIndex === index
-						? 'scale-105 transform border-blue-400 bg-blue-50 shadow-lg'
-						: ''}
-					{isDragging ? 'hover:scale-105' : ''}"
+						? 'scale-[1.02] transform border-blue-400 bg-blue-50 shadow-lg'
+						: ''} 
+					{isDragging ? 'hover:scale-[1.02]' : ''}"
 					use:draggable={{
 						container: 'sections',
 						dragData: section,
@@ -136,7 +132,6 @@
 								updated.splice(index, 0, removed);
 								certificate.sections = updated;
 
-								// Reset drag state with smooth transition
 								setTimeout(() => {
 									isDragging = false;
 									dragOverIndex = null;
@@ -145,7 +140,6 @@
 						}
 					}}
 				>
-					<!-- Drag indicator overlay -->
 					{#if isDragging && dragOverIndex === index}
 						<div
 							class="bg-opacity-50 pointer-events-none absolute inset-0 rounded-lg border-2 border-dashed border-blue-400 bg-blue-100"
@@ -154,7 +148,6 @@
 						></div>
 					{/if}
 
-					<!-- Drag handle icon -->
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="16"
@@ -165,7 +158,7 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						class="relative z-10 flex-shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-blue-500"
+						class="relative z-10 flex-shrink-0 transition-all duration-200 group-hover:scale-[1.025] group-hover:text-blue-500"
 						class:text-blue-500={isDragging}
 						class:scale-110={isDragging}
 					>
@@ -179,14 +172,15 @@
 
 					<span
 						class="relative z-10 flex-1 font-medium text-gray-900 transition-colors duration-200"
-						>{section.name}</span
 					>
+						{section.name}
+					</span>
 
 					<div
 						class="relative z-10 flex translate-x-2 gap-2 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
 					>
 						<button
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95"
+							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-[1.03] hover:bg-gray-200 active:scale-[0.97]"
 							onclick={(e) => {
 								e.stopPropagation();
 								editSection(section);
@@ -196,7 +190,7 @@
 							Edit
 						</button>
 						<button
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-110 hover:bg-red-100 hover:text-red-600 active:scale-95"
+							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-[1.03] hover:bg-red-100 hover:text-red-600 active:scale-[0.97]"
 							onclick={(e) => {
 								e.stopPropagation();
 								deleteSection(section);
