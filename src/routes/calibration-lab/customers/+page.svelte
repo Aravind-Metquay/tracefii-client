@@ -26,13 +26,13 @@
             </Button>
         </div>
     </div>
-    <div class="h-8 border-b">
+    <!-- <div class="h-8 border-b">
 
     </div>
     <div class="h-12 flex items-center gap-2 p-2">
         <Button size="small" variant="secondary">Sort</Button>
         <Button size="small" variant="secondary">Filter</Button>
-    </div>
+    </div> -->
     <div>
         <GridTable />
     </div>

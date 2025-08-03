@@ -92,9 +92,12 @@ importers:
       vite-plugin-mkcert:
         specifier: ^1.17.8
         version: 1.17.8(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1))
-      wx-svelte-grid:
+      wx-svelte-filter:
         specifier: ^2.2.0
         version: 2.2.0
+      wx-svelte-grid:
+        specifier: https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz
+        version: https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz
     devDependencies:
       '@internationalized/date':
         specifier: ^3.8.1
@@ -2788,20 +2791,32 @@ packages:
       utf-8-validate:
         optional: true
 
+  wx-core-locales@2.0.1:
+    resolution: {integrity: sha512-GK3C/aDpMycROlp/FKUp06PRupakJcYEGNBDjP6Rcgr86uGpIcm7GJ92P2gN0m0xVt7tVIobPwlNst2LXROpxw==}
+
   wx-core-locales@2.2.0:
     resolution: {integrity: sha512-bDquS5k6v784vOsjDnkpbrqL4Yh3CQGf3Rt3gM6mAFDUI97/Iy2r7fzQ3It7Hb3dxI9Vtym4Bwsg3X3ATAz8KA==}
 
-  wx-grid-data-provider@2.2.0:
-    resolution: {integrity: sha512-Qan2+yKS34uhtj5/TL8lNOA4hr6Xl1hCFbVXEspdbpy4ZcqnTOOrCddg8+XXksB8vn1+6ucwfbLTv80oIefhCw==}
+  wx-filter-locales@2.2.0:
+    resolution: {integrity: sha512-7t6aeM/XP8RBt1i9WdoG8l5liSCa4nfAezosEaIZytnj05j3tJzTKqdPtoX40QctNO65frvMF8yfpVY8DPdg7w==}
 
-  wx-grid-locales@2.2.0:
-    resolution: {integrity: sha512-YVU9vR1uwPd4IiJ12GfQIDfIa9aqq1vR3cI43BI9A8a26nmoTluGXvIuOFoP3ZSg/yzW+JAe1QtTb7ejW5C6pg==}
+  wx-filter-store@2.2.0:
+    resolution: {integrity: sha512-ub88CMs7RoAzEBAEhmc9In50uz5afPTvKny1PcCep01/BIgDinuiW+NkIElCTX5MXF1/Lc3YbEDqDK3Qm7062g==}
 
-  wx-grid-store@2.2.0:
-    resolution: {integrity: sha512-H0AKzODSyEE4emA76MSpcMzPNIJlsgf3CUzaXPMuqQuaehqCNINSzmI7/5z7nHvbBJBsK8scSIi6cctj5Pyavg==}
+  wx-grid-data-provider@2.0.1:
+    resolution: {integrity: sha512-pad4xtemIhYfxIOn0xKYe19sjdcwzPpBEi7uYelxcaYwBCct9c2V8bKCnks84E9jIx3UEQKNyGz1W15FKVkvbQ==}
+
+  wx-grid-locales@2.0.1:
+    resolution: {integrity: sha512-a/qFRxL4Fdd+po+5Wyr3w+t75JfTR/c54qjXs79N7eL1Stfit583cSa/leYmtpML9wobHAaUq/zA+ooLBuCTrA==}
+
+  wx-grid-store@2.0.1:
+    resolution: {integrity: sha512-FtLS/VXE9/2ud4cuwEOl/y5gdH2QUGjYrclm72gNCizno9W4+tcmu+4IrBYn89qe0NZN+W5ksAm1+NqCa+K4OA==}
 
   wx-lib-data-provider@1.5.1:
     resolution: {integrity: sha512-ebKYlnmXOuwgQ/812Ux06Uz7tIG3P8euUHB0/hwhL0+Buged+00uFII3bkXQ7jh5DbsTugFqPlzlKTJFQ2l0TA==}
+
+  wx-lib-dom@0.7.1:
+    resolution: {integrity: sha512-ja1iQcTVaZHYDrvrxC2mUfU6e0u6YyFXP4FmY8mM6v4tQCgXoWLIaEn2uJxs0czugmm5LVJ/FdDc3A8AtHWmvw==}
 
   wx-lib-dom@0.8.0:
     resolution: {integrity: sha512-1jQFsoX8EiA/7D6IT8k8I52PlPFs850etY+k7jqww9CM5L3JEELprKuy422sUfXjnnpMoaVvUrmndWZVOldsAA==}
@@ -2809,17 +2824,30 @@ packages:
   wx-lib-dom@0.9.1:
     resolution: {integrity: sha512-uh0ikmNRSgF1ksCY4mu/Nuqo/zrTOKP75Ok+YeA+Jp6i5QCzD5EabWtgAGIBq54cikAbjSGOdNPa6qYLc9s0qA==}
 
+  wx-lib-state@1.9.0:
+    resolution: {integrity: sha512-h2BeV/km+PH00pcHyUhyYJdY50vTBVtPzlA+b6idtoBiglUrP+ahmt9I6QvdKVoIPbIGh6EzqavDXuORucEy4g==}
+
   wx-lib-state@1.9.3:
     resolution: {integrity: sha512-iZVeprL3ljzTWToaN+QW9LJjWZoDyplLbkt8iryeDQaNirYFaL2ZUCp0Utjm0rSP6OfLSmaw+QYldYhmqDpyGw==}
 
   wx-lib-svelte@0.5.1:
     resolution: {integrity: sha512-zYfkAv5r0zQ3KFyCPPusC8EkMXUC3I0L1QsK+An0rNlRkY/iocPTOcaouyycg48BdmsBK8fSL0vK0B4oZuujrQ==}
 
+  wx-svelte-core@2.0.1:
+    resolution: {integrity: sha512-unIHTltfWeAJ8AX/cVOMHt8rzhy8ocDxPMO1ynTH0XydLISCnitc+hAZD2esgmYuH0bD0Utekg/fhMV9yqyJyQ==}
+
   wx-svelte-core@2.2.0:
     resolution: {integrity: sha512-txE3Me/gfb899V3QJbH+Rt+e7rgvruzLCIKvZoDXT/c78TUWqMRHFZUpIkjlH9toozVvdL0UnyQ8BqVMRQqBVg==}
 
-  wx-svelte-grid@2.2.0:
-    resolution: {integrity: sha512-9OKwyANflqpBujsqm1geU5pgm72QnY7bMkReUAt6Q+2laL5Ccx/ZHxpo2ez14IkZh0jXoW4JCVjoaDiA32FYXg==}
+  wx-svelte-filter@2.2.0:
+    resolution: {integrity: sha512-RiM7DNF+VUWN7ofKRwwD2HDlr0Ab5ZCqpC15/91e3aIF+CsRqPrUv34zA1xN2z6FlMEm9Hi5DjFT55yWQsVD0w==}
+
+  wx-svelte-grid@https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz:
+    resolution: {tarball: https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz}
+    version: 2.0.2
+
+  wx-svelte-menu@2.0.1:
+    resolution: {integrity: sha512-FP8SjfO5KIcr7jgXiYx9Jn0EjPtE/00O+knQkacYOBQbdiqX+uuA17BPXHi5WVg3CKaF5P5nNqHfZwmBr1AijQ==}
 
   wx-svelte-menu@2.2.0:
     resolution: {integrity: sha512-uEuza5t+wc4YKqTUh6DS/ZdZBHmNcJrBLu18NuRZJMWGb+zHjBKeQNG7/eIA/zMP1yhn5Lnb6hoK6TEddaC/Wg==}
@@ -5519,27 +5547,45 @@ snapshots:
   ws@8.18.3:
     optional: true
 
+  wx-core-locales@2.0.1: {}
+
   wx-core-locales@2.2.0: {}
 
-  wx-grid-data-provider@2.2.0:
-    dependencies:
-      wx-lib-data-provider: 1.5.1
+  wx-filter-locales@2.2.0: {}
 
-  wx-grid-locales@2.2.0: {}
-
-  wx-grid-store@2.2.0:
+  wx-filter-store@2.2.0:
     dependencies:
       wx-lib-state: 1.9.3
 
+  wx-grid-data-provider@2.0.1:
+    dependencies:
+      wx-lib-data-provider: 1.5.1
+
+  wx-grid-locales@2.0.1: {}
+
+  wx-grid-store@2.0.1:
+    dependencies:
+      wx-lib-state: 1.9.0
+
   wx-lib-data-provider@1.5.1: {}
+
+  wx-lib-dom@0.7.1: {}
 
   wx-lib-dom@0.8.0: {}
 
   wx-lib-dom@0.9.1: {}
 
+  wx-lib-state@1.9.0: {}
+
   wx-lib-state@1.9.3: {}
 
   wx-lib-svelte@0.5.1: {}
+
+  wx-svelte-core@2.0.1:
+    dependencies:
+      wx-core-locales: 2.0.1
+      wx-lib-dom: 0.7.1
+      wx-lib-svelte: 0.5.1
 
   wx-svelte-core@2.2.0:
     dependencies:
@@ -5547,16 +5593,30 @@ snapshots:
       wx-lib-dom: 0.8.0
       wx-lib-svelte: 0.5.1
 
-  wx-svelte-grid@2.2.0:
+  wx-svelte-filter@2.2.0:
     dependencies:
-      wx-grid-data-provider: 2.2.0
-      wx-grid-locales: 2.2.0
-      wx-grid-store: 2.2.0
+      wx-filter-locales: 2.2.0
+      wx-filter-store: 2.2.0
       wx-lib-dom: 0.9.1
       wx-lib-state: 1.9.3
-      wx-lib-svelte: 0.5.1
       wx-svelte-core: 2.2.0
       wx-svelte-menu: 2.2.0
+
+  wx-svelte-grid@https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz:
+    dependencies:
+      wx-grid-data-provider: 2.0.1
+      wx-grid-locales: 2.0.1
+      wx-grid-store: 2.0.1
+      wx-lib-dom: 0.7.1
+      wx-lib-state: 1.9.0
+      wx-lib-svelte: 0.5.1
+      wx-svelte-core: 2.0.1
+      wx-svelte-menu: 2.0.1
+
+  wx-svelte-menu@2.0.1:
+    dependencies:
+      wx-lib-dom: 0.7.1
+      wx-svelte-core: 2.0.1
 
   wx-svelte-menu@2.2.0:
     dependencies:

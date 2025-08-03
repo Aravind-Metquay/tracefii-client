@@ -1,6 +1,5 @@
 <script lang="ts">
-	//@ts-ignore
-	import { Grid } from 'wx-svelte-grid';
+	import { Grid, Material } from 'wx-svelte-grid';
 
 	const data = [
 		{
@@ -102,29 +101,8 @@
 	];
 </script>
 
-	<div style="width: 100%; max-width: 85vw;" class='wx-material-theme text-sm'>
+<div class="pr-1">
+	<Material>
 		<Grid {data} {columns} />
-	</div>
-
-<style>
-	:global(.wx-material-theme) {
-		--wx-table-select-background: rgba(0, 0, 0, 0.06);
-		--wx-table-select-focus-background: rgba(213, 230, 255, 0.6);
-		--wx-table-select-color: var(--wx-color-font);
-		--wx-table-border: 1px solid #dfdfdf;
-		--wx-table-select-border: none;
-		--wx-table-header-border: var(--wx-table-border);
-		--wx-table-header-cell-border: var(--wx-table-border);
-		--wx-table-footer-cell-border: var(--wx-table-border);
-		--wx-table-cell-border: var(--wx-table-border);
-		--wx-header-font-weight: 500;
-		--wx-table-header-background: #ffffff;
-		--wx-table-fixed-column-right-border: 3px solid #dfdfdf;
-		--wx-table-editor-dropdown-border: none;
-		--wx-table-editor-dropdown-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.3);
-	}
-	:global(.wx-material-theme .menu) {
-		box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.3);
-		outline: none;
-	}
-</style>
+	</Material>
+</div>
