@@ -6,6 +6,7 @@
 	import InputColumnComponent from './column-components/input-column-component.svelte';
 	import SelectColumnComponent from './column-components/select-column-component.svelte';
 	import AddColumnModal from './column-components/add-column-modal.svelte';
+	import { Button } from '@/components';
 
 	let { component }: { component: Component } = $props();
 	let worksheetManager = getContext<WorksheetManager>('worksheetManager');
@@ -96,24 +97,24 @@
 				/>
 			</div>
 			<div class="flex gap-2">
-				<button
-					class="rounded bg-purple-600 px-2 py-1 text-white transition hover:bg-purple-700"
+				<Button
+					size="tiny"
+					variant="primary"
 					onclick={handleAddRow}
 					disabled={component.tableComponent.isTableRowExpressionEnabled}
-					type="button"
 				>
 					Add Row
-				</button>
-				<button
-					class="rounded bg-purple-600 px-2 py-1 text-white transition hover:bg-purple-700"
+				</Button>
+				<Button
 					onclick={() => {
 						onOpen();
 						worksheetManager.setCurrentActiveComponent(component);
 					}}
-					type="button"
+					size="tiny"
+					variant="primary"
 				>
 					Add Column
-				</button>
+				</Button>
 			</div>
 		</div>
 		<div class="overflow-x-auto">

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Code } from '@lucide/svelte';
 	import { getContext } from 'svelte';
-	import type { WorksheetManager } from '@/Types';
+	import type { ExpressionType, WorksheetManager } from '@/Types';
+	import { Button } from '@/components';
 
-	let { component, onExpressionModal } = $props();
+	let { component } = $props();
 
 	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
@@ -14,7 +15,10 @@
 	function handleInputUpdate(updates: Partial<typeof component>) {
 		worksheetManager.updateInputComponent(component.componentId, updates);
 	}
-	
+
+	const expressionModalVisibility = getContext<{
+		set: (value: boolean, expressionType: ExpressionType) => void;
+	}>('expressionModalVisibility');
 </script>
 
 {#if component?.inputComponent}
@@ -91,7 +95,6 @@
 						class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
 						checked={component.isDisabled}
 						onchange={(e) => handleComponentUpdate({ isDisabled: e.currentTarget.checked })}
-						
 					/>
 					<label class="text-sm text-gray-700">Disabled</label>
 				</div>
@@ -137,13 +140,14 @@
 							/>
 							<label class="text-sm text-gray-700">{item.label}</label>
 						</div>
-						<button
-							class="rounded-md bg-blue-500 p-1 text-white disabled:opacity-50"
+						<Button
+							size="tiny"
+							variant="secondary"
 							disabled={!component[item.key]}
-							onclick={() => onExpressionModal(item.expression)}
+							onclick={() => expressionModalVisibility.set(true, item.expression as ExpressionType)}
 						>
 							<Code size={16} />
-						</button>
+						</Button>
 					</div>
 				</div>
 			{/each}

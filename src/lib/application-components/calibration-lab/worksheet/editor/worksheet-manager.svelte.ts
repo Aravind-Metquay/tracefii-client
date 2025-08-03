@@ -17,7 +17,8 @@ import type {
 	UniqueIdGeneratorOptions,
 	WorksheetManager,
 	WorksheetStateType,
-	WorksheetType
+	WorksheetType,
+	SchemaNode
 } from '@/Types';
 
 function isTableData(data: any): data is TableRow[] {
@@ -100,6 +101,55 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		worksheet.repeatDependents = worksheetData.stores.dependents.repeat;
 	}
 
+	const worksheetExpressionData = $derived.by(() => {
+		function mapToDataType(comp: Component | TableColumn): 'T' | 'N' | 'B' | 'D' {
+			const t = (comp as any).inputComponent?.type ?? (comp as any).selectComponent?.type;
+			switch (t) {
+				case 'Number':
+					return 'N';
+				case 'Yes or No':
+					return 'B';
+				case 'Date':
+					return 'D';
+				default:
+					return 'T';
+			}
+		}
+
+		const schema: SchemaNode = { type: 'object', children: {} };
+
+		for (const fn of worksheet.functions) {
+			const key = fn.functionId;
+			const fnNode: SchemaNode = { type: 'object', children: {} };
+
+			const comps = worksheet.components.filter((c) => c.functionId === fn.functionId);
+			for (const comp of comps) {
+				if (comp.componentType === 'Table' && comp.tableComponent) {
+					const tableChildren: Record<string, SchemaNode> = {};
+					for (const col of comp.tableComponent.columns) {
+						tableChildren[col.columnId] = {
+							type: 'variable',
+							dataType: mapToDataType(col)
+						};
+					}
+					fnNode.children![comp.componentId] = {
+						type: 'object',
+						children: tableChildren
+					};
+				} else {
+					fnNode.children![comp.componentId] = {
+						type: 'variable',
+						dataType: mapToDataType(comp)
+					};
+				}
+			}
+
+			schema.children![key] = fnNode;
+		}
+
+		return schema;
+	});
+
 	function getDependentStore(type: ExpressionType): DependentStore {
 		switch (type) {
 			case 'valueExpression':
@@ -120,6 +170,10 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 	}
 
 	return {
+		getWroskheetExpressionData() {
+			return worksheetExpressionData;
+		},
+
 		getWorksheet() {
 			return worksheet;
 		},
@@ -931,7 +985,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		getExpression(
 			functionId: string,
 			type: ExpressionType,
-			componentId?: string,
+			componentId: string,
 			columnId?: string
 		): string | undefined {
 			const path = this.getPath(functionId, componentId, columnId);

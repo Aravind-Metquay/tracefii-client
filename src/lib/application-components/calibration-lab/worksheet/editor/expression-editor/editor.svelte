@@ -8,59 +8,46 @@
 	} from '@codemirror/view';
 	import { EditorState, RangeSet, RangeSetBuilder } from '@codemirror/state';
 	import { autocompletion, snippet, type CompletionContext } from '@codemirror/autocomplete';
+	import type { SchemaNode } from '@/Types';
+
+	let { schema, expression }: { schema: SchemaNode; expression: string } = $props();
 
 	let editorContainer = $state<HTMLDivElement | null>();
-
-	interface SchemaNode {
-		type: 'object' | 'variable';
-		children?: { [key: string]: SchemaNode };
-		dataType?: 'T' | 'N' | 'B' | 'D'; 
-	}
-	
-	const schema: SchemaNode = {
-		type: 'object',
-		children: {
-			User: {
-				type: 'object',
-				children: {
-					Name: { type: 'variable', dataType: 'T' },
-					Email: { type: 'variable', dataType: 'T' },
-					Address: {
-						type: 'object',
-						children: {
-							Street: { type: 'variable', dataType: 'T' },
-							City: { type: 'variable', dataType: 'T' }
-						}
-					}
-				}
-			},
-			Date: { type: 'variable', dataType: 'D' },
-			Page: {
-				type: 'object',
-				children: {
-					Title: { type: 'variable', dataType: 'T' },
-					Author: { type: 'variable', dataType: 'T' }
-				}
-			}
-		}
-	};
 
 	// const schema: SchemaNode = {
 	// 	type: 'object',
 	// 	children: {
-	// 		'Boiler-Feed-Water-Test': {
+	// 		function1: {
 	// 			type: 'object',
 	// 			children: {
-	// 				pH: { type: 'variable', dataType: 'N' },
-	// 				'Conductivity (µS/cm)': { type: 'variable', dataType: 'N' },
-	// 				'Select Boiler': { type: 'variable', dataType: 'T' },
-
-	// 				'Test Results': {
+	// 				rows: {
+	// 					type: 'variable',
+	// 					dataType: 'N'
+	// 				},
+	// 				is_ideal_for_calibration: {
+	// 					type: 'variable',
+	// 					dataType: 'B'
+	// 				}
+	// 			}
+	// 		},
+	// 		function2: {
+	// 			type: 'object',
+	// 			children: {
+	// 				measurement_results: {
 	// 					type: 'object',
 	// 					children: {
-	// 						Parameter: { type: 'variable', dataType: 'T' },
-	// 						Value: { type: 'variable', dataType: 'N' },
-	// 						Unit: { type: 'variable', dataType: 'T' }
+	// 						nominal: {
+	// 							type: 'variable',
+	// 							dataType: 'N'
+	// 						},
+	// 						tolerance: {
+	// 							type: 'variable',
+	// 							dataType: 'N'
+	// 						},
+	// 						result: {
+	// 							type: 'variable',
+	// 							dataType: 'N'
+	// 						}
 	// 					}
 	// 				}
 	// 			}
@@ -230,8 +217,6 @@
 			decorations: (v) => v.decorations
 		}
 	);
-
-	let expression: string = $state('');
 
 	$effect(() => {
 		if (editorContainer) {

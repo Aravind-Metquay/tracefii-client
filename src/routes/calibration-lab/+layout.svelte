@@ -5,7 +5,7 @@
 
 <main class="h-screen bg-[#fbfbfb]">
     <div class="h-full w-full flex">
-        <MainLayout />
+        <!-- <MainLayout /> -->
         <div class="h-full flex-1 bg-white">
 	        {@render children()}
         </div>

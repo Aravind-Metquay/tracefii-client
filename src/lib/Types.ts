@@ -593,8 +593,8 @@ export type WorksheetManager = {
 	updateTableComponent(componentId: string, props: Partial<Omit<TableComponent, 'columns'>>): void;
 	getAllComponents(): Component[];
 	getComponentsOfCurrentFunction(): Component[];
-	checkIfComponentLabelExistsInFunction(functionId: string, label: string): boolean
-	checkIfColumnNameExistsInTable(tableId: string, columnName: string): boolean
+	checkIfComponentLabelExistsInFunction(functionId: string, label: string): boolean;
+	checkIfColumnNameExistsInTable(tableId: string, columnName: string): boolean;
 	// Table Columns
 	createNewColumn(newColumn: TableColumn): void;
 	addColumn(tableId: string, col: TableColumn): void;
@@ -707,6 +707,7 @@ export type WorksheetManager = {
 	addReferenceInstrumentData(path: string, data: DataStore): void;
 	removeReferenceInstrumentData(path: string): void;
 	getReferenceInstrumentData(path: string): DataStore | undefined;
+	getWroskheetExpressionData(): SchemaNode;
 };
 
 export interface ProcedureType {
@@ -902,4 +903,10 @@ export interface CalibrationType {
 	passed: boolean;
 	showInCertificate: boolean;
 	status: 'To Do' | 'In Progress' | 'Done';
+}
+
+export interface SchemaNode {
+	type: 'object' | 'variable';
+	children?: { [key: string]: SchemaNode };
+	dataType?: 'T' | 'N' | 'B' | 'D';
 }
