@@ -1,35 +1,37 @@
 <script lang="ts">
-	import type { Component } from "@/Types";
-	import InputComponent from "../components/input-component.svelte";
-	import TableComponent from "../components/table-component.svelte";
-	import TextComponent from "../components/text-component.svelte";
-	import SelectComponent from "../components/select-component.svelte";
-	import GraphComponent from "../components/graph-component.svelte";
-	import type { WorksheetManager } from "../store.svelte";
-	import { getContext } from "svelte";
+	import type { Component as ComponentType, WorksheetManager } from '@/Types';
+	import { getContext } from 'svelte';
+	import type { Component } from 'svelte';
 
-  const worksheetManager = getContext<WorksheetManager>("worksheetManager");
+	import InputComponent from '../components/input-component.svelte';
+	import TableComponent from '../components/table-component.svelte';
+	import TextComponent from '../components/text-component.svelte';
+	import SelectComponent from '../components/select-component.svelte';
+	import GraphComponent from '../components/graph-component.svelte';
 
-  // Choose component for dynamic rendering
-  function getRendererComponent(component: Component) {
-    if (component.componentType === "Input") return InputComponent;
-    if (component.componentType === "Table") return TableComponent;
-    if (component.componentType === "Text") return TextComponent;
-    if (component.componentType === "Select") return SelectComponent;
-    if (component.componentType === "Graph") return GraphComponent;
-    return null;
-  }  
+	const worksheetManager = getContext<WorksheetManager>('worksheetManager');
 
+	interface DynamicComponentProps {
+		component: ComponentType;
+	}
+
+	const componentMap: Record<string, Component<DynamicComponentProps>> = {
+		Input: InputComponent,
+		Table: TableComponent,
+		Text: TextComponent,
+		Select: SelectComponent,
+		Graph: GraphComponent
+	};
+
+	const components = $derived(worksheetManager.getComponentsOfCurrentFunction());
 </script>
 
-<div class="grid grid-cols-3 gap-6 p-4">
-  {#each  worksheetManager.getComponentsOfCurrentFunction() as component (component.componentId)}
- 
-    <!-- {#if getRendererComponent(component) !== null} -->
-      <svelte:component
-        this={getRendererComponent(component)}
-        {component}
-      />
-    <!-- {/if} -->
-  {/each}
+<div class="grid grid-cols-3 gap-6 overflow-y-auto p-4">
+	{#each components as component (component.componentId)}
+		{@const Renderer = componentMap[component.componentType]}
+
+		{#if Renderer}
+			<Renderer {component} />
+		{/if}
+	{/each}
 </div>

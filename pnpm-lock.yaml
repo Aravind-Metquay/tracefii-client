@@ -62,21 +62,12 @@ importers:
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
-      colord:
-        specifier: ^2.9.3
-        version: 2.9.3
       fabric:
         specifier: ^6.7.0
         version: 6.7.0
-      filepond:
-        specifier: ^4.32.8
-        version: 4.32.8
-      filepond-plugin-file-validate-type:
-        specifier: ^1.2.9
-        version: 1.2.9(filepond@4.32.8)
-      filepond-plugin-image-preview:
-        specifier: ^4.6.12
-        version: 4.6.12(filepond@4.32.8)
+      highlight.js:
+        specifier: ^11.11.1
+        version: 11.11.1
       jsbarcode:
         specifier: ^3.12.1
         version: 3.12.1
@@ -95,15 +86,18 @@ importers:
       svelte-awesome-color-picker:
         specifier: ^4.0.2
         version: 4.0.2(svelte@5.35.2)
-      svelte-filepond:
-        specifier: ^0.2.2
-        version: 0.2.2(filepond@4.32.8)
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
-      uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
+      vite-plugin-mkcert:
+        specifier: ^1.17.8
+        version: 1.17.8(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1))
+      wx-svelte-filter:
+        specifier: ^2.2.0
+        version: 2.2.0
+      wx-svelte-grid:
+        specifier: https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz
+        version: https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz
     devDependencies:
       '@internationalized/date':
         specifier: ^3.8.1
@@ -112,7 +106,7 @@ importers:
         specifier: ^0.515.0
         version: 0.515.0(svelte@5.35.2)
       '@sveltejs/adapter-auto':
-        specifier: ^3.3.1
+        specifier: ^3.0.0
         version: 3.3.1(@sveltejs/kit@2.22.2(@sveltejs/vite-plugin-svelte@4.0.4(svelte@5.35.2)(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)))(svelte@5.35.2)(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)))
       '@sveltejs/kit':
         specifier: ^2.0.0
@@ -135,9 +129,6 @@ importers:
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.5
-      '@types/uuid':
-        specifier: ^10.0.0
-        version: 10.0.0
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.6)
@@ -198,9 +189,6 @@ importers:
       vite:
         specifier: ^5.0.3
         version: 5.4.19(@types/node@24.0.10)(lightningcss@1.30.1)
-      vite-plugin-mkcert:
-        specifier: ^1.17.8
-        version: 1.17.8(vite@5.4.19(@types/node@24.0.10)(lightningcss@1.30.1))
       vitest:
         specifier: ^2.0.4
         version: 2.1.9(@types/node@24.0.10)(jsdom@20.0.3(canvas@2.11.2))(lightningcss@1.30.1)
@@ -849,9 +837,6 @@ packages:
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
-
-  '@types/uuid@10.0.0':
-    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@types/validator@13.15.2':
     resolution: {integrity: sha512-y7pa/oEJJ4iGYBxOpfAKn5b9+xuihvzDVnC/OSvlVnGxVg0pOqmjiMafiJ1KVNQEaPZf9HsEp5icEwGg8uIe5Q==}
@@ -1502,19 +1487,6 @@ packages:
     resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
     engines: {node: '>=16.0.0'}
 
-  filepond-plugin-file-validate-type@1.2.9:
-    resolution: {integrity: sha512-Tzv07aNdZvjUXDRA3XL16QMEvh6llDrXlcZ6W0eTHQ+taHaVg/JKJTFs/AViO+6ZcpPCcQStbhYEL2HoS+vldw==}
-    peerDependencies:
-      filepond: '>=1.x <5.x'
-
-  filepond-plugin-image-preview@4.6.12:
-    resolution: {integrity: sha512-Y8ETX5QVV0mbPB0586UH8AUmG9tZg8PuN5bdEAIlZVJFTct5ebViJ7+Am94/VhTPjLqZjBf1zmDq5JU6XRsZKw==}
-    peerDependencies:
-      filepond: '>=4.x <5.x'
-
-  filepond@4.32.8:
-    resolution: {integrity: sha512-svcz5lh4YKrV92zogqpOKzVEOXbD/zT7RAHso5Lqp0GujP+kxF2PSl9Tb6AdYVzfMRtoPsExcphJPpBLoo8eYg==}
-
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
@@ -1640,6 +1612,10 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  highlight.js@11.11.1:
+    resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
+    engines: {node: '>=12.0.0'}
 
   html-encoding-sniffer@3.0.0:
     resolution: {integrity: sha512-oWv4T4yJ52iKrufjnyZPkrN0CH3QnrUqdB6In1g5Fe1mia8GmF36gnfNySxoZtxD5+NmYw1EElVXiBk93UeskA==}
@@ -2459,11 +2435,6 @@ packages:
       svelte:
         optional: true
 
-  svelte-filepond@0.2.2:
-    resolution: {integrity: sha512-MnXOiX5aiyLzyn+iuG2grZDPrLQsSOyalyQQ/tl04uBzllFu6kkXCbKHMXTx6rdco8SuJzd5b5j+klD7hiY6Zg==}
-    peerDependencies:
-      filepond: '>=3.7.x <5.x'
-
   svelte-toolbelt@0.5.0:
     resolution: {integrity: sha512-t3tenZcnfQoIeRuQf/jBU7bvTeT3TGkcEE+1EUr5orp0lR7NEpprflpuie3x9Dn0W9nOKqs3HwKGJeeN5Ok1sQ==}
     engines: {node: '>=18', pnpm: '>=8.7.0'}
@@ -2654,10 +2625,6 @@ packages:
   utrie@1.0.2:
     resolution: {integrity: sha512-1MLa5ouZiOmQzUbjbu9VmjLzn1QLXBhwpUa7kdLUQK+KQ5KA9I1vk5U4YHe/X2Ch7PYnJfWuWT+VbuxbGwljhw==}
 
-  uuid@11.1.0:
-    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
-    hasBin: true
-
   valibot@0.42.1:
     resolution: {integrity: sha512-3keXV29Ar5b//Hqi4MbSdV7lfVp6zuYLZuA9V1PvQUsXqogr+u5lvLPLk3A4f74VUXDnf/JfWMN6sB+koJ/FFw==}
     peerDependencies:
@@ -2823,6 +2790,67 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+
+  wx-core-locales@2.0.1:
+    resolution: {integrity: sha512-GK3C/aDpMycROlp/FKUp06PRupakJcYEGNBDjP6Rcgr86uGpIcm7GJ92P2gN0m0xVt7tVIobPwlNst2LXROpxw==}
+
+  wx-core-locales@2.2.0:
+    resolution: {integrity: sha512-bDquS5k6v784vOsjDnkpbrqL4Yh3CQGf3Rt3gM6mAFDUI97/Iy2r7fzQ3It7Hb3dxI9Vtym4Bwsg3X3ATAz8KA==}
+
+  wx-filter-locales@2.2.0:
+    resolution: {integrity: sha512-7t6aeM/XP8RBt1i9WdoG8l5liSCa4nfAezosEaIZytnj05j3tJzTKqdPtoX40QctNO65frvMF8yfpVY8DPdg7w==}
+
+  wx-filter-store@2.2.0:
+    resolution: {integrity: sha512-ub88CMs7RoAzEBAEhmc9In50uz5afPTvKny1PcCep01/BIgDinuiW+NkIElCTX5MXF1/Lc3YbEDqDK3Qm7062g==}
+
+  wx-grid-data-provider@2.0.1:
+    resolution: {integrity: sha512-pad4xtemIhYfxIOn0xKYe19sjdcwzPpBEi7uYelxcaYwBCct9c2V8bKCnks84E9jIx3UEQKNyGz1W15FKVkvbQ==}
+
+  wx-grid-locales@2.0.1:
+    resolution: {integrity: sha512-a/qFRxL4Fdd+po+5Wyr3w+t75JfTR/c54qjXs79N7eL1Stfit583cSa/leYmtpML9wobHAaUq/zA+ooLBuCTrA==}
+
+  wx-grid-store@2.0.1:
+    resolution: {integrity: sha512-FtLS/VXE9/2ud4cuwEOl/y5gdH2QUGjYrclm72gNCizno9W4+tcmu+4IrBYn89qe0NZN+W5ksAm1+NqCa+K4OA==}
+
+  wx-lib-data-provider@1.5.1:
+    resolution: {integrity: sha512-ebKYlnmXOuwgQ/812Ux06Uz7tIG3P8euUHB0/hwhL0+Buged+00uFII3bkXQ7jh5DbsTugFqPlzlKTJFQ2l0TA==}
+
+  wx-lib-dom@0.7.1:
+    resolution: {integrity: sha512-ja1iQcTVaZHYDrvrxC2mUfU6e0u6YyFXP4FmY8mM6v4tQCgXoWLIaEn2uJxs0czugmm5LVJ/FdDc3A8AtHWmvw==}
+
+  wx-lib-dom@0.8.0:
+    resolution: {integrity: sha512-1jQFsoX8EiA/7D6IT8k8I52PlPFs850etY+k7jqww9CM5L3JEELprKuy422sUfXjnnpMoaVvUrmndWZVOldsAA==}
+
+  wx-lib-dom@0.9.1:
+    resolution: {integrity: sha512-uh0ikmNRSgF1ksCY4mu/Nuqo/zrTOKP75Ok+YeA+Jp6i5QCzD5EabWtgAGIBq54cikAbjSGOdNPa6qYLc9s0qA==}
+
+  wx-lib-state@1.9.0:
+    resolution: {integrity: sha512-h2BeV/km+PH00pcHyUhyYJdY50vTBVtPzlA+b6idtoBiglUrP+ahmt9I6QvdKVoIPbIGh6EzqavDXuORucEy4g==}
+
+  wx-lib-state@1.9.3:
+    resolution: {integrity: sha512-iZVeprL3ljzTWToaN+QW9LJjWZoDyplLbkt8iryeDQaNirYFaL2ZUCp0Utjm0rSP6OfLSmaw+QYldYhmqDpyGw==}
+
+  wx-lib-svelte@0.5.1:
+    resolution: {integrity: sha512-zYfkAv5r0zQ3KFyCPPusC8EkMXUC3I0L1QsK+An0rNlRkY/iocPTOcaouyycg48BdmsBK8fSL0vK0B4oZuujrQ==}
+
+  wx-svelte-core@2.0.1:
+    resolution: {integrity: sha512-unIHTltfWeAJ8AX/cVOMHt8rzhy8ocDxPMO1ynTH0XydLISCnitc+hAZD2esgmYuH0bD0Utekg/fhMV9yqyJyQ==}
+
+  wx-svelte-core@2.2.0:
+    resolution: {integrity: sha512-txE3Me/gfb899V3QJbH+Rt+e7rgvruzLCIKvZoDXT/c78TUWqMRHFZUpIkjlH9toozVvdL0UnyQ8BqVMRQqBVg==}
+
+  wx-svelte-filter@2.2.0:
+    resolution: {integrity: sha512-RiM7DNF+VUWN7ofKRwwD2HDlr0Ab5ZCqpC15/91e3aIF+CsRqPrUv34zA1xN2z6FlMEm9Hi5DjFT55yWQsVD0w==}
+
+  wx-svelte-grid@https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz:
+    resolution: {tarball: https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz}
+    version: 2.0.2
+
+  wx-svelte-menu@2.0.1:
+    resolution: {integrity: sha512-FP8SjfO5KIcr7jgXiYx9Jn0EjPtE/00O+knQkacYOBQbdiqX+uuA17BPXHi5WVg3CKaF5P5nNqHfZwmBr1AijQ==}
+
+  wx-svelte-menu@2.2.0:
+    resolution: {integrity: sha512-uEuza5t+wc4YKqTUh6DS/ZdZBHmNcJrBLu18NuRZJMWGb+zHjBKeQNG7/eIA/zMP1yhn5Lnb6hoK6TEddaC/Wg==}
 
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
@@ -3461,8 +3489,6 @@ snapshots:
 
   '@types/trusted-types@2.0.7':
     optional: true
-
-  '@types/uuid@10.0.0': {}
 
   '@types/validator@13.15.2':
     optional: true
@@ -4237,16 +4263,6 @@ snapshots:
     dependencies:
       flat-cache: 4.0.1
 
-  filepond-plugin-file-validate-type@1.2.9(filepond@4.32.8):
-    dependencies:
-      filepond: 4.32.8
-
-  filepond-plugin-image-preview@4.6.12(filepond@4.32.8):
-    dependencies:
-      filepond: 4.32.8
-
-  filepond@4.32.8: {}
-
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
@@ -4383,6 +4399,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  highlight.js@11.11.1: {}
 
   html-encoding-sniffer@3.0.0:
     dependencies:
@@ -5153,10 +5171,6 @@ snapshots:
     optionalDependencies:
       svelte: 5.35.2
 
-  svelte-filepond@0.2.2(filepond@4.32.8):
-    dependencies:
-      filepond: 4.32.8
-
   svelte-toolbelt@0.5.0(svelte@5.35.2):
     dependencies:
       clsx: 2.1.1
@@ -5379,8 +5393,6 @@ snapshots:
       base64-arraybuffer: 1.0.2
     optional: true
 
-  uuid@11.1.0: {}
-
   valibot@0.42.1(typescript@5.8.3):
     optionalDependencies:
       typescript: 5.8.3
@@ -5534,6 +5546,82 @@ snapshots:
 
   ws@8.18.3:
     optional: true
+
+  wx-core-locales@2.0.1: {}
+
+  wx-core-locales@2.2.0: {}
+
+  wx-filter-locales@2.2.0: {}
+
+  wx-filter-store@2.2.0:
+    dependencies:
+      wx-lib-state: 1.9.3
+
+  wx-grid-data-provider@2.0.1:
+    dependencies:
+      wx-lib-data-provider: 1.5.1
+
+  wx-grid-locales@2.0.1: {}
+
+  wx-grid-store@2.0.1:
+    dependencies:
+      wx-lib-state: 1.9.0
+
+  wx-lib-data-provider@1.5.1: {}
+
+  wx-lib-dom@0.7.1: {}
+
+  wx-lib-dom@0.8.0: {}
+
+  wx-lib-dom@0.9.1: {}
+
+  wx-lib-state@1.9.0: {}
+
+  wx-lib-state@1.9.3: {}
+
+  wx-lib-svelte@0.5.1: {}
+
+  wx-svelte-core@2.0.1:
+    dependencies:
+      wx-core-locales: 2.0.1
+      wx-lib-dom: 0.7.1
+      wx-lib-svelte: 0.5.1
+
+  wx-svelte-core@2.2.0:
+    dependencies:
+      wx-core-locales: 2.2.0
+      wx-lib-dom: 0.8.0
+      wx-lib-svelte: 0.5.1
+
+  wx-svelte-filter@2.2.0:
+    dependencies:
+      wx-filter-locales: 2.2.0
+      wx-filter-store: 2.2.0
+      wx-lib-dom: 0.9.1
+      wx-lib-state: 1.9.3
+      wx-svelte-core: 2.2.0
+      wx-svelte-menu: 2.2.0
+
+  wx-svelte-grid@https://github.com/ScienceOS-Tech/grid/releases/download/v2.0.2/wx-svelte-grid-2.0.2.tgz:
+    dependencies:
+      wx-grid-data-provider: 2.0.1
+      wx-grid-locales: 2.0.1
+      wx-grid-store: 2.0.1
+      wx-lib-dom: 0.7.1
+      wx-lib-state: 1.9.0
+      wx-lib-svelte: 0.5.1
+      wx-svelte-core: 2.0.1
+      wx-svelte-menu: 2.0.1
+
+  wx-svelte-menu@2.0.1:
+    dependencies:
+      wx-lib-dom: 0.7.1
+      wx-svelte-core: 2.0.1
+
+  wx-svelte-menu@2.2.0:
+    dependencies:
+      wx-lib-dom: 0.9.1
+      wx-svelte-core: 2.2.0
 
   xml-name-validator@4.0.0:
     optional: true

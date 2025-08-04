@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { createRawSnippet } from 'svelte';
 	import type { ColumnConfig } from '@/application-components/common/data-table/types';
 	import SimpleTable from '@/application-components/common/data-table/simple-table.svelte';
@@ -81,4 +81,13 @@
 
 <SimpleTable data={users} {columns} />
 
-<button onclick={()=>goto('/auth/login')}>Go to Login</button>
+<button onclick={()=>goto('/auth/login')}>Go to Login</button> -->
+
+
+Lets use this page for the Home page , which is the landing page.
+Then the user should navigate or take action. 
+They can go to login page or signup page. 
+If they are logged in then we can display , go to app. 
+Inside the app they can have the option to log out. 
+Organization Creation page/Modal (But option to logout should be there.)
+

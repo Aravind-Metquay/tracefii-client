@@ -1,8 +1,6 @@
 <script>
-	import { initializeWorksheet } from "@/application-components/calibration-lab/worksheet/editor/store.svelte";
+	import { initializeWorksheet } from "@/application-components/calibration-lab/worksheet/editor/worksheet-manager.svelte";
 	import Worksheet from "@/application-components/calibration-lab/worksheet/worksheet.svelte";
-
-
 </script>
 
 
