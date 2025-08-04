@@ -8,7 +8,6 @@
 			assetName: 'Spectrometer Model X',
 			assetType: 'Measurement Equipment',
 			status: 'In Progress',
-			actions: null 
 		},
 		{
 			workNo: 'WN-2502',
@@ -17,7 +16,6 @@
 			assetName: 'Centrifuge 5810R',
 			assetType: 'Lab Equipment',
 			status: 'Completed',
-			actions: null
 		},
 		{
 			workNo: 'WN-2503',
@@ -26,7 +24,6 @@
 			assetName: 'Torque Wrench TW-500',
 			assetType: 'Calibrated Tool',
 			status: 'Pending Parts',
-			actions: null
 		},
 		{
 			workNo: 'WN-2504',
@@ -35,7 +32,6 @@
 			assetName: 'Laser Cutter G-Series',
 			assetType: 'Industrial Machinery',
 			status: 'On Hold',
-			actions: null
 		},
 		{
 			workNo: 'WN-2505',
@@ -44,7 +40,6 @@
 			assetName: 'Digital Manometer',
 			assetType: 'Measurement Equipment',
 			status: 'Awaiting Dispatch',
-			actions: null
 		},
 		{
 			workNo: 'WN-2506',
@@ -53,7 +48,6 @@
 			assetName: 'Robotic Arm K-1',
 			assetType: 'Automation',
 			status: 'Scheduled',
-			actions: null
 		}
 	];
 
@@ -64,7 +58,6 @@
 		{ id: 'assetName', header: 'Asset Name', flexgrow: 1, sort: true },
 		{ id: 'assetType', header: 'Asset Type', width: 180, sort: true },
 		{ id: 'status', header: 'Status', width: 140, sort: true },
-		{ id: 'actions', header: 'Actions', width: 100, sort: false } 
 	];
     
 </script>

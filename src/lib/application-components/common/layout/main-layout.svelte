@@ -58,7 +58,7 @@
 	<nav class="flex flex-1 flex-col px-1.5">
 		{#each mainMenuItems as item}
 			{@const isActive = page.url.pathname === item.href}
-			<a
+			<button
 				onclick={() => goto(item.href)}
 				class="flex items-center gap-3 rounded-md px-2 py-1 text-sm font-medium transition-colors {isActive
 					? 'border-gray-500 bg-gray-200 text-gray-700'
@@ -66,7 +66,7 @@
 			>
 				<svelte:component this={item.icon} size={18} class="text-gray-500" />
 				<span class="text-sm">{item.label}</span>
-			</a>
+	</button>
 		{/each}
 	</nav>
 </div>

@@ -88,13 +88,7 @@
 		{ id: 'name', header: 'Customer Name', flexgrow: 1, sort: true, editor: 'text' },
 		{ id: 'email', header: 'Email ID', flexgrow: 1, sort: true, editor: 'text' },
 		{ id: 'contactPerson', header: 'Contact Person Name', flexgrow: 1, sort: true, editor: 'text' },
-		{
-			id: 'contactNumber',
-			header: 'Contact Person Number',
-			width: 160,
-			sort: true,
-			editor: 'text'
-		},
+		{ id: 'contactNumber', header: 'Contact Person Number', width: 160, sort: true, editor: 'text' },
 		{ id: 'year', header: 'Year', width: 80, sort: true, editor: 'text' },
 		{ id: 'website', header: 'Website', flexgrow: 1, sort: true, editor: 'text' }
 	];

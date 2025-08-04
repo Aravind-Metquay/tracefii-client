@@ -9,7 +9,6 @@
 			preparedBy: 'Anjali Sharma',
 			worksheetName: '10-1000µL Pipette Worksheet',
 			worksheetId: 'WS-PIP-1000',
-			actions: null // 'Actions' column is often for UI controls like buttons
 		},
 		{
 			procedureName: 'Thermometer Verification',
@@ -18,7 +17,6 @@
 			preparedBy: 'Vikram Singh',
 			worksheetName: 'Digital Thermometer Check',
 			worksheetId: 'WS-THERM-DIGI',
-			actions: null
 		},
 		{
 			procedureName: 'Pressure Gauge Analysis (Legacy)',
@@ -27,7 +25,6 @@
 			preparedBy: 'Priya Desai',
 			worksheetName: 'Analog Gauge Inspection',
 			worksheetId: 'WS-PRES-ANLG',
-			actions: null
 		},
 		{
 			procedureName: 'Analytical Balance Calibration',
@@ -36,7 +33,6 @@
 			preparedBy: 'Anjali Sharma',
 			worksheetName: 'Mettler Toledo Balance Sheet',
 			worksheetId: 'WS-BAL-ANLY',
-			actions: null
 		},
 		{
 			procedureName: 'Multimeter Electrical Safety Test',
@@ -45,7 +41,6 @@
 			preparedBy: 'Rahul Menon',
 			worksheetName: 'Fluke Multimeter Verification',
 			worksheetId: 'WS-ELEC-FLUKE',
-			actions: null
 		}
 	];
 
@@ -56,7 +51,6 @@
 		{ id: 'preparedBy', header: 'Prepared By', width: 180, sort: true },
 		{ id: 'worksheetName', header: 'Worksheet Name', flexgrow: 1, sort: true },
 		{ id: 'worksheetId', header: 'Worksheet ID', width: 150, sort: true },
-		{ id: 'actions', header: 'Actions', width: 100, sort: false }
 	];
     
 </script>
