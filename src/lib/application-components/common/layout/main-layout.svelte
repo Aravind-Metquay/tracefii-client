@@ -11,7 +11,7 @@
 		Waypoints,
 		PaintRoller,
 		BriefcaseBusiness,
-		Settings
+		Settings,
 	} from '@lucide/svelte';
 	import SidebarIcon from './sidebar-icon.svelte';
 	import { goto } from '$app/navigation';
