@@ -25,14 +25,14 @@
 	let asFound = $state(certificate.data.conditions.asFound);
 	let asLeft = $state(certificate.data.conditions.asLeft);
 
-	function updateCustomerName(value: string) {
-		customerName = value;
-		certificate.data.customer.name = value;
+	function updateCustomerSectionTitle(value: string) {
+		
+		certificate.data.customer.sectionTitle = value;
 	}
 
-	function updateCustomerAddress(value: string) {
-		customerAddress = value;
-		certificate.data.customer.address = value;
+	function updateInstrumentSectionTitle(value: string) {
+		
+		certificate.data.instrument.sectionTitle = value;
 	}
 
 	function updateInstrumentField(field: string, value: string) {
@@ -56,95 +56,70 @@
 
 	<!-- Customer Information -->
 	<div class="rounded-lg border border-gray-200 p-4">
-		<h4 class="mb-3 text-sm font-medium text-gray-900">Customer Information</h4>
+		<input class="w-full border border-gray-300 rounded py-2 px-2 mb-3 text-sm font-medium text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none" 
+		       type="text" 
+			   value={certificate.data.customer.sectionTitle}
+			   onchange={(e) => updateCustomerSectionTitle((e.target as HTMLInputElement).value || '')}
+/>
 		<div class="space-y-3">
 			<div>
 				<label for="customer-name" class="mb-1 block text-xs text-gray-500">Customer Name</label>
-				<input
-					id="customer-name"
-					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-					value={customerName}
-					oninput={(e) => updateCustomerName((e.target as HTMLInputElement).value)}
-				/>
+				<h4 class="w-full rounded-md  px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none">
+					{customerName}
+				</h4>
 			</div>
 			<div>
 				<label for="customer-address" class="mb-1 block text-xs text-gray-500"
 					>Customer Address</label
 				>
-				<textarea
-					id="customer-address"
-					rows="2"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-					value={customerAddress}
-					oninput={(e) => updateCustomerAddress((e.target as HTMLTextAreaElement).value)}
-				></textarea>
+				<h4 class="w-full min-h-15 rounded-md  px-3 py-2 text-sm ">
+                    {customerAddress}
+				</h4>
 			</div>
 		</div>
 	</div>
 
 	<!-- Instrument Information -->
 	<div class="rounded-lg border border-gray-200 p-4">
-		<h4 class="mb-3 text-sm font-medium text-gray-900">Instrument Information</h4>
-		<div class="space-y-3">
-			<div>
-				<label for="instrument-type" class="mb-1 block text-xs text-gray-500">Type</label>
-				<input
-					id="instrument-type"
-					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-					value={instrumentType}
-					oninput={(e) => updateInstrumentField('type', (e.target as HTMLInputElement).value)}
-				/>
-			</div>
-			<div>
-				<label for="instrument-manufacturer" class="mb-1 block text-xs text-gray-500"
-					>Manufacturer</label
-				>
-				<input
-					id="instrument-manufacturer"
-					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-					value={instrumentManufacturer}
-					oninput={(e) =>
-						updateInstrumentField('manufacturer', (e.target as HTMLInputElement).value)}
-				/>
-			</div>
-			<div>
-				<label for="instrument-model" class="mb-1 block text-xs text-gray-500">Model/Part No.</label
-				>
-				<input
-					id="instrument-model"
-					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-					value={instrumentModel}
-					oninput={(e) => updateInstrumentField('model', (e.target as HTMLInputElement).value)}
-				/>
-			</div>
-			<div class="grid grid-cols-2 gap-3">
-				<div>
-					<label for="instrument-serial" class="mb-1 block text-xs text-gray-500">Serial No.</label>
-					<input
-						id="instrument-serial"
-						type="text"
-						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-						value={instrumentSerial}
-						oninput={(e) => updateInstrumentField('serial', (e.target as HTMLInputElement).value)}
-					/>
-				</div>
-				<div>
-					<label for="instrument-tag" class="mb-1 block text-xs text-gray-500">Tag No.</label>
-					<input
-						id="instrument-tag"
-						type="text"
-						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-						value={instrumentTag}
-						oninput={(e) => updateInstrumentField('tag', (e.target as HTMLInputElement).value)}
-					/>
-				</div>
-			</div>
-		</div>
-	</div>
+    <input class="w-full border border-gray-300 rounded py-2 px-2 mb-3 text-sm font-medium text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        type="text" value={certificate.data.instrument.sectionTitle}
+        onchange={(e) => updateInstrumentSectionTitle((e.target as HTMLInputElement).value || '')}/>
+    <div class="space-y-3">
+        <div>
+            <label for="instrument-type" class="mb-1 block text-xs text-gray-500">Type</label>
+            <h4 class="w-full rounded-md px-2 py-2 text-sm">
+                {instrumentType}
+            </h4>
+        </div>
+        <div>
+            <label for="instrument-manufacturer" class="mb-1 block text-xs text-gray-500">Manufacturer</label>
+            <h4 class="w-full rounded-md px-3 py-2 text-sm ">
+                {instrumentManufacturer}
+            </h4>
+        </div>
+        <div>
+            <label for="instrument-model" class="mb-1 block text-xs text-gray-500">Model/Part No.</label>
+            <h4 class="w-full rounded-md px-3 py-2 text-sm">
+                {instrumentModel}
+            </h4>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label for="instrument-serial" class="mb-1 block text-xs text-gray-500">Serial No.</label>
+                <h4 class="w-full rounded-md px-3 py-2 text-sm">
+                    {instrumentSerial}
+                </h4>
+            </div>
+            <div>
+                <label for="instrument-tag" class="mb-1 block text-xs text-gray-500">Tag No.</label>
+                <h4 class="w-full rounded-md px-3 py-2 text-sm">
+                    {instrumentTag}
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 	<!-- Dates -->
 	<div class="rounded-lg border border-gray-200 p-4">

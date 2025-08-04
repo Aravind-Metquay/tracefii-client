@@ -21,6 +21,7 @@
 
 	<div class="space-y-2">
 		{#each certificate.sections as section (section.id)}
+		{#if section.name!="Calibration Data"}
 			<button
 				class="w-full rounded-lg border p-3 text-left transition-all duration-200 {isSelected(
 					section
@@ -43,6 +44,7 @@
 					{/if}
 				</div>
 			</button>
+			{/if}
 		{/each}
 	</div>
 

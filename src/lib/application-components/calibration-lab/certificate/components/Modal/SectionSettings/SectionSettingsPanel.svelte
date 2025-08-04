@@ -9,8 +9,6 @@
 	// Import property components
 	import HeaderProperties from '../properties/HeaderProperties.svelte';
 	import CustomerDetailsProperties from '../properties/CustomerDetailsProperties.svelte';
-	import CalibrationDataProperties from '../properties/CalibrationDataProperties.svelte';
-	import ReferenceInstrumentProperties from '../properties/ReferenceInstrumentProperties.svelte';
 	import FooterProperties from '../properties/FooterProperties.svelte';
 
 	let selectedSection = $derived(getSelectedSection());
@@ -19,8 +17,6 @@
 	const propertyComponentMap: Record<string, any> = {
 		HeaderSection: HeaderProperties,
 		CustomerDetailsSection: CustomerDetailsProperties,
-		CalibrationDataSection: CalibrationDataProperties,
-		ReferenceInstrumentSection: ReferenceInstrumentProperties,
 		FooterSection: FooterProperties
 	};
 
@@ -41,7 +37,7 @@
 		<!-- Render component-specific properties -->
 		{#if selectedSection.component && propertyComponentMap[selectedSection.component]}
 			{@const PropertyComponent = propertyComponentMap[selectedSection.component] as any}
-			<PropertyComponent />
+			<PropertyComponent />			
 		{:else}
 			<!-- Fallback for unknown components -->
 			<div class="space-y-6">
@@ -103,14 +99,6 @@
 		<!-- Common Actions -->
 		<div class="mt-6 border-t border-gray-200 pt-6">
 			<div class="space-y-3">
-				<button
-					class="w-full rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
-					onclick={() => {
-						console.log('Duplicate section:', selectedSection.id);
-					}}
-				>
-					Duplicate Section
-				</button>
 				<button
 					class="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
 					onclick={() => {

@@ -91,6 +91,7 @@ const initialCertificateState: CertificateState = {
 		certificateNo: 'UAL/000087/25',
 		certificateTitle:"",
 		customer: {
+			sectionTitle:"Customer Name & Address",
 			name: 'Metquay Inc',
 			address: ''
 		},
@@ -101,6 +102,7 @@ const initialCertificateState: CertificateState = {
 			due: '2026-06-16'
 		},
 		instrument: {
+			sectionTitle:"Instrument Description",
 			type: 'Leak Standard',
 			manufacturer: '',
 			model: 'CM551.0-7104BVP/2',

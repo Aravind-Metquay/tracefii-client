@@ -7,18 +7,18 @@
 		<!-- Left Column -->
 		<div class="left-column">
 			<div class="field-group">
-				<label for="customer-name">Customer Name & Address</label>
+				<label for="customer-name">{certificate.data.customer.sectionTitle}</label>
 				<div class="field-value">{certificate.data.customer.name}</div>
 				<div class="field-value">{certificate.data.customer.address}</div>
 			</div>
 
 			<div class="field-group">
-				<label for="instrument-desc">Instrument Description</label>
+				<label for="instrument-desc">{certificate.data.instrument.sectionTitle}</label>
 				<div class="field-row">
 					<span class="field-label">Type:</span>
 					<span class="field-value">{certificate.data.instrument.type}</span>
 				</div>
-				<div class="field-row">
+				<div class="field-row">	
 					<span class="field-label">Manufacturer:</span>
 					<span class="field-value">{certificate.data.instrument.manufacturer}</span>
 				</div>
