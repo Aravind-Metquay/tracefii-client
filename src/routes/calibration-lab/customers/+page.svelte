@@ -1,8 +1,8 @@
 <script>
-	import GridTable from "@/application-components/common/grid-table/grid-table.svelte";
 	import Button from "@/components/button/button.svelte";
 	import Tooltip from "@/components/tooltip/tooltip.svelte";
 	import { Building2, EllipsisVertical, Info } from "@lucide/svelte";
+    import Customertable from "@/application-components/calibration-lab/customers/customer-table.svelte";
 </script>
 
 
@@ -34,6 +34,6 @@
         <Button size="small" variant="secondary">Filter</Button>
     </div> -->
     <div>
-        <GridTable />
+        <Customertable />
     </div>
 </main>
