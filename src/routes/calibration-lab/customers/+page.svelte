@@ -26,10 +26,14 @@
             </Button>
         </div>
     </div>
-    <!-- <div class="h-8 border-b">
-
+    <div class="h-8 flex justify-between mx-2">
+        <input type="search" class="bg-[#fafafa] rounded-sm items-center m-1 text-xs min-w-[240px]" placeholder="    Search"/>
+        <div class="flex items-center gap-2">
+        <Button size="tiny" variant="secondary">Sort</Button>
+        <Button size="tiny" variant="secondary">Filter</Button>
+        </div>
     </div>
-    <div class="h-12 flex items-center gap-2 p-2">
+    <!-- <div class="h-12 flex items-center gap-2 p-2">
         <Button size="small" variant="secondary">Sort</Button>
         <Button size="small" variant="secondary">Filter</Button>
     </div> -->
