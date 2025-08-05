@@ -26,6 +26,11 @@
             </Button>
         </div>
     </div>
+    <div class="h-8 flex items-center">
+        <input type="search" class="bg-[#fafafa] rounded-sm items-center m-1 h-6 text-xs min-w-[240px] pl-2" />
+        <div class="h-4 w-[1px] bg-gray-300 m-1"></div>
+        <Button size="tiny" variant="secondary" class="m-1">Filter</Button>
+    </div>
     <!-- <div class="h-8 border-b">
 
     </div>
