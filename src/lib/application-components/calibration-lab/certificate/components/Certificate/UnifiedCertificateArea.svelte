@@ -67,9 +67,7 @@
 
 	// Stable sections reference
 	const sections = $derived.by(() => {
-		// console.log(' Certificate: Sections update');
-		// console.log(' Total sections:', certificate.sections.length);
-		// console.log(' Custom fields:', Object.keys(certificate.customFields).length);
+	
 
 		return [...certificate.sections];
 	});
@@ -77,7 +75,7 @@
 	// Custom fields reactivity
 	$effect(() => {
 		const customFieldIds = Object.keys(certificate.customFields);
-		//console.log('Custom fields effect:', customFieldIds.length);
+		
 
 		if (customFieldIds.length > 0 && onFieldsReady) {
 			tick().then(() => onFieldsReady());
@@ -87,7 +85,7 @@
 	// pagination calculation
 	async function calculatePagination() {
 		if (!isPaginated || isCalculating) {
-			//console.log(' Pagination skipped - not paginated or already calculating');
+			
 			return;
 		}
 
@@ -96,23 +94,18 @@
 		const maxAttempts = 20;
 
 		while ((!measurementContainer || sectionElements.length === 0 || sectionElements.some((el) => !el)) && attempts < maxAttempts) {
-			//console.log(` Waiting for elements... Attempt ${attempts + 1}/${maxAttempts}`);
-			//console.log(` Container: ${!!measurementContainer}, Elements: ${sectionElements.length}/${sections.length}`);
+			
 			await new Promise((resolve) => setTimeout(resolve, 100));
 			attempts++;
 		}
 
 		if (!measurementContainer || sectionElements.length === 0) {
-			//console.log(' Pagination failed - elements not available after waiting');
-			//console.log(` Container: ${!!measurementContainer}, Elements: ${sectionElements.length}/${sections.length}`);
+			
 			return;
 		}
 
 		isCalculating = true;
-		// console.log(' Starting pagination calculation...');
-		// console.log(' Content height available:', contentHeight, 'px');
-		// console.log(' Page dimensions:', pageWidth, 'x', pageHeight, 'px');
-
+		
 		// Wait for DOM to be fully updated
 		await tick();
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -127,7 +120,7 @@
 			const section = sections[index];
 
 			if (!element || !section) {
-				//console.log(` Element or section ${index} is missing`);
+				
 				continue;
 			}
 
@@ -136,19 +129,18 @@
 			element.offsetHeight; // Force reflow
 
 			const sectionHeight = element.getBoundingClientRect().height;
-			//console.log(` Section "${section.name}" (${index}): ${sectionHeight}px`);
+		
 
 			// Check if this section would overflow the current page
 			if (currentPageHeight + sectionHeight > contentHeight && currentPageSections.length > 0) {
-				//console.log(` Page break! Current: ${currentPageHeight}px + Section: ${sectionHeight}px = ${currentPageHeight + sectionHeight}px > ${contentHeight}px`);
-
+				
 				// Save current page and start a new one
 				paginatedSections.push({
 					pageIndex: currentPage,
 					sections: [...currentPageSections]
 				});
 
-				//console.log(` Page ${currentPage + 1} created with ${currentPageSections.length} sections (${currentPageHeight}px)`);
+
 
 				currentPage++;
 				currentPageHeight = 0;
@@ -159,7 +151,7 @@
 			currentPageSections.push(section);
 			currentPageHeight += sectionHeight;
 
-			//console.log(`Added section to page ${currentPage + 1}, total height: ${currentPageHeight}px`);
+			
 		}
 
 		// Add the last page if it has sections
@@ -168,11 +160,10 @@
 				pageIndex: currentPage,
 				sections: [...currentPageSections]
 			});
-			//console.log(` Final page ${currentPage + 1} created with ${currentPageSections.length} sections (${currentPageHeight}px)`);
+			
 		}
 
-		//console.log(` Pagination complete: ${paginatedSections.length} pages created`);
-
+	
 		// Update store with pagination info
 		certificate.pagination.totalPages = paginatedSections.length;
 		certificate.pagination.pageBreaks = paginatedSections
@@ -187,7 +178,7 @@
 	let paginationTimeout: any;
 	$effect(() => {
 		if (isPaginated && sections.length > 0) {
-			//console.log(' Pagination effect triggered, sections count:', sections.length);
+
 
 			// Clear any existing timeout
 			if (paginationTimeout) {
@@ -196,7 +187,7 @@
 
 			// Debounce pagination calculation with longer delay for initial load
 			paginationTimeout = setTimeout(() => {
-				//console.log(' Starting debounced pagination calculation');
+				
 				calculatePagination();
 			}, 800);
 		}
@@ -204,10 +195,10 @@
 
 	onMount(() => {
 		if (isPaginated) {
-			//console.log(' Component mounted in paginated mode');
+			
 			// Initial calculation with longer delay to ensure all components are rendered
 			setTimeout(() => {
-				//console.log(' Running initial pagination calculation');
+				
 				calculatePagination();
 			}, 1500);
 		}

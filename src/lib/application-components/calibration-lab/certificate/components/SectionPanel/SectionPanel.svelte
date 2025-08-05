@@ -19,28 +19,6 @@
 		showCustomFieldEditor = true;
 	}
 
-	// function editSection(section: any) {
-	// 	if (section.isCustom && section.customData?.fieldId) {
-	// 		isNewField = false;
-	// 		editingFieldId = section.customData.fieldId;
-	// 		showCustomFieldEditor = true;
-	// 	} else {
-	// 		console.log('Edit section:', section.name);
-	// 	}
-	// }
-
-	// function deleteSection(section: any) {
-	// 	if (section.isCustom && section.customData?.fieldId) {
-	// 		if (confirm(`Are you sure you want to delete "${section.name}"?`)) {
-	// 			delete certificate.customFields[section.customData.fieldId];
-	// 			certificate.sections = certificate.sections.filter((s) => s.id !== section.id);
-	// 		}
-	// 	} else {
-	// 		if (confirm(`Are you sure you want to remove "${section.name}" from the certificate?`)) {
-	// 			certificate.sections = certificate.sections.filter((s) => s.id !== section.id);
-	// 		}
-	// 	}
-	// }
 
 	function closeEditor() {
 		showCustomFieldEditor = false;
@@ -183,26 +161,6 @@
 					<div
 						class="relative z-10 flex translate-x-2 gap-2 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
 					>
-						<!-- <button
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-[1.03] hover:bg-gray-200 active:scale-[0.97]"
-							onclick={(e) => {
-								e.stopPropagation();
-								editSection(section);
-							}}
-							title={section.isCustom ? 'Edit custom field' : 'Edit section'}
-						>
-							Edit
-						</button>
-						<button
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-sm transition-all duration-200 hover:scale-[1.03] hover:bg-red-100 hover:text-red-600 active:scale-[0.97]"
-							onclick={(e) => {
-								e.stopPropagation();
-								deleteSection(section);
-							}}
-							title={section.isCustom ? 'Delete custom field' : 'Remove section'}
-						>
-							🗑️
-						</button> -->
 					</div>
 				</li>
 			{/each}

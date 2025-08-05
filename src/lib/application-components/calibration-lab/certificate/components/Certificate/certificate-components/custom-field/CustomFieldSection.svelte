@@ -6,7 +6,7 @@
     
     
     const customField = $derived(certificate.customFields[fieldId] || null);
-   // console.log("customField data derived from certificate.customfields[fieldId]", customField)
+  
     const fieldStyles = $derived(
         customField
             ? `
@@ -20,16 +20,7 @@
     `
             : ''
     );
-     //console.log("fieldStyles  data derived from certificate.customfields[fieldId]", fieldStyles)
-
-
-//      $effect(() => {
-//     if (customField) {
-//        // console.log(' CustomFieldSection: Field loaded successfully:', fieldId);
-//     } else {
-//         //console.log(' CustomFieldSection: Field not available:', fieldId);
-//     }
-// });
+    
     // Track image loading state
     let imageLoaded = $state(false);
     let imageError = $state(false);

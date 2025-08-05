@@ -178,7 +178,7 @@ function deepClone(obj: any): any {
     
     return obj;
 }
-//export const certificate = $state<CertificateState>(initialCertificateState);
+
 export const certificate = $state<CertificateState>(deepClone(initialCertificateState));
 
 // Helper functions to manage the store safely
@@ -187,12 +187,11 @@ export const certificateActions = {
     
 	addCustomField: (fieldData: any) => {
     try {
-        //console.log(' Store: Adding custom field');
-        //console.log(' Input field data:', JSON.stringify(fieldData, null, 2));
+        
         
         // Create deep copy to prevent reactivity issues
         const newField = deepClone(fieldData);
-        //console.log(' Cloned field data:', JSON.stringify(newField, null, 2));
+       
         
         // Check if field already exists
         if (certificate.customFields[newField.id]) {
@@ -203,13 +202,11 @@ export const certificateActions = {
         const updatedCustomFields = { ...certificate.customFields };
         updatedCustomFields[newField.id] = newField;
         certificate.customFields = updatedCustomFields;
-        
-       // console.log('Field added to customFields');
+   
         
         // Add to sections with a unique ID to prevent conflicts
         const newSectionId = Math.max(...certificate.sections.map(s => s.id), 0) + 1;
-        //console.log(' New section ID:', newSectionId);
-        
+       
         const newSection = {
             id: newSectionId,
             name: newField.name,
@@ -218,20 +215,17 @@ export const certificateActions = {
             customData: { fieldId: newField.id }
         };
         
-        //console.log(' New section:', JSON.stringify(newSection, null, 2));
+        
         
         // CRITICAL: Force reactivity by creating new array
         certificate.sections = [...certificate.sections, newSection];
         
-        //console.log('Section added to sections array');
-        //console.log(' Total sections now:', certificate.sections.length);
-        //console.log(' All custom fields:', Object.keys(certificate.customFields));
-        
+       
         // ADDITIONAL: Trigger manual reactivity check
         certificate.sections = certificate.sections.slice();
         certificate.customFields = { ...certificate.customFields };
         
-        //console.log('Forced double reactivity update');
+      
         
     } catch (error) {
         console.error(' Store error adding custom field:', error);

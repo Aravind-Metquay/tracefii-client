@@ -13,10 +13,6 @@
 	}
 
 	function handleSave() {
-	// 	 console.log(' Modal: Save button clicked');
-    // console.log(' Current sections:', certificate.sections.length);
-    // console.log('Current custom fields:', Object.keys(certificate.customFields));
-	// 	console.log('Save clicked');
 		closeModal();
 	}
 

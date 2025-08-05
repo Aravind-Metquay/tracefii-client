@@ -128,27 +128,15 @@
 
   async function handleSave() {
         try {
-            // console.log(' CustomFieldEditor: Starting save process');
-            // console.log(' Form data:', JSON.stringify(formData, null, 2));
-            // console.log(' Is new field:', isNewField);
-            // console.log(' Field ID:', formData.id);
-            
             if (isNewField) {
-                // console.log(' Adding new custom field...');
-                // console.log(' Certificate sections before:', certificate.sections.length);
-                // console.log(' Custom fields before:', Object.keys(certificate.customFields));
-                
+              
                 // Add the custom field
                 certificateActions.addCustomField(formData);
-                
-                // console.log(' Field added to store successfully');
-                // console.log(' Certificate sections after:', certificate.sections.length);
-                // console.log(' Custom fields after:', Object.keys(certificate.customFields));
                 
                 // Verify the field was added correctly
                 const addedField = certificate.customFields[formData.id];
                 if (addedField) {
-                    //console.log(' Field verification successful:', addedField.name);
+                  
                 } else {
                     console.error('❌ Field verification failed - field not found in store');
                 }
@@ -159,7 +147,7 @@
                 // Additional small delay to ensure all derived values update
                 await new Promise(resolve => setTimeout(resolve, 50));
                 
-               // console.log(' DOM and reactivity updates complete');
+              
                 
                 // Verify section was created
                 const correspondingSection = certificate.sections.find(
@@ -167,19 +155,19 @@
                 );
                 
                 if (correspondingSection) {
-                    //console.log(' Section verification successful:', correspondingSection.name);
+                   
                 } else {
                     console.error('❌ Section verification failed - section not found');
                 }
                 
             } else {
-                //console.log(' Updating existing custom field...');
+             
                 certificateActions.updateCustomField(formData.id, formData);
                 await tick();
-                //console.log('✅ Field updated successfully');
+                
             }
             
-           // console.log(' Save process completed - field should now be visible');
+           
             
             // Close the editor
             handleClose();
