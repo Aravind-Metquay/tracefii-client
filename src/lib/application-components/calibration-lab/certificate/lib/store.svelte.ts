@@ -183,28 +183,65 @@ export const certificate = $state<CertificateState>(deepClone(initialCertificate
 
 // Helper functions to manage the store safely
 export const certificateActions = {
-    addCustomField: (fieldData: any) => {
-        try {
-            // Create deep copy to prevent reactivity issues
-            const newField = deepClone(fieldData);
-            certificate.customFields[newField.id] = newField;
-            
-            // Add to sections with a unique ID to prevent conflicts
-            const newSectionId = Math.max(...certificate.sections.map(s => s.id), 0) + 1;
-            certificate.sections.push({
-                id: newSectionId,
-                name: newField.name,
-                component: 'CustomFieldSection',
-                isCustom: true,
-                customData: { fieldId: newField.id }
-            });
-        } catch (error) {
-            console.error('Error adding custom field:', error);
-            throw error;
-        }
-    },
+   
     
-    updateCustomField: (fieldId: string, fieldData: any) => {
+	addCustomField: (fieldData: any) => {
+    try {
+        //console.log(' Store: Adding custom field');
+        //console.log(' Input field data:', JSON.stringify(fieldData, null, 2));
+        
+        // Create deep copy to prevent reactivity issues
+        const newField = deepClone(fieldData);
+        //console.log(' Cloned field data:', JSON.stringify(newField, null, 2));
+        
+        // Check if field already exists
+        if (certificate.customFields[newField.id]) {
+            console.warn('⚠️ Field already exists, overwriting:', newField.id);
+        }
+        
+        // CRITICAL: Force reactivity by creating new object
+        const updatedCustomFields = { ...certificate.customFields };
+        updatedCustomFields[newField.id] = newField;
+        certificate.customFields = updatedCustomFields;
+        
+       // console.log('Field added to customFields');
+        
+        // Add to sections with a unique ID to prevent conflicts
+        const newSectionId = Math.max(...certificate.sections.map(s => s.id), 0) + 1;
+        //console.log(' New section ID:', newSectionId);
+        
+        const newSection = {
+            id: newSectionId,
+            name: newField.name,
+            component: 'CustomFieldSection',
+            isCustom: true,
+            customData: { fieldId: newField.id }
+        };
+        
+        //console.log(' New section:', JSON.stringify(newSection, null, 2));
+        
+        // CRITICAL: Force reactivity by creating new array
+        certificate.sections = [...certificate.sections, newSection];
+        
+        //console.log('Section added to sections array');
+        //console.log(' Total sections now:', certificate.sections.length);
+        //console.log(' All custom fields:', Object.keys(certificate.customFields));
+        
+        // ADDITIONAL: Trigger manual reactivity check
+        certificate.sections = certificate.sections.slice();
+        certificate.customFields = { ...certificate.customFields };
+        
+        //console.log('Forced double reactivity update');
+        
+    } catch (error) {
+        console.error(' Store error adding custom field:', error);
+        throw error;
+    }
+},
+   
+	
+	
+	updateCustomField: (fieldId: string, fieldData: any) => {
         try {
             const updatedField = deepClone(fieldData);
             certificate.customFields[fieldId] = updatedField;
