@@ -35,6 +35,7 @@ interface FabricCanvasManager {
 	addText: (text?: string) => void;
 	addToCanvas: (component: fabric.FabricObject) => void;
 	addQRcode: (data?: string | null) => Promise<void>;
+	updateQRCode: (options: { expression: string; errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H' }) => Promise<void>; 
 	addBarcode: (data?: string | null) => Promise<void>;
 	addImage: (fileOrUrl: File | string) => Promise<void>;
 	savePng: () => void;
@@ -56,6 +57,7 @@ interface FabricCanvasManager {
 	changeBackground: (value: string) => void;
 	alignObjects: (alignment: 'left' | 'center' | 'right') => void;
 	deleteSelected: () => void;
+	duplicateSelected: () =>Promise<void>;
 	setZoom: (value: number) => void;
 	zoomIn: () => void;
 	zoomOut: () => void;
@@ -140,6 +142,10 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 	};
 
 	const setDimensions = (width: number, height: number): void => {
+		console.log(
+			`%c[3. CanvasManager] Received setDimensions. Resizing canvas to: ${width} x ${height}`,
+			'color: red; font-weight: bold;'
+		);
 		if (canvasInstance) {
 			canvasInstance.setDimensions({ width, height });
 		}
@@ -174,6 +180,29 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		}
 	};
 
+	// const addQRcode = async (data?: string | null): Promise<void> => {
+	// 	if (!canvasInstance) return;
+	// 	const template = '{{default_qrcode}}';
+	// 	const finalValue = template.replace(
+	// 		'{{default_qrcode}}',
+	// 		data || `https://metquay.com/generated/${Date.now()}`
+	// 	);
+	// 	const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 100 });
+	// 	const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+
+	// 	img.set({
+	// 		left: 50,
+	// 		top: 50,
+	// 		scaleX: 1.5,
+	// 		scaleY: 1.5,
+	// 		selectable: true,
+	// 		evented: true,
+	// 		moveCursor: 'move',
+	// 		hoverCursor: 'move',
+	// 		data: { type: 'QR Code', expression: template, errorCorrectionLevel: 'H' }
+	// 	});
+	// 	addToCanvas(img);
+	// };
 	const addQRcode = async (data?: string | null): Promise<void> => {
 		if (!canvasInstance) return;
 		const template = '{{default_qrcode}}';
@@ -181,23 +210,74 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			'{{default_qrcode}}',
 			data || `https://metquay.com/generated/${Date.now()}`
 		);
-		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 100 });
+		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 256 });
 		const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
 
 		img.set({
 			left: 50,
 			top: 50,
-			scaleX: 1.5,
-			scaleY: 1.5,
-			selectable: true,
-			evented: true,
-			moveCursor: 'move',
-			hoverCursor: 'move',
-			data: { type: 'QR Code', expression: template, errorCorrectionLevel: 'H' }
+			// Add custom data for identifying and editing this object later
+			data: {
+				type: 'QR Code',
+				expression: template,
+				errorCorrectionLevel: 'H'
+			}
 		});
 		addToCanvas(img);
 	};
+	
+	const updateQRCode = async (options: {
+		expression: string;
+		errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
+	}): Promise<void> => {
+		if (!canvasInstance) return;
+		const objectToUpdate = canvasInstance.getActiveObject() as fabric.Image & { data?: any };
 
+		if (!objectToUpdate || objectToUpdate.data?.type !== 'QR Code') {
+			return;
+		}
+
+		try {
+			// Evaluate the expression to get the final value
+			const finalValue = options.expression.replace(
+				'{{default_qrcode}}',
+				`https://metquay.com/generated/${Date.now()}`
+			);
+
+			const newUrl = await QRCode.toDataURL(finalValue, {
+				errorCorrectionLevel: options.errorCorrectionLevel,
+				width: 256
+			});
+
+			const originalScaledWidth = objectToUpdate.getScaledWidth();
+			const originalScaledHeight = objectToUpdate.getScaledHeight();
+
+			// Update the custom data on the existing object
+			objectToUpdate.set('data', {
+				...objectToUpdate.data,
+				expression: options.expression,
+				errorCorrectionLevel: options.errorCorrectionLevel
+			});
+
+			// --- THIS IS THE CORRECTED LOGIC, MATCHING YOUR ORIGINAL CODE ---
+			
+			// 1. Use setSrc() directly with await
+			await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
+
+			// 2. Manually calculate and set scaleX and scaleY
+			objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
+			objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
+			
+			// -----------------------------------------------------------
+
+			canvasInstance.requestRenderAll();
+			canvasInstance.fire('object:modified', { target: objectToUpdate });
+		} catch (error) {
+			console.error('QR Code update failed:', error);
+		}
+	};
+	
+	
 	const addBarcode = async (data?: string | null): Promise<void> => {
 		if (!canvasInstance) return;
 		const template = data || 'BAR##date_code##';
@@ -500,6 +580,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 	const changeBackground = (value: string): void => {
 		if (canvasInstance) {
+			console.log('inside canvas-manager.svelte')
 			canvasInstance.backgroundColor = value;
 			canvasInstance.renderAll();
 		}
@@ -809,11 +890,35 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		if (activeObjects.length === 0) return;
 
 		activeObjects.forEach((obj) => {
-			canvasInstance!.remove(obj);
+			canvasInstance?.remove(obj);
 		});
 
 		canvasInstance.discardActiveObject();
 		canvasInstance.renderAll();
+	};
+
+	const duplicateSelected = async (): Promise<void> => {
+		if (!canvasInstance) return;
+		const activeObject = canvasInstance.getActiveObject();
+
+		if (!activeObject) return;
+
+		try {
+			// Use await to get the cloned object asynchronously
+			const cloned = await activeObject.clone();
+
+			// Offset the clone slightly
+			cloned.set({
+				left: (cloned.left ?? 0) + 10,
+				top: (cloned.top ?? 0) + 10
+			});
+
+			canvasInstance.add(cloned);
+			canvasInstance.setActiveObject(cloned);
+			canvasInstance.requestRenderAll();
+		} catch (error) {
+			console.error('Error duplicating object:', error);
+		}
 	};
 
 	// Zoom Controls
@@ -846,6 +951,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		get canvas() {
 			return canvasInstance;
 		},
+	
 		initializeCanvas,
 		getCanvas,
 		disposeCanvas,
@@ -853,6 +959,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		addText,
 		addToCanvas,
 		addQRcode,
+		updateQRCode,
 		addBarcode,
 		addImage,
 		savePng,
@@ -874,6 +981,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		changeBackground,
 		alignObjects,
 		deleteSelected,
+		duplicateSelected,
 		setZoom,
 		zoomIn,
 		zoomOut
