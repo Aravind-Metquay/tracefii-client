@@ -1,107 +1,89 @@
 <script lang="ts">
-	import { certificate } from '@/certificate/lib/store.svelte';
+	import { certificate, certificateActions } from '@/certificate/lib/store.svelte';
+
+	// Import template images
+	import HeaderDefault from '../../../edit-modal/properties/header/templates/Header-Default.png';
+	import HeaderFirst from '../../../edit-modal/properties/header/templates/Header-First.png';
+	import HeaderLast from '../../../edit-modal/properties/header/templates/Header-Last.png';
+	import HeaderMid from '../../../edit-modal/properties/header/templates/Header-Mid.png';
+
+	// Template mapping
+	const templateImages: Record<string, string> = {
+		'Header-Default.png': HeaderDefault,
+		'Header-First.png': HeaderFirst,
+		'Header-Last.png': HeaderLast,
+		'Header-Mid.png': HeaderMid
+	};
+
+	// Props
+	let { pageNumber }: { pageNumber?: number } = $props();
+
+	// Get the appropriate template for this page
+	const selectedTemplate = $derived(
+		pageNumber
+			? certificateActions.getHeaderForPage(pageNumber)
+			: certificate.data.selectedHeaderTemplate || 'Header-Default.png'
+	);
+	const templateImage = $derived(templateImages[selectedTemplate] || HeaderDefault);
 </script>
 
 <div class="header-section">
-	<div class="header-grid">
-		<!-- Column 1: Metquay Logo and Name -->
-		<div class="header-col-1">
-			<div class="logo-section">
-				<img src="" alt="Metquay Logo" class="company-logo" />
-				<h2 class="company-name">Metquay</h2>
-			</div>
-		</div>
-
-		<!-- Column 2: Company Address & Phone -->
-		<div class="header-col-2">
-			<div class="company-info">
-				<p>Building No: 5421, Old Street</p>
-				<p>Austin, Texas, USA. 956565</p>
-				<p>Ph: +17185028848</p>
-			</div>
-		</div>
-
-		<!-- Column 3: Accreditation Logo -->
-		<div class="header-col-3">
-			<img src="" alt="SAC-SINGLAS" class="accreditation-logo" />
-		</div>
+	<!-- Header Template Image -->
+	<div class="header-template">
+		<img src={templateImage} alt="Certificate Header" class="header-image" />
 	</div>
 
-	<!-- Full Width Document Title -->
-	<div class="document-title">
-		<h1>CERTIFICATE OF CALIBRATION</h1>
+	<!-- Certificate Number Overlay (positioned over the template) -->
+	<div class="certificate-number-overlay">
 		<p class="certificate-number">Certificate No.: {certificate.data.certificateNo}</p>
 	</div>
 </div>
 
 <style>
 	.header-section {
-		border-bottom: 2px solid #000;
-		padding-bottom: 1rem;
+		position: relative;
 		margin-bottom: 1.5rem;
 	}
 
-	.header-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
-		gap: 1rem;
-		align-items: center;
-		margin-bottom: 1rem;
+	.header-template {
+		width: 100%;
+		border: 1px solid #e5e7eb;
+		border-radius: 4px;
+		overflow: hidden;
 	}
 
-	.logo-section {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.company-logo {
-		width: 80px;
+	.header-image {
+		width: 100%;
 		height: auto;
+		display: block;
 	}
 
-	.company-name {
-		font-size: 1.2rem;
-		font-weight: bold;
-		margin: 0;
-	}
-
-	.company-info {
-		text-align: center;
-		font-size: 0.9rem;
-		line-height: 1.4;
-	}
-
-	.company-info p {
-		margin: 0.2rem 0;
-	}
-
-	.header-col-3 {
-		display: flex;
-		justify-content: center;
-	}
-
-	.accreditation-logo {
-		width: 60px;
-		height: auto;
-	}
-
-	.document-title {
-		text-align: center;
-		margin-top: 1rem;
-	}
-
-	.document-title h1 {
-		font-size: 1.5rem;
-		font-weight: bold;
-		margin: 0 0 0.5rem 0;
-		letter-spacing: 1px;
+	.certificate-number-overlay {
+		position: absolute;
+		bottom: 10px;
+		right: 20px;
+		background: rgba(255, 255, 255, 0.9);
+		padding: 4px 8px;
+		border-radius: 4px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	}
 
 	.certificate-number {
-		font-size: 1rem;
+		font-size: 0.9rem;
 		margin: 0;
 		font-weight: 500;
+		color: #374151;
+	}
+
+	/* Print styles */
+	@media print {
+		.header-section {
+			margin-bottom: 1rem;
+		}
+
+		.certificate-number-overlay {
+			background: white;
+			box-shadow: none;
+		}
 	}
 </style>

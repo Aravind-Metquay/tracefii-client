@@ -6,10 +6,10 @@
 	} from '@/calibration-lab/certificate/lib/section-store.svelte';
 	import { certificate } from '@/certificate/lib/store.svelte';
 
-	import HeaderProperties from '../properties/header-properties.svelte';
+	import HeaderProperties from '../properties/header/header-properties.svelte';
 	import CustomerDetailsProperties from '../properties/customer-details-properties.svelte';
 	import ReferenceInstrumentProperties from '../properties/reference-instruments-properties.svelte';
-	import FooterProperties from '../properties/footer-properties.svelte';
+	import FooterProperties from '../properties/footer/footer-properties.svelte';
 	
 
 	let selectedSection = $derived(getSelectedSection());
@@ -36,8 +36,21 @@
 
 <div class="h-full overflow-y-auto p-6">
 	{#if selectedSection}
-		<!-- Render component-specific properties -->
-		{#if selectedSection.component && propertyComponentMap[selectedSection.component]}
+		<!-- HeaderSection is handled entirely by the modal, no sidebar properties needed -->
+		{#if selectedSection.component === 'HeaderSection'}
+			<div class="flex h-full items-center justify-center">
+				<div class="text-center">
+					<div class="mx-auto h-12 w-12 text-gray-400">
+						<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+						</svg>
+					</div>
+					<h3 class="mt-2 text-sm font-medium text-gray-900">Header Editing</h3>
+					<p class="mt-1 text-sm text-gray-500">Header properties are managed in the main editing area.</p>
+				</div>
+			</div>
+		<!-- Render component-specific properties for other sections -->
+		{:else if selectedSection.component && propertyComponentMap[selectedSection.component]}
 			{@const PropertyComponent = propertyComponentMap[selectedSection.component] as any}
 			<PropertyComponent />
 		{:else}

@@ -20,6 +20,7 @@ export interface CertificateState {
 		currentPage: number;
 		totalPages: number;
 		pageBreaks: number[]; // Array of section IDs that start new pages
+		showHeaderOnAllPages: boolean; // Whether to show header on every page
 	};
 	metadata: {
 		work: string;
@@ -71,7 +72,8 @@ const initialCertificateState: CertificateState = {
 		enabled: true,
 		currentPage: 1,
 		totalPages: 1,
-		pageBreaks: [] // Will be calculated dynamically
+		pageBreaks: [], // Will be calculated dynamically
+		showHeaderOnAllPages: true // Show header on every page by default
 	},
 	metadata: {
 		work: 'WN25-77',
@@ -88,7 +90,15 @@ const initialCertificateState: CertificateState = {
 	customFields: {},
 	data: {
 		certificateNo: 'UAL/000087/25',
-		certificateTitle: '',
+		certificateTitle: 'CERTIFICATE OF CALIBRATION',
+		selectedHeaderTemplate: 'Header-Default.png',
+		headerTemplates: [
+			{ id: 'header-default', name: 'Header Default', filename: 'Header-Default.png' },
+			{ id: 'header-first', name: 'Header First', filename: 'Header-First.png' },
+			{ id: 'header-last', name: 'Header Last', filename: 'Header-Last.png' },
+			{ id: 'header-mid', name: 'Header Mid', filename: 'Header-Mid.png' }
+		],
+		pageSpecificHeaders: {} as Record<number, string>, // Page number -> template filename
 		customer: {
 			name: 'Metquay Inc',
 			address: ''
@@ -261,5 +271,32 @@ export const certificateActions = {
 			console.error('Error reordering sections:', error);
 			throw error;
 		}
+	},
+
+	// Header template management
+	selectHeaderTemplate: (templateFilename: string) => {
+		certificate.data.selectedHeaderTemplate = templateFilename;
+	},
+
+	// Header settings
+	toggleHeaderOnAllPages: (enabled: boolean) => {
+		certificate.pagination.showHeaderOnAllPages = enabled;
+	},
+
+	setPageHeader: (pageNumber: number, templateFilename: string) => {
+		certificate.data.pageSpecificHeaders = {
+			...certificate.data.pageSpecificHeaders,
+			[pageNumber]: templateFilename
+		};
+	},
+
+	clearPageHeader: (pageNumber: number) => {
+		const updatedHeaders = { ...certificate.data.pageSpecificHeaders };
+		delete updatedHeaders[pageNumber];
+		certificate.data.pageSpecificHeaders = updatedHeaders;
+	},
+
+	getHeaderForPage: (pageNumber: number): string => {
+		return certificate.data.pageSpecificHeaders[pageNumber] || certificate.data.selectedHeaderTemplate;
 	}
 };

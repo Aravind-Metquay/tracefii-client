@@ -16,7 +16,7 @@
 		<TopPanel />
 	</header>
 	<main
-		class="grid h-screen w-screen grid-cols-[320px_1fr_340px] gap-3 overflow-hidden bg-gray-100 p-3"
+		class="grid h-screen w-screen {selectedSection?.component === 'HeaderSection' ? 'grid-cols-[320px_1fr]' : 'grid-cols-[320px_1fr_340px]'} gap-3 overflow-hidden bg-gray-100 p-3"
 	>
 		<!-- Left Panel -->
 		<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -42,14 +42,16 @@
 			</div>
 		</div>
 
-		<!-- Right Panel -->
-		<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-			{#if selectedSection}
-				<SectionSettingsPanel />
-			{:else}
-				<SettingsPanel />
-			{/if}
-		</div>
+		<!-- Right Panel - Hidden when HeaderSection is selected -->
+		{#if selectedSection?.component !== 'HeaderSection'}
+			<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+				{#if selectedSection}
+					<SectionSettingsPanel />
+				{:else}
+					<SettingsPanel />
+				{/if}
+			</div>
+		{/if}
 	</main>
 </div>
 

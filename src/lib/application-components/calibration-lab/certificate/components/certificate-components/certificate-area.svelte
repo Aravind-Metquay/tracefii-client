@@ -69,6 +69,16 @@
 		return [...certificate.sections];
 	});
 
+	// Get header section for reuse on all pages
+	const headerSection = $derived.by(() => {
+		return sections.find(section => section.component === 'HeaderSection');
+	});
+
+	// Get non-header sections for pagination
+	const nonHeaderSections = $derived.by(() => {
+		return sections.filter(section => section.component !== 'HeaderSection');
+	});
+
 	// Custom fields reactivity
 	$effect(() => {
 		const customFieldIds = Object.keys(certificate.customFields);
@@ -113,6 +123,18 @@
 		let currentPageHeight = 0;
 		let currentPageSections: typeof certificate.sections = [];
 
+		// Calculate header height if it should appear on all pages
+		let headerHeight = 0;
+		if (certificate.pagination.showHeaderOnAllPages && headerSection) {
+			const headerElement = sectionElements.find((_, index) => sections[index]?.id === headerSection.id);
+			if (headerElement) {
+				headerHeight = headerElement.getBoundingClientRect().height;
+			}
+		}
+
+		// Use non-header sections for pagination calculation
+		const sectionsToProcess = certificate.pagination.showHeaderOnAllPages ? nonHeaderSections : sections;
+		
 		for (let index = 0; index < sectionElements.length; index++) {
 			const element = sectionElements[index];
 			const section = sections[index];
@@ -121,14 +143,20 @@
 				continue;
 			}
 
+			// Skip header section if it should appear on all pages (it will be added separately)
+			if (certificate.pagination.showHeaderOnAllPages && section.component === 'HeaderSection') {
+				continue;
+			}
+
 			// Force reflow to get accurate measurements
 			element.style.display = 'block';
 			element.offsetHeight; // Force reflow
 
 			const sectionHeight = element.getBoundingClientRect().height;
+			const availableHeight = contentHeight - (currentPage === 0 ? 0 : headerHeight);
 
 			// Check if this section would overflow the current page
-			if (currentPageHeight + sectionHeight > contentHeight && currentPageSections.length > 0) {
+			if (currentPageHeight + sectionHeight > availableHeight && currentPageSections.length > 0) {
 				// Save current page and start a new one
 				paginatedSections.push({
 					pageIndex: currentPage,
@@ -189,7 +217,7 @@
 	});
 
 	// Component rendering helper
-	function renderSection(section: (typeof certificate.sections)[0]) {
+	function renderSection(section: (typeof certificate.sections)[0], pageNumber?: number) {
 		const Component = componentMap[section.component as keyof typeof componentMap];
 
 		if (!Component) {
@@ -209,6 +237,15 @@
 				type: 'component' as const,
 				component: Component,
 				props: { fieldId: section.customData.fieldId } as any
+			};
+		}
+
+		// For header sections, pass the page number to determine which template to use
+		if (section.component === 'HeaderSection' && pageNumber !== undefined) {
+			return {
+				type: 'component' as const,
+				component: Component,
+				props: { pageNumber } as any
 			};
 		}
 
@@ -251,18 +288,37 @@
 				{#each paginatedSections as page, pageIndex}
 					<div class="certificate-page" style={pageStyles} data-page={pageIndex + 1}>
 						<div class="page-content">
-							{#each page.sections as section (section.id)}
-								{@const rendered = renderSection(section)}
+							<!-- Show header on every page if enabled -->
+							{#if certificate.pagination.showHeaderOnAllPages && headerSection}
+								{@const rendered = renderSection(headerSection, pageIndex + 1)}
 								{#if rendered.type === 'error'}
 									<div class="section-error">
 										<p>⚠️ {rendered.message}</p>
-										<p class="error-details">Section: {section.name}</p>
+										<p class="error-details">Section: {headerSection.name}</p>
 									</div>
 								{:else}
 									{@const Component = rendered.component}
-									<Component {...rendered.props}></Component>
+									<div class="page-header">
+										<Component {...rendered.props}></Component>
+									</div>
 								{/if}
-							{/each}
+							{/if}
+
+							<!-- Page content sections -->
+							<div class="page-body">
+								{#each page.sections as section (section.id)}
+									{@const rendered = renderSection(section)}
+									{#if rendered.type === 'error'}
+										<div class="section-error">
+											<p>⚠️ {rendered.message}</p>
+											<p class="error-details">Section: {section.name}</p>
+										</div>
+									{:else}
+										{@const Component = rendered.component}
+										<Component {...rendered.props}></Component>
+									{/if}
+								{/each}
+							</div>
 						</div>
 
 						<div class="page-number">Page {pageIndex + 1} of {paginatedSections.length}</div>
@@ -329,6 +385,17 @@
 		height: 100%;
 		overflow: hidden;
 		position: relative;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.page-header {
+		flex-shrink: 0;
+		margin-bottom: 1rem;
+	}
+
+	.page-body {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 	}
