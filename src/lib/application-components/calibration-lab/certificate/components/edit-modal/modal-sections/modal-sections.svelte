@@ -3,7 +3,6 @@
 
 	import HeaderSection from '../../certificate-components/components/header/header-section.svelte';
 	import CustomerDetailsSection from '../../certificate-components/components/customer-detail/customer-details-section.svelte';
-	import CalibrationDataSection from '../../certificate-components/components/calibration-data/calibration-data.svelte';
 	import ReferenceInstrumentSection from '../../certificate-components/components/reference-instrument/reference-instuments.svelte';
 	import FooterSection from '../../certificate-components/components/footer/footer-section.svelte';
 	import CustomFieldSection from '../../certificate-components/components/custom-field/custom-field-section.svelte';
@@ -14,7 +13,6 @@
 	const componentMap: Record<string, any> = {
 		HeaderSection,
 		CustomerDetailsSection,
-		CalibrationDataSection,
 		ReferenceInstrumentSection,
 		FooterSection,
 		CustomFieldSection

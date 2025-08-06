@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SectionSettingsPanel from './section-settings/section-component-settings.svelte';
 	import ModalSection from './modal-sections/modal-sections.svelte';
-	import ComponentList from './edit-modal-components/component-list.svelte';
+	import ComponentList from './component-list/component-list.svelte';
 	import { certificate } from '@/certificate/lib/store.svelte';
 	import { setSelectedSection, clearSelectedSection } from '../../lib/section-store.svelte';
 
