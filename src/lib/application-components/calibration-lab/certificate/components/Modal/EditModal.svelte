@@ -13,7 +13,6 @@
 	}
 
 	function handleSave() {
-		console.log('Save clicked');
 		closeModal();
 	}
 
