@@ -81,7 +81,7 @@
 				onclick={() => goto(item.href)}
 				class="flex items-center {appState.getSidebarStatus()
 					? 'justify-center'
-					: 'justify-start'} gap-3 rounded-md px-2 py-1 text-sm font-medium transition-colors {isActive
+					: 'justify-start'} gap-3 rounded-md px-2 py-1 mb-[3px] text-sm font-medium transition-colors {isActive
 					? 'border-gray-500 bg-gray-200 text-gray-700'
 					: 'text-black hover:bg-gray-200 hover:text-gray-900'}"
 			>

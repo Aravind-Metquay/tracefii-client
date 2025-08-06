@@ -3,6 +3,7 @@
 	import Tooltip from "@/components/tooltip/tooltip.svelte";
 	import { Building2, EllipsisVertical, Info } from "@lucide/svelte";
     import Customertable from "@/application-components/calibration-lab/customers/customer-table.svelte";
+    import Sort from "@/components/sort/sort.svelte";
 </script>
 
 
@@ -29,7 +30,7 @@
     <div class="h-8 flex items-center">
         <input type="search" class="bg-[#fafafa] rounded-sm items-center m-1 h-6 text-xs min-w-[240px] pl-2" />
         <div class="h-4 w-[1px] bg-gray-300 m-1"></div>
-        
+        <Sort/>        
         <Button size="tiny" variant="secondary" class="m-1">Filter</Button>
     </div>
     <!-- <div class="h-12 flex items-center gap-2 p-2">
