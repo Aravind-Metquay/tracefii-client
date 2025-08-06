@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { certificate } from '@/calibration-lab/certificate/lib/store.svelte';
-	import jsPDF from 'jspdf';
-	import html2canvas from 'html2canvas-pro';
 
 	$effect(() => {
 		if (certificate.page.margin.linked) {

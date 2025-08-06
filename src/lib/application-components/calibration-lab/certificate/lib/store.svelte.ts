@@ -1,5 +1,5 @@
 export interface Margin {
-	margin:number;
+	margin: number;
 	top: number;
 	right: number;
 	bottom: number;
@@ -53,14 +53,13 @@ export interface CertificateState {
 
 // Define the initial structure of your certificate
 const initialCertificateState: CertificateState = {
-
 	page: {
 		format: 'A4',
 		unit: 'mm',
 		width: 210, // A4 width in mm
 		height: 297, // A4 height in mm
 		margin: {
-			margin:10,
+			margin: 10,
 			top: 20,
 			right: 20,
 			bottom: 20,
@@ -89,7 +88,7 @@ const initialCertificateState: CertificateState = {
 	customFields: {},
 	data: {
 		certificateNo: 'UAL/000087/25',
-		certificateTitle:"",
+		certificateTitle: '',
 		customer: {
 			name: 'Metquay Inc',
 			address: ''
@@ -154,127 +153,113 @@ const initialCertificateState: CertificateState = {
 };
 
 function deepClone(obj: any): any {
-    if (obj === null || typeof obj !== 'object') {
-        return obj;
-    }
-    
-    if (obj instanceof Date) {
-        return new Date(obj.getTime());
-    }
-    
-    if (Array.isArray(obj)) {
-        return obj.map(item => deepClone(item));
-    }
-    
-    if (typeof obj === 'object') {
-        const cloned: any = {};
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                cloned[key] = deepClone(obj[key]);
-            }
-        }
-        return cloned;
-    }
-    
-    return obj;
+	if (obj === null || typeof obj !== 'object') {
+		return obj;
+	}
+
+	if (obj instanceof Date) {
+		return new Date(obj.getTime());
+	}
+
+	if (Array.isArray(obj)) {
+		return obj.map((item) => deepClone(item));
+	}
+
+	if (typeof obj === 'object') {
+		const cloned: any = {};
+		for (const key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				cloned[key] = deepClone(obj[key]);
+			}
+		}
+		return cloned;
+	}
+
+	return obj;
 }
 
 export const certificate = $state<CertificateState>(deepClone(initialCertificateState));
 
 // Helper functions to manage the store safely
 export const certificateActions = {
-   
-    
 	addCustomField: (fieldData: any) => {
-    try {
-        
-        
-        // Create deep copy to prevent reactivity issues
-        const newField = deepClone(fieldData);
-       
-        
-        // Check if field already exists
-        if (certificate.customFields[newField.id]) {
-            console.warn('⚠️ Field already exists, overwriting:', newField.id);
-        }
-        
-        // CRITICAL: Force reactivity by creating new object
-        const updatedCustomFields = { ...certificate.customFields };
-        updatedCustomFields[newField.id] = newField;
-        certificate.customFields = updatedCustomFields;
-   
-        
-        // Add to sections with a unique ID to prevent conflicts
-        const newSectionId = Math.max(...certificate.sections.map(s => s.id), 0) + 1;
-       
-        const newSection = {
-            id: newSectionId,
-            name: newField.name,
-            component: 'CustomFieldSection',
-            isCustom: true,
-            customData: { fieldId: newField.id }
-        };
-        
-        
-        
-        // CRITICAL: Force reactivity by creating new array
-        certificate.sections = [...certificate.sections, newSection];
-        
-       
-        // ADDITIONAL: Trigger manual reactivity check
-        certificate.sections = certificate.sections.slice();
-        certificate.customFields = { ...certificate.customFields };
-        
-      
-        
-    } catch (error) {
-        console.error(' Store error adding custom field:', error);
-        throw error;
-    }
-},
-   
-	
-	
+		try {
+			// Create deep copy to prevent reactivity issues
+			const newField = deepClone(fieldData);
+
+			// Check if field already exists
+			if (certificate.customFields[newField.id]) {
+				console.warn('⚠️ Field already exists, overwriting:', newField.id);
+			}
+
+			// CRITICAL: Force reactivity by creating new object
+			const updatedCustomFields = { ...certificate.customFields };
+			updatedCustomFields[newField.id] = newField;
+			certificate.customFields = updatedCustomFields;
+
+			// Add to sections with a unique ID to prevent conflicts
+			const newSectionId = Math.max(...certificate.sections.map((s) => s.id), 0) + 1;
+
+			const newSection = {
+				id: newSectionId,
+				name: newField.name,
+				component: 'CustomFieldSection',
+				isCustom: true,
+				customData: { fieldId: newField.id }
+			};
+
+			// CRITICAL: Force reactivity by creating new array
+			certificate.sections = [...certificate.sections, newSection];
+
+			// ADDITIONAL: Trigger manual reactivity check
+			certificate.sections = certificate.sections.slice();
+			certificate.customFields = { ...certificate.customFields };
+		} catch (error) {
+			console.error(' Store error adding custom field:', error);
+			throw error;
+		}
+	},
+
 	updateCustomField: (fieldId: string, fieldData: any) => {
-        try {
-            const updatedField = deepClone(fieldData);
-            certificate.customFields[fieldId] = updatedField;
-            
-            // Update section name if changed
-            const sectionIndex = certificate.sections.findIndex(section => 
-                section.isCustom && section.customData?.fieldId === fieldId
-            );
-            if (sectionIndex !== -1) {
-                certificate.sections[sectionIndex] = {
-                    ...certificate.sections[sectionIndex],
-                    name: updatedField.name
-                };
-            }
-        } catch (error) {
-            console.error('Error updating custom field:', error);
-            throw error;
-        }
-    },
-    
-    deleteCustomField: (fieldId: string) => {
-        try {
-            delete certificate.customFields[fieldId];
-            certificate.sections = certificate.sections.filter(section => 
-                !(section.isCustom && section.customData?.fieldId === fieldId)
-            );
-        } catch (error) {
-            console.error('Error deleting custom field:', error);
-            throw error;
-        }
-    },
-    
-    reorderSections: (newSections: typeof certificate.sections) => {
-        try {
-            // Create a deep copy to prevent reactivity issues
-            certificate.sections = deepClone(newSections);
-        } catch (error) {
-            console.error('Error reordering sections:', error);
-            throw error;
-        }
-    }
+		try {
+			const updatedField = deepClone(fieldData);
+			certificate.customFields[fieldId] = updatedField;
+
+			// Update section name if changed
+			const sectionIndex = certificate.sections.findIndex(
+				(section) => section.isCustom && section.customData?.fieldId === fieldId
+			);
+			if (sectionIndex !== -1) {
+				certificate.sections[sectionIndex] = {
+					...certificate.sections[sectionIndex],
+					name: updatedField.name
+				};
+			}
+		} catch (error) {
+			console.error('Error updating custom field:', error);
+			throw error;
+		}
+	},
+
+	deleteCustomField: (fieldId: string) => {
+		try {
+			delete certificate.customFields[fieldId];
+			certificate.sections = certificate.sections.filter(
+				(section) => !(section.isCustom && section.customData?.fieldId === fieldId)
+			);
+		} catch (error) {
+			console.error('Error deleting custom field:', error);
+			throw error;
+		}
+	},
+
+	reorderSections: (newSections: typeof certificate.sections) => {
+		try {
+			// Create a deep copy to prevent reactivity issues
+			certificate.sections = deepClone(newSections);
+		} catch (error) {
+			console.error('Error reordering sections:', error);
+			throw error;
+		}
+	}
 };

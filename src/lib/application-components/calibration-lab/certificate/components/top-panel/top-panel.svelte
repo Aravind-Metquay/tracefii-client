@@ -2,7 +2,7 @@
 	import { certificate } from '@/calibration-lab/certificate/lib/store.svelte';
 	import jsPDF from 'jspdf';
 	import html2canvas from 'html2canvas-pro';
-	import EditModal from '../Modal/EditModal.svelte';
+	import EditModal from '../edit-modal/edit-modal.svelte';
 
 	// Local state for the certificate title
 	let title: string = certificate.data.certificateTitle ?? '';
@@ -11,7 +11,6 @@
 
 	function setTitle(newTitle: string) {
 		certificate.data.certificateTitle = newTitle;
-		console.log('Saved Title:', certificate.data.certificateTitle);
 	}
 
 	function openEditModal() {
@@ -60,7 +59,6 @@
 				`${certificate.data.certificateTitle == '' ? 'untitled' : certificate.data.certificateTitle}.pdf`
 			);
 		} catch (error) {
-			console.error('Error generating PDF:', error);
 			alert('Error generating PDF. Please try again.');
 		}
 	}
@@ -78,14 +76,14 @@
 			placeholder="Untitled Design"
 			bind:this={titleInput}
 			bind:value={title}
-			on:keydown={(e) => {
+			onkeydown={(e) => {
 				if (e.key === 'Enter') {
 					setTitle(title);
 					titleInput?.blur();
 					e.preventDefault();
 				}
 			}}
-			on:blur={() => setTitle(title)}
+			onblur={() => setTitle(title)}
 		/>
 	</div>
 
@@ -94,12 +92,12 @@
 		<button
 			class="flex-shrink-0 rounded-lg bg-gray-200 p-2 font-medium text-gray-800 transition-colors hover:bg-gray-400"
 			type="button"
-			on:click={openEditModal}>Edit</button
+			onclick={openEditModal}>Edit</button
 		>
 		<button
 			class="flex-shrink-0 rounded-lg bg-black p-2 font-medium text-white transition-colors hover:bg-gray-800"
 			type="button"
-			on:click={triggerExport}>Download</button
+			onclick={triggerExport}>Download</button
 		>
 	</div>
 </div>

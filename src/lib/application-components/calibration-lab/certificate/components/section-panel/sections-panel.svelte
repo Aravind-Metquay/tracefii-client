@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { certificate } from '@/certificate/lib/store.svelte';
-	import CustomFieldEditor from '../Certificate/certificate-components/custom-field/CustomFieldEditor.svelte';
+	import CustomFieldEditor from '../certificate-components/components/custom-field/custom-field-editor.svelte';
 	import { draggable, droppable, type DragDropState } from '@thisux/sveltednd';
 	import { flip } from 'svelte/animate';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	
 
 	let showCustomFieldEditor = $state(false);
 	let editingFieldId = $state<string | null>(null);
@@ -18,7 +17,6 @@
 		editingFieldId = null;
 		showCustomFieldEditor = true;
 	}
-
 
 	function closeEditor() {
 		showCustomFieldEditor = false;
@@ -153,15 +151,11 @@
 						class="relative z-10 flex-1 font-medium text-gray-900 transition-colors duration-200"
 					>
 						{section.name}
-
-					
 					</span>
 
-				
 					<div
 						class="relative z-10 flex translate-x-2 gap-2 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
-					>
-					</div>
+					></div>
 				</li>
 			{/each}
 		</ul>

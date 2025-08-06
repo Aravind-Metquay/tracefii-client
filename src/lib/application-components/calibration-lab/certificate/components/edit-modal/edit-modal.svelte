@@ -1,9 +1,9 @@
 <script lang="ts">
-	import SectionSettingsPanel from '../Modal/SectionSettings/SectionSettingsPanel.svelte';
-	import ModalSection from './modalSection/modalSection.svelte';
-	import ComponentList from './components/ComponentList.svelte';
+	import SectionSettingsPanel from './section-settings/section-component-settings.svelte';
+	import ModalSection from './modal-sections/modal-sections.svelte';
+	import ComponentList from './edit-modal-components/component-list.svelte';
 	import { certificate } from '@/certificate/lib/store.svelte';
-	import { setSelectedSection, clearSelectedSection } from '../../lib/sectionStore.svelte';
+	import { setSelectedSection, clearSelectedSection } from '../../lib/section-store.svelte';
 
 	let { isOpen = false, onClose } = $props();
 

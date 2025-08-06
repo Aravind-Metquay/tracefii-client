@@ -14,7 +14,7 @@
 	const auth0Config: Auth0Config = {
 		domain: env.PUBLIC_AUTH0_DOMAIN,
 		clientID: env.PUBLIC_AUTH0_CLIENTID,
-		redirectUri: browser ? window.location.origin : '', 
+		redirectUri: browser ? window.location.origin : '',
 		scope: 'openid profile email',
 		responseType: 'token id_token',
 		audience: env.PUBLIC_APP_AUTH0_API_URL
@@ -26,26 +26,26 @@
 		initAuth(auth0Config);
 	}
 
-	$inspect(auth)
+	$inspect(auth);
 
-	$effect(()=>{
-		if(!auth.isLoading){
-			if(auth.isAuthenticated){
-				console.log("Why is this not invoked")
-				setContext('auth',auth.user)
-			}else{
+	$effect(() => {
+		if (!auth.isLoading) {
+			if (auth.isAuthenticated) {
+				console.log('Why is this not invoked');
+				setContext('auth', auth.user);
+			} else {
 				// goto('/')
 			}
 		}
-	})
+	});
 </script>
 
-<QueryClientProvider client={queryClient}>
+<!-- <QueryClientProvider client={queryClient}>
 	{#if auth.isLoading}
 		<p>Loading...</p>
 	{:else}
-		<main class="h-[100vh] bg-[#FAFAFA]">
-			{@render children()}
-		</main>
+		<main class="h-[100vh] bg-[#FAFAFA]"> -->
+{@render children()}
+<!-- </main>
 	{/if}
-</QueryClientProvider>
+</QueryClientProvider> -->

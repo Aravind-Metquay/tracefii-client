@@ -1,21 +1,23 @@
 <script lang="ts">
 	import { certificate } from '@/certificate/lib/store.svelte';
-	
+
 	// Reference Instrument properties
 	let showReferenceTable = $state(certificate.data.showReferenceTable !== false);
-	let referenceTableTitle = $state(certificate.data.referenceTableTitle || 'Reference Instruments Used');
+	let referenceTableTitle = $state(
+		certificate.data.referenceTableTitle || 'Reference Instruments Used'
+	);
 	let referenceInstruments = $state(certificate.data.referenceInstruments || []);
-	
+
 	function updateShowReferenceTable(value: boolean) {
 		showReferenceTable = value;
 		certificate.data.showReferenceTable = value;
 	}
-	
+
 	function updateReferenceTableTitle(value: string) {
 		referenceTableTitle = value;
 		certificate.data.referenceTableTitle = value;
 	}
-	
+
 	function addReferenceInstrument() {
 		const newInstrument = {
 			id: Date.now(),
@@ -28,14 +30,14 @@
 		referenceInstruments = [...referenceInstruments, newInstrument];
 		certificate.data.referenceInstruments = referenceInstruments;
 	}
-	
+
 	function removeReferenceInstrument(id: number) {
-		referenceInstruments = referenceInstruments.filter(inst => inst.id !== id);
+		referenceInstruments = referenceInstruments.filter((inst) => inst.id !== id);
 		certificate.data.referenceInstruments = referenceInstruments;
 	}
-	
+
 	function updateReferenceInstrument(id: number, field: string, value: string) {
-		const index = referenceInstruments.findIndex(inst => inst.id === id);
+		const index = referenceInstruments.findIndex((inst) => inst.id === id);
 		if (index !== -1) {
 			(referenceInstruments[index] as any)[field] = value;
 			certificate.data.referenceInstruments = [...referenceInstruments];
@@ -91,7 +93,7 @@
 				+ Add Instrument
 			</button>
 		</div>
-		
+
 		<div class="space-y-4">
 			{#each referenceInstruments as instrument (instrument.id)}
 				<div class="rounded-lg border border-gray-200 p-4">
@@ -104,7 +106,7 @@
 							Remove
 						</button>
 					</div>
-					
+
 					<div class="grid grid-cols-2 gap-3">
 						<div>
 							<label class="mb-1 block text-xs text-gray-500">Equipment</label>
@@ -112,7 +114,12 @@
 								type="text"
 								class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								value={instrument.equipment}
-								oninput={(e) => updateReferenceInstrument(instrument.id, 'equipment', (e.target as HTMLInputElement).value)}
+								oninput={(e) =>
+									updateReferenceInstrument(
+										instrument.id,
+										'equipment',
+										(e.target as HTMLInputElement).value
+									)}
 							/>
 						</div>
 						<div>
@@ -121,7 +128,12 @@
 								type="text"
 								class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								value={instrument.serial}
-								oninput={(e) => updateReferenceInstrument(instrument.id, 'serial', (e.target as HTMLInputElement).value)}
+								oninput={(e) =>
+									updateReferenceInstrument(
+										instrument.id,
+										'serial',
+										(e.target as HTMLInputElement).value
+									)}
 							/>
 						</div>
 						<div>
@@ -130,7 +142,12 @@
 								type="text"
 								class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								value={instrument.traceability}
-								oninput={(e) => updateReferenceInstrument(instrument.id, 'traceability', (e.target as HTMLInputElement).value)}
+								oninput={(e) =>
+									updateReferenceInstrument(
+										instrument.id,
+										'traceability',
+										(e.target as HTMLInputElement).value
+									)}
 							/>
 						</div>
 						<div>
@@ -139,7 +156,12 @@
 								type="text"
 								class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								value={instrument.certificate}
-								oninput={(e) => updateReferenceInstrument(instrument.id, 'certificate', (e.target as HTMLInputElement).value)}
+								oninput={(e) =>
+									updateReferenceInstrument(
+										instrument.id,
+										'certificate',
+										(e.target as HTMLInputElement).value
+									)}
 							/>
 						</div>
 						<div class="col-span-2">
@@ -148,17 +170,22 @@
 								type="date"
 								class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								value={instrument.due}
-								oninput={(e) => updateReferenceInstrument(instrument.id, 'due', (e.target as HTMLInputElement).value)}
+								oninput={(e) =>
+									updateReferenceInstrument(
+										instrument.id,
+										'due',
+										(e.target as HTMLInputElement).value
+									)}
 							/>
 						</div>
 					</div>
 				</div>
 			{/each}
-			
+
 			{#if referenceInstruments.length === 0}
 				<div class="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center">
 					<p class="text-sm text-gray-500">No reference instruments added yet.</p>
-					<p class="text-xs text-gray-400 mt-1">Click "Add Instrument" to get started.</p>
+					<p class="mt-1 text-xs text-gray-400">Click "Add Instrument" to get started.</p>
 				</div>
 			{/if}
 		</div>

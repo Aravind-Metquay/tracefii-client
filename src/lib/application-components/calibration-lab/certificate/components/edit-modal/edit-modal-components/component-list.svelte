@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { certificate } from '@/certificate/lib/store.svelte';
-	import { getSelectedSection, setSelectedSection } from '../../../lib/sectionStore.svelte';
+	import { getSelectedSection, setSelectedSection } from '@/certificate/lib/section-store.svelte';
 
 	let selectedSection = $derived(getSelectedSection());
 

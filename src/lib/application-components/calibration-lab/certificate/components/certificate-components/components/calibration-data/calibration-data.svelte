@@ -1,7 +1,3 @@
-<script lang="ts">
-	import { certificate } from '@/certificate/lib/store.svelte';
-</script>
-
 <div class="calibration-data-section">
 	<h3>Calibration Data</h3>
 	<div class="data-table">

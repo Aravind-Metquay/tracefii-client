@@ -1,26 +1,23 @@
 <script lang="ts">
 	import { certificate } from '@/certificate/lib/store.svelte';
-	import { onMount, tick, type SvelteComponent } from 'svelte';
+	import { onMount, tick } from 'svelte';
 
-	// Import all section components
-	import HeaderSection from './certificate-components/header/HeaderSection.svelte';
-	import CustomerDetailsSection from './certificate-components/customer-detail/CustomerDetailsSection.svelte';
-	import CalibrationDataSection from './certificate-components/calibration-data/CalibrationDataSection.svelte';
-	import ReferenceInstrumentSection from './certificate-components/reference-instrument/ReferenceInstrumentSection.svelte';
-	import FooterSection from './certificate-components/footer/FooterSection.svelte';
-	import CustomFieldSection from './certificate-components/custom-field/CustomFieldSection.svelte';
+	import HeaderSection from './components/header/header-section.svelte';
+	import CustomerDetailsSection from './components/customer-detail/customer-details-section.svelte';
+	import CalibrationDataSection from './components/calibration-data/calibration-data.svelte';
+	import ReferenceInstrumentSection from './components/reference-instrument/reference-instuments.svelte';
+	import FooterSection from './components/footer/footer-section.svelte';
+	import CustomFieldSection from './components/custom-field/custom-field-section.svelte';
 
-	// Component map with improved TypeScript type
-	const componentMap: Record<string, typeof SvelteComponent<any>> = {
+	const componentMap = {
 		HeaderSection,
 		CustomerDetailsSection,
 		CalibrationDataSection,
 		ReferenceInstrumentSection,
 		FooterSection,
 		CustomFieldSection
-	};
+	} as const;
 
-	// Props
 	let {
 		isPaginated = false,
 		onFieldsReady
@@ -32,7 +29,9 @@
 	// State for pagination
 	let sectionElements = $state<HTMLElement[]>([]);
 	let measurementContainer = $state<HTMLElement>();
-	let paginatedSections = $state<Array<{ pageIndex: number; sections: typeof certificate.sections }>>([]);
+	let paginatedSections = $state<
+		Array<{ pageIndex: number; sections: typeof certificate.sections }>
+	>([]);
 	let isCalculating = $state(false);
 
 	// Convert mm to pixels
@@ -67,15 +66,12 @@
 
 	// Stable sections reference
 	const sections = $derived.by(() => {
-	
-
 		return [...certificate.sections];
 	});
 
 	// Custom fields reactivity
 	$effect(() => {
 		const customFieldIds = Object.keys(certificate.customFields);
-		
 
 		if (customFieldIds.length > 0 && onFieldsReady) {
 			tick().then(() => onFieldsReady());
@@ -85,7 +81,6 @@
 	// pagination calculation
 	async function calculatePagination() {
 		if (!isPaginated || isCalculating) {
-			
 			return;
 		}
 
@@ -93,19 +88,22 @@
 		let attempts = 0;
 		const maxAttempts = 20;
 
-		while ((!measurementContainer || sectionElements.length === 0 || sectionElements.some((el) => !el)) && attempts < maxAttempts) {
-			
+		while (
+			(!measurementContainer ||
+				sectionElements.length === 0 ||
+				sectionElements.some((el) => !el)) &&
+			attempts < maxAttempts
+		) {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 			attempts++;
 		}
 
 		if (!measurementContainer || sectionElements.length === 0) {
-			
 			return;
 		}
 
 		isCalculating = true;
-		
+
 		// Wait for DOM to be fully updated
 		await tick();
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -120,7 +118,6 @@
 			const section = sections[index];
 
 			if (!element || !section) {
-				
 				continue;
 			}
 
@@ -129,18 +126,14 @@
 			element.offsetHeight; // Force reflow
 
 			const sectionHeight = element.getBoundingClientRect().height;
-		
 
 			// Check if this section would overflow the current page
 			if (currentPageHeight + sectionHeight > contentHeight && currentPageSections.length > 0) {
-				
 				// Save current page and start a new one
 				paginatedSections.push({
 					pageIndex: currentPage,
 					sections: [...currentPageSections]
 				});
-
-
 
 				currentPage++;
 				currentPageHeight = 0;
@@ -150,8 +143,6 @@
 			// Add section to current page
 			currentPageSections.push(section);
 			currentPageHeight += sectionHeight;
-
-			
 		}
 
 		// Add the last page if it has sections
@@ -160,10 +151,8 @@
 				pageIndex: currentPage,
 				sections: [...currentPageSections]
 			});
-			
 		}
 
-	
 		// Update store with pagination info
 		certificate.pagination.totalPages = paginatedSections.length;
 		certificate.pagination.pageBreaks = paginatedSections
@@ -178,8 +167,6 @@
 	let paginationTimeout: any;
 	$effect(() => {
 		if (isPaginated && sections.length > 0) {
-
-
 			// Clear any existing timeout
 			if (paginationTimeout) {
 				clearTimeout(paginationTimeout);
@@ -187,7 +174,6 @@
 
 			// Debounce pagination calculation with longer delay for initial load
 			paginationTimeout = setTimeout(() => {
-				
 				calculatePagination();
 			}, 800);
 		}
@@ -195,10 +181,8 @@
 
 	onMount(() => {
 		if (isPaginated) {
-			
 			// Initial calculation with longer delay to ensure all components are rendered
 			setTimeout(() => {
-				
 				calculatePagination();
 			}, 1500);
 		}
@@ -206,7 +190,7 @@
 
 	// Component rendering helper
 	function renderSection(section: (typeof certificate.sections)[0]) {
-		const Component = componentMap[section.component];
+		const Component = componentMap[section.component as keyof typeof componentMap];
 
 		if (!Component) {
 			return { type: 'error' as const, message: `Component "${section.component}" not found` };
@@ -215,36 +199,47 @@
 		if (section.isCustom && section.customData?.fieldId) {
 			const fieldExists = certificate.customFields[section.customData.fieldId];
 			if (!fieldExists) {
-				return { type: 'error' as const, message: `Custom field "${section.customData.fieldId}" not found` };
+				return {
+					type: 'error' as const,
+					message: `Custom field "${section.customData.fieldId}" not found`
+				};
 			}
 
 			return {
 				type: 'component' as const,
 				component: Component,
-				props: { fieldId: section.customData.fieldId }
+				props: { fieldId: section.customData.fieldId } as any
 			};
 		}
 
 		return {
 			type: 'component' as const,
 			component: Component,
-			props: {}
+			props: {} as any
 		};
 	}
 </script>
 
 <div class="certificate-container">
 	{#if isPaginated}
-		<div class="certificate-page measurement-page" style={pageStyles} bind:this={measurementContainer}>
+		<div
+			class="certificate-page measurement-page"
+			style={pageStyles}
+			bind:this={measurementContainer}
+		>
 			<div class="page-content">
 				{#each sections as section, index (section.id)}
 					{@const rendered = renderSection(section)}
-					<div bind:this={sectionElements[index]} class="measurement-section" data-section-index={index}>
+					<div
+						bind:this={sectionElements[index]}
+						class="measurement-section"
+						data-section-index={index}
+					>
 						{#if rendered.type === 'component'}
 							{@const Component = rendered.component}
-							<Component {...rendered.props} />
+							<Component {...rendered.props}></Component>
 						{:else}
-							<div class="error-placeholder" />
+							<div class="error-placeholder"></div>
 						{/if}
 					</div>
 				{/each}
@@ -265,7 +260,7 @@
 									</div>
 								{:else}
 									{@const Component = rendered.component}
-									<Component {...rendered.props} />
+									<Component {...rendered.props}></Component>
 								{/if}
 							{/each}
 						</div>

@@ -1,18 +1,13 @@
-<script>
-	import SectionPanel from './components/SectionPanel/SectionPanel.svelte';
-	import UnifiedCertificateArea from './components/Certificate/UnifiedCertificateArea.svelte';
-	import SettingsPanel from './components/SettingsPanel/SettingsPanel.svelte';
-	import TopPanel from './components/TopPanel/TopPanel.svelte';
-	import ModalSection from './components/Modal/modalSection/modalSection.svelte';
-	import SectionSettingsPanel from './components/Modal/SectionSettings/SectionSettingsPanel.svelte';
-	import { getSelectedSection } from './lib/sectionStore.svelte';
+<script lang="ts">
+	import SettingsPanel from './components/settings-panel/settings-panel.svelte';
+	import TopPanel from './components/top-panel/top-panel.svelte';
+	import { getSelectedSection } from './lib/section-store.svelte';
+	import SectionPanel from './components/section-panel/sections-panel.svelte';
+	import ModalSection from './components/edit-modal/modal-sections/modal-sections.svelte';
+	import CertificateArea from './components/certificate-components/certificate-area.svelte';
+	import SectionSettingsPanel from './components/edit-modal/section-settings/section-component-settings.svelte';
 
 	let selectedSection = $derived(getSelectedSection());
-	
-	
-	let isPaginated = $state(false);
-	
-	
 </script>
 
 <div class="flex h-screen w-screen flex-col bg-gray-100">
@@ -27,11 +22,9 @@
 		<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
 			<SectionPanel />
 		</div>
-		
+
 		<!-- Center Canvas Area -->
 		<div class="flex flex-col overflow-hidden rounded-lg">
-			
-			
 			<!-- Certificate container with proper overflow handling -->
 			<div class="flex-1 overflow-auto">
 				{#if selectedSection}
@@ -40,15 +33,15 @@
 					</div>
 				{:else}
 					<div class="flex min-h-full items-start justify-center p-4">
-						
-						 <UnifiedCertificateArea
+						<CertificateArea
 							isPaginated={true}
-						 onFieldsReady={() => console.log('paginated fields ready')} />
+							onFieldsReady={() => console.log('paginated fields ready')}
+						/>
 					</div>
 				{/if}
 			</div>
 		</div>
-		
+
 		<!-- Right Panel -->
 		<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
 			{#if selectedSection}
@@ -61,35 +54,27 @@
 </div>
 
 <style>
-	/* ADDED: Styling for the certificate container */
-	.certificate-container {
-		/* A4 size approximation: 210mm × 297mm at 96 DPI ≈ 794px × 1123px */
-		width: 774px;
-		min-height: 1123px;
-		margin: 0 auto;
-	}
-	
 	/* Ensure smooth scrolling */
 	.overflow-auto {
 		scroll-behavior: smooth;
 	}
-	
+
 	/* Custom scrollbar styling */
 	.overflow-auto::-webkit-scrollbar {
 		width: 8px;
 		height: 8px;
 	}
-	
+
 	.overflow-auto::-webkit-scrollbar-track {
 		background: #f1f1f1;
 		border-radius: 4px;
 	}
-	
+
 	.overflow-auto::-webkit-scrollbar-thumb {
 		background: #c1c1c1;
 		border-radius: 4px;
 	}
-	
+
 	.overflow-auto::-webkit-scrollbar-thumb:hover {
 		background: #a8a8a8;
 	}

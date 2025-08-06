@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { getSelectedSection, setSelectedSection } from '../../../lib/sectionStore.svelte';
+	import { getSelectedSection } from '@/certificate/lib/section-store.svelte';
 
-	// Import all certificate components
-	import HeaderSection from '../../Certificate/certificate-components/header/HeaderSection.svelte';
-	import CustomerDetailsSection from '../../Certificate/certificate-components/customer-detail/CustomerDetailsSection.svelte';
-	import CalibrationDataSection from '../../Certificate/certificate-components/calibration-data/CalibrationDataSection.svelte';
-	import ReferenceInstrumentSection from '../../Certificate/certificate-components/reference-instrument/ReferenceInstrumentSection.svelte';
-	import FooterSection from '../../Certificate/certificate-components/footer/FooterSection.svelte';
-	import CustomFieldSection from '../../Certificate/certificate-components/custom-field/CustomFieldSection.svelte';
+	import HeaderSection from '../../certificate-components/components/header/header-section.svelte';
+	import CustomerDetailsSection from '../../certificate-components/components/customer-detail/customer-details-section.svelte';
+	import CalibrationDataSection from '../../certificate-components/components/calibration-data/calibration-data.svelte';
+	import ReferenceInstrumentSection from '../../certificate-components/components/reference-instrument/reference-instuments.svelte';
+	import FooterSection from '../../certificate-components/components/footer/footer-section.svelte';
+	import CustomFieldSection from '../../certificate-components/components/custom-field/custom-field-section.svelte';
 
 	let selectedSection = $derived(getSelectedSection());
 
@@ -20,10 +19,6 @@
 		FooterSection,
 		CustomFieldSection
 	};
-
-	function handleSectionClick(section: any) {
-		setSelectedSection(section);
-	}
 </script>
 
 <div class="h-full w-full overflow-y-auto">

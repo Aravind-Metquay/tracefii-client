@@ -3,15 +3,14 @@
 		getSelectedSection,
 		setSelectedSection,
 		clearSelectedSection
-	} from '../../../lib/sectionStore.svelte';
+	} from '@/calibration-lab/certificate/lib/section-store.svelte';
 	import { certificate } from '@/certificate/lib/store.svelte';
 
-	// Import property components
-	import HeaderProperties from '../properties/HeaderProperties.svelte';
-	import CustomerDetailsProperties from '../properties/CustomerDetailsProperties.svelte';
-	import CalibrationDataProperties from '../properties/CalibrationDataProperties.svelte';
-	import ReferenceInstrumentProperties from '../properties/ReferenceInstrumentProperties.svelte';
-	import FooterProperties from '../properties/FooterProperties.svelte';
+	import HeaderProperties from '../properties/header-properties.svelte';
+	import CustomerDetailsProperties from '../properties/customer-details-properties.svelte';
+	import ReferenceInstrumentProperties from '../properties/reference-instruments-properties.svelte';
+	import FooterProperties from '../properties/footer-properties.svelte';
+	
 
 	let selectedSection = $derived(getSelectedSection());
 
@@ -19,7 +18,6 @@
 	const propertyComponentMap: Record<string, any> = {
 		HeaderSection: HeaderProperties,
 		CustomerDetailsSection: CustomerDetailsProperties,
-		CalibrationDataSection: CalibrationDataProperties,
 		ReferenceInstrumentSection: ReferenceInstrumentProperties,
 		FooterSection: FooterProperties
 	};
