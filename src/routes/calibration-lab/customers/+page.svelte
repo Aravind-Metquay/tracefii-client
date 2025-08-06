@@ -1,9 +1,24 @@
-<script>
+<script lang="ts">
 	import Button from "@/components/button/button.svelte";
 	import Tooltip from "@/components/tooltip/tooltip.svelte";
 	import { Building2, EllipsisVertical, Info } from "@lucide/svelte";
     import Customertable from "@/application-components/calibration-lab/customers/customer-table.svelte";
     import Sort from "@/components/sort/sort.svelte";
+    
+    interface SortAttribute {
+        attribute: string;
+        direction: 'Ascending' | 'Descending';
+    }
+    let selectedAttributes = $state<SortAttribute[]>([]);
+
+	const attributes = [
+		{ id: 'name', header: 'Customer Name', flexgrow: 1, sort: true, editor: 'text' },
+		{ id: 'email', header: 'Email ID', flexgrow: 1, sort: true, editor: 'text' },
+		{ id: 'contactPerson', header: 'Contact Person Name', flexgrow: 1, sort: true, editor: 'text' },
+		{ id: 'contactNumber', header: 'Contact Person Number', width: 160, sort: true, editor: 'text' },
+		{ id: 'year', header: 'Year', width: 80, sort: true, editor: 'text' },
+		{ id: 'website', header: 'Website', flexgrow: 1, sort: true, editor: 'text' }
+	];
 </script>
 
 
@@ -30,7 +45,7 @@
     <div class="h-8 flex items-center">
         <input type="search" class="bg-[#fafafa] rounded-sm items-center m-1 h-6 text-xs min-w-[240px] pl-2" />
         <div class="h-4 w-[1px] bg-gray-300 m-1"></div>
-        <Sort/>        
+        <Sort attributes={attributes.map((attr) => attr.header)} bind:selectedAttributes={selectedAttributes}/>
         <Button size="tiny" variant="secondary" class="m-1">Filter</Button>
     </div>
     <!-- <div class="h-12 flex items-center gap-2 p-2">

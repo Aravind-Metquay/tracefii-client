@@ -4,29 +4,24 @@
 	import Dropdown from './sortdropdown.svelte';
 	import Dropdown2 from './sortdropdown2.svelte';
 	import { X } from '@lucide/svelte';
-
+	interface SortAttribute {
+    attribute: string;
+    direction: 'Ascending' | 'Descending';
+  }
+	let { attributes, selectedAttributes = $bindable<SortAttribute[]>([]) } = $props();
+	
 	let isPopoverOpen = $state(false);
 	let containerElement: HTMLElement | null = $state(null);
 	let searchValue = $state('');
-	let selectedAttributes = $state<{ attribute: string; direction: 'Ascending' | 'Descending' }[]>(
-		[]
-	);
 	let addSort = $state(false);
-	const Attributes = [
-		'Customer Name',
-		'EmailId',
-		'Contact Person Name',
-		'Contact Person Number',
-		'Year',
-		'Website'
-	];
 	const filteredAttributes = $derived(
 		searchValue
-			? Attributes.filter((name) => name.toLowerCase().includes(searchValue.toLowerCase()))
-			: Attributes
+			? attributes.filter((name: string) => name.toLowerCase().includes(searchValue.toLowerCase()))
+			: attributes
 	);
-	function addAttribute(name: string) {
-		selectedAttributes.push({ attribute: name, direction: 'Ascending' });
+	
+	function addAttribute(attribute: string) {
+		selectedAttributes.push({ attribute: attribute, direction: 'Ascending' });
 	}
 	function removeAttribute(index: number) {
 		selectedAttributes.splice(index, 1);
@@ -74,23 +69,23 @@
 					<Input size="small" placeholder="Search Attributes..." bind:value={searchValue} />
 				</div>
 				<div class="mt-2 mb-2 space-y-1 pl-2">
-					{#each filteredAttributes as name}
+					{#each filteredAttributes as attribute}
 						<div
 							class="cursor-pointer rounded px-2 py-1 text-xs hover:bg-gray-100"
 							onclick={(event) => {
 								event.stopPropagation();
-								addAttribute(name);
+								addAttribute(attribute);
 							}}
 						>
-							{name}
+							{attribute}
 						</div>
 					{/each}
 				</div>
 			{:else if selectedAttributes.length > 0}
 				<div class="mt-2 mb-2 flex w-full flex-col space-y-1 pl-2">
-					{#each selectedAttributes as name, index}
+					{#each selectedAttributes as attribute, index}
 						<div class="flex">
-							<Dropdown options={Attributes} bind:selectedValue={selectedAttributes[index]} />
+							<Dropdown options={attributes} bind:selectedValue={selectedAttributes[index]} />
 							<Dropdown2 options={sortOptions} bind:selectedValue={selectedAttributes[index]} />
 							<Button
 								class="mr-2 text-xs"
