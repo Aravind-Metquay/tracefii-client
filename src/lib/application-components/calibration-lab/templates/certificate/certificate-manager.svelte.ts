@@ -23,25 +23,37 @@ interface Content {
 		| 'Reference Instrument'
 		| 'Calibration Data'
 		| 'Customer and Instrument Details';
-	CalibrationData?: CalibrationData;
-	CustomField?: CustomField;
-	ReferenceInstrument?: ReferenceInstrument;
-	CustomerAndInstrumentDetails?: CustomerAndInstrumentDetails;
+	calibrationData?: CalibrationData;
+	customField?: CustomField;
+	referenceInstrument?: ReferenceInstrument;
+	customerAndInstrumentDetails?: CustomerAndInstrumentDetails;
 }
 interface CalibrationData {
 	// Pending types [ Empty]
 }
+
+enum ReferenceInstrumentColumn {
+	EquipmentName = 'equipmentName',
+	SerialNumber = 'serialNumber',
+	Traceability = 'traceability',
+	CertificateNumber = 'certificateNumber',
+	CalibrationDueOn = 'calibrationDueOn',
+	CompanyName = 'companyName',
+	RecommendedDue = 'recommendedDue',
+	CompanyEmail = 'companyEmail'
+}
+
 interface ReferenceInstrument {
 	format: 'Table';
 	title?: string;
-	masterInstrument?: boolean;
+	nextLevelOfmasterInstrument?: boolean;
 	columns: Record<
-		string, // needs to change to enum later - reference instruments
+		ReferenceInstrumentColumn,
 		{
 			isActive: boolean;
 			order: number;
 		}
-	>; // Might want to convert into array, check for enum
+	>;
 }
 interface CustomerAndInstrumentDetails {
 	noOfColumns: 1 | 2;
@@ -143,7 +155,27 @@ export function CertificateManager(): CertificateTemplateManager {
 			lastPageFooter: {},
 			defaultFooter: {}
 		},
-		contents: []
+		contents: [
+			{
+				order: 3,
+				ComponentType: 'Reference Instrument',
+				referenceInstrument: {
+					format: 'Table',
+					title: 'Reference Equipment(s) used',
+					nextLevelOfmasterInstrument: true,
+					columns: {
+						[ReferenceInstrumentColumn.EquipmentName]: { isActive: true, order: 1 },
+						[ReferenceInstrumentColumn.SerialNumber]: { isActive: true, order: 2 },
+						[ReferenceInstrumentColumn.Traceability]: { isActive: true, order: 3 },
+						[ReferenceInstrumentColumn.CertificateNumber]: { isActive: true, order: 4 },
+						[ReferenceInstrumentColumn.CalibrationDueOn]: { isActive: true, order: 5 },
+						[ReferenceInstrumentColumn.CompanyName]: { isActive: false, order: 6 },
+						[ReferenceInstrumentColumn.RecommendedDue]: { isActive: false, order: 7 },
+						[ReferenceInstrumentColumn.CompanyEmail]: { isActive: false, order: 8 }
+					}
+				}
+			}
+		]
 	});
 
 	const updateCustomerAndInstrumentDetails = (title?: string, columValue?: number) => {
