@@ -561,7 +561,8 @@ export type WorksheetManager = {
 	updateFunctionName(functionId: string, newFunctionName: string): void;
 	updateFunction(functionId: string, properties: Partial<Function>): void;
 	getAllFunctions(): Function[];
-	reorderFunction(): void;
+	reorderFunction(index: number, draggedFucntion: Function): void;
+	setFunctions(functionList: Function[]): void;
 
 	// ComponentIds
 	addNewComponentId(id: string): void;
