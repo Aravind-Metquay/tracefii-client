@@ -29,7 +29,7 @@
 			class="flex min-w-[90px] flex-col items-center justify-center gap-1 rounded-md bg-white p-2 text-black shadow-sm transition hover:bg-gray-100"
 		>
 			
-			<svelte:component this={component.icon} class="h-5 w-5" />
+ 		<!-- <{component.icon} class="h-5 w-5" /> -->
 			<span class="text-xs">{component.name}</span>
 		</button>
 	{/each}

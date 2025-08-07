@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { createFabricCanvasManager } from '../shared/canvas-manager.svelte';
 	import type * as fabric from 'fabric';
-	import ContainerPanel from '../components/container-panel.svelte';
-	import ComponentToolbar from '../components/component-toolbar.svelte';
-	import ConfigPanel from '../components/config-panel.svelte';
+	import ContainerPanel from './components/container-panel.svelte';
+	import ComponentToolbar from './components/component-toolbar.svelte';
+	import ConfigPanel from './components/config-panel.svelte';
 
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
 
@@ -64,6 +64,8 @@
 			instance.on('selection:created', (e) => updateControls(e.selected[0]));
 			instance.on('selection:updated', (e) => updateControls(e.selected[0]));
 			instance.on('selection:cleared', () => updateControls(null));
+
+			
 		}
 
 		return () => {
@@ -110,6 +112,15 @@
 	async function updateQRCode(options:any) {
 		await canvasManager.updateQRCode(options);
 	}
+
+	async function updateBarcode(options:any) {
+		await canvasManager.updateBarcode(options);
+		
+	}
+
+function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: number }) {
+    canvasManager.updateImageDimensions(newDimensions);
+}
 </script>
 
 <div class="editor-layout flex h-screen w-full overflow-hidden bg-gray-50">
@@ -158,6 +169,8 @@
 			{duplicateSelected}
 			{deleteSelected}
 			{updateQRCode}
+			{updateBarcode}
+			{updateImageDimensions}
 		/>
 	</div>
 </div>
