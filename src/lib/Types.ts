@@ -707,7 +707,7 @@ export type WorksheetManager = {
 	addReferenceInstrumentData(path: string, data: DataStore): void;
 	removeReferenceInstrumentData(path: string): void;
 	getReferenceInstrumentData(path: string): DataStore | undefined;
-	getWroskheetExpressionData(): SchemaNode;
+	getWorkheetExpressionSchema(): SchemaNode;
 };
 
 export interface ProcedureType {
