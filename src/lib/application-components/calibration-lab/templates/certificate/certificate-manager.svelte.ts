@@ -5,7 +5,7 @@ import type { WorkType } from '@/Types';
 interface Header {
 	height: number;
 	unit: 'in' | 'mm' | 'cm' | 'px';
-	setAs: 'First Page Header' | 'Last Page Header' | 'Default Header';
+	pageType: 'First Page Header' | 'Last Page Header' | 'Default Header';
 	canvasData: fabric.Canvas;
 }
 
@@ -42,6 +42,24 @@ enum ReferenceInstrumentColumn {
 	RecommendedDue = 'recommendedDue',
 	CompanyEmail = 'companyEmail'
 }
+enum CustomerAndInstrumentDetailsColoumn {
+	CustomerNameAndAddress = 'Customer name and Address',
+	ReceivedDate = 'Received Date',
+	CalibratedDate = 'Calibrated Date',
+	CalibrationDueOn = 'Calibration Due On',
+	Location = 'Location',
+	DataType = 'Data Type',
+	AsFoundCondition = 'As Found Condition',
+	AsLeftCondition = 'As Left Condition',
+	Temperature = 'Temperature',
+	DateOfIssue = 'Date of Issue',
+	InstrumentType = 'Instrument Type',
+	InstrumentManufacturer = 'Instrument Manufacturer',
+	InstrumentModelNumber = 'Instrument Model Number',
+	InstrumentSerialNumber = 'Instrument Serial Number',
+	InstrumentTagNumber = 'Instrument Tag Number',
+	Humidity = 'Humidity'
+}
 
 interface ReferenceInstrument {
 	format: 'Table';
@@ -58,7 +76,7 @@ interface ReferenceInstrument {
 interface CustomerAndInstrumentDetails {
 	noOfColumns: 1 | 2;
 	fields: Record<
-		string, //  needs to change to enum based on customer and instrument details
+		CustomerAndInstrumentDetailsColoumn,
 		{
 			isActive: boolean;
 			columns: 1 | 2;
@@ -104,6 +122,8 @@ interface CertificateTemplate {
 	};
 	contents: Content[];
 }
+
+
 
 interface CertificateTemplateManager {
 	getCertificate: () => CertificateTemplate;
@@ -156,6 +176,46 @@ export function CertificateManager(): CertificateTemplateManager {
 			defaultFooter: {}
 		},
 		contents: [
+			{
+				order: 2, // Fixed typo: "orde,r" -> "order"
+				ComponentType: 'Customer and Instrument Details',
+				customerAndInstrumentDetails: {
+					noOfColumns: 2,
+					fields: {
+						[CustomerAndInstrumentDetailsColoumn.CustomerNameAndAddress]: {
+							isActive: true,
+							columns: 1
+						},
+						[CustomerAndInstrumentDetailsColoumn.ReceivedDate]: { isActive: true, columns: 2 },
+						[CustomerAndInstrumentDetailsColoumn.CalibratedDate]: { isActive: true, columns: 1 },
+						[CustomerAndInstrumentDetailsColoumn.CalibrationDueOn]: { isActive: true, columns: 2 },
+						[CustomerAndInstrumentDetailsColoumn.Location]: { isActive: true, columns: 1 },
+						[CustomerAndInstrumentDetailsColoumn.DataType]: { isActive: true, columns: 2 },
+						[CustomerAndInstrumentDetailsColoumn.AsFoundCondition]: { isActive: true, columns: 1 },
+						[CustomerAndInstrumentDetailsColoumn.AsLeftCondition]: { isActive: true, columns: 2 },
+						[CustomerAndInstrumentDetailsColoumn.Temperature]: { isActive: true, columns: 1 },
+						[CustomerAndInstrumentDetailsColoumn.DateOfIssue]: { isActive: false, columns: 2 },
+						[CustomerAndInstrumentDetailsColoumn.InstrumentType]: { isActive: false, columns: 1 },
+						[CustomerAndInstrumentDetailsColoumn.InstrumentManufacturer]: {
+							isActive: false,
+							columns: 2
+						},
+						[CustomerAndInstrumentDetailsColoumn.InstrumentModelNumber]: {
+							isActive: false,
+							columns: 1
+						},
+						[CustomerAndInstrumentDetailsColoumn.InstrumentSerialNumber]: {
+							isActive: false,
+							columns: 2
+						},
+						[CustomerAndInstrumentDetailsColoumn.InstrumentTagNumber]: {
+							isActive: false,
+							columns: 1
+						},
+						[CustomerAndInstrumentDetailsColoumn.Humidity]: { isActive: false, columns: 2 }
+					}
+				}
+			},
 			{
 				order: 3,
 				ComponentType: 'Reference Instrument',
