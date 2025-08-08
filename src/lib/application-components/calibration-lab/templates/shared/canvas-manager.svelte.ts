@@ -114,7 +114,37 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		};
 
 		canvas.on('object:scaling', (e) => constrainObject(e.target!));
-		canvas.on('object:moving', (e) => constrainObject(e.target!));
+		 canvas.on('object:moving', (e) => constrainObject(e.target!));
+		// Enhanced scaling handler to prevent text skewing
+		canvas.on('object:scaling', (e) => {
+			console.log("hi")
+			const obj = e.target!;
+			
+			// Handle text objects specifically to prevent skewing
+			if (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox') {
+				// Force uniform scaling for text objects
+				const scale = Math.max(Math.abs(obj.scaleX || 1), Math.abs(obj.scaleY || 1));
+				obj.set({
+					scaleX: obj.scaleX! < 0 ? -scale : scale,
+					scaleY: obj.scaleY! < 0 ? -scale : scale
+				});
+			}
+			
+			constrainObject(obj);
+			canvas.renderAll();
+		});
+
+	
+	
+	// Additional handler to maintain text integrity after scaling
+	canvas.on('object:modified', (e) => {
+		const obj = e.target!;
+		if (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox') {
+			// Ensure text properties remain consistent
+			obj.setCoords();
+		}
+	});
+	
 	};
 
 	const initializeCanvas = (
@@ -180,35 +210,22 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 				selectable: true,
 				evented: true,
 				moveCursor: 'move',
-				hoverCursor: 'move'
+				hoverCursor: 'move',
+
+				lockUniScaling: true,        // Prevents non-uniform scaling
+			lockScalingFlip: true,       // Prevents flipping during resize
+			centeredScaling: false,      // Scaling from corners, not center
+			centeredRotation: true,      // But rotation from center is fine
+			// Additional text-specific properties
+			splitByGrapheme: false,      // Better text rendering
+			editable: true,              // Allow text editing
+			// Constrain proportions during scaling
+			uniformScaling: true
 			});
 			addToCanvas(textElement);
 		}
 	};
 
-	// const addQRcode = async (data?: string | null): Promise<void> => {
-	// 	if (!canvasInstance) return;
-	// 	const template = '{{default_qrcode}}';
-	// 	const finalValue = template.replace(
-	// 		'{{default_qrcode}}',
-	// 		data || `https://metquay.com/generated/${Date.now()}`
-	// 	);
-	// 	const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 100 });
-	// 	const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
-
-	// 	img.set({
-	// 		left: 50,
-	// 		top: 50,
-	// 		scaleX: 1.5,
-	// 		scaleY: 1.5,
-	// 		selectable: true,
-	// 		evented: true,
-	// 		moveCursor: 'move',
-	// 		hoverCursor: 'move',
-	// 		data: { type: 'QR Code', expression: template, errorCorrectionLevel: 'H' }
-	// 	});
-	// 	addToCanvas(img);
-	// };
 	const addQRcode = async (data?: string | null): Promise<void> => {
 		if (!canvasInstance) return;
 		const template = '{{default_qrcode}}';

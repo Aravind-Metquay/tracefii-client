@@ -18,6 +18,8 @@
 	let selectedType: 'Label' | 'Certificate' | '' = $state('Label');
 	type UnitType = 'mm' | 'cm' | 'px' | 'in';
 	let unit: UnitType = $state('cm');
+	let designName =$state("Untitled Design");
+	let isEditingName =$state(false);
 
 	const CONVERSION_FACTORS = { px: 1, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
 
@@ -53,25 +55,43 @@
 			onDimensionsChange(pixelWidth, newPixelHeight);
 		}
 	}
+
+	function handleNameSave() {
+	isEditingName = false;
+
+	console.log("Design name saved:", designName);
+}
+
+function handleKeyDown(event: KeyboardEvent) {
+	if (event.key === "Enter") {
+		handleNameSave();
+	}
+}
 </script>
 
 <div class="h-full w-full space-y-6 overflow-y-auto bg-white p-4">
 	<button class="cursor-pointer text-2xl font-bold text-black" title="Go Back"> ← </button>
-	<h1 class="text-2xl font-semibold">Untitled Design</h1>
-	<div class="space-y-4">
-		<div class="space-y-2">
-			<label for="type" class="block text-xs font-medium text-gray-600">
-				Type <span class="text-red-500">*</span>
-			</label>
-			<select
-				bind:value={selectedType}
-				class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+	{#if isEditingName}
+			<input
+				class="text-2xl font-semibold w-full border-b border-gray-300 focus:border-blue-500 focus:outline-none"
+				type="text"
+				bind:value={designName}
+				onblur={handleNameSave}
+				onkeydown={handleKeyDown}
+				autofocus
+			/>
+		{:else}
+			<h1
+				class="text-2xl font-semibold cursor-pointer"
+				onclick={() => (isEditingName = true)}
+				title="Click to edit name"
 			>
-				<option value="">Select type...</option>
-				<option value="Label">Label</option>
-				<option value="Certificate">Certificate</option>
-			</select>
-		</div>
+				{designName}
+			</h1>
+		{/if}
+
+	<div class="space-y-4">
+	
 
 		<div class="space-y-2">
 			<label for="unit" class="block text-xs font-medium text-gray-600">

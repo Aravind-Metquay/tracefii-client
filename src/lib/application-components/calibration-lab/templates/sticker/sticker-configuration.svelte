@@ -88,7 +88,6 @@
 		canvasManager.changeBackground(backgroundColor);
 	}
 	function addText() { canvasManager.addText('Sample Text'); }
-	//function addDate() { canvasManager.addDate(); }
 	function addQRCode() { canvasManager.addQRcode('https://example.com'); }
 	function addBarcode() { canvasManager.addBarcode('123456789'); }
 	function handleImageUpload(event: Event) {
@@ -101,9 +100,34 @@
 	function updateFontWeight() { canvasManager.changeFontWeight(fontWeight); }
 	function updateFontStyle() { canvasManager.changeFontStyle(fontStyle); }
 	function updateTextAlign() { canvasManager.changeTextAlign(textAlign); }
-	function toggleUnderline() { canvasManager.changeFontUnderline(!textUnderline); }
+	//function toggleUnderline() { canvasManager.changeFontUnderline(!textUnderline); }
 	function updateOpacity() { canvasManager.changeOpacity(opacity); }
 	function updateFillColor() { canvasManager.changeFillColor(fillColor); }
+
+	function toggleBold() {
+		// If current weight is bold (700) or more, switch to normal (400), otherwise switch to bold.
+		const newWeight = fontWeight >= 700 ? 400 : 700;
+		canvasManager.changeFontWeight(newWeight);
+		fontWeight = newWeight; // Update local state to keep UI in sync
+	}
+
+	function toggleItalic() {
+		const newStyle = fontStyle === 'italic' ? 'normal' : 'italic';
+		canvasManager.changeFontStyle(newStyle);
+		fontStyle = newStyle; // Update local state
+	}
+
+	function setTextAlign(align: 'left' | 'center' | 'right') {
+		canvasManager.changeTextAlign(align);
+		textAlign = align; // Update local state
+	}
+
+	function toggleUnderline() {
+        // This function might already exist, but ensure it updates local state
+		const newUnderline = !textUnderline;
+		canvasManager.changeFontUnderline(newUnderline);
+		textUnderline = newUnderline;
+	}
 	function bringForward() { canvasManager.bringForward(); }
 	function sendBackwards() { canvasManager.sendBackwards(); }
 	function deleteSelected() { canvasManager.deleteSelected(); }
@@ -171,6 +195,10 @@ function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: num
 			{updateQRCode}
 			{updateBarcode}
 			{updateImageDimensions}
+			{toggleBold}
+			{toggleItalic}
+			 {setTextAlign} 
+
 		/>
 	</div>
 </div>

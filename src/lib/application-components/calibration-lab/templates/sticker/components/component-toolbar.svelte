@@ -34,7 +34,7 @@
 		</button>
 	{/each}
 	<label
-		class="flex min-w-[90px] cursor-pointer flex-col items-center justify-center gap-1 rounded-md bg-white p-2 text-black shadow-sm transition hover:bg-gray-100"
+		class="flex min-w-[90px]  flex-col items-center justify-center gap-1 rounded-md bg-white p-2 text-black shadow-sm transition hover:bg-gray-100"
 	>
 		<ImageIcon class="h-5 w-5" />
 		<span class="text-xs">Image</span>

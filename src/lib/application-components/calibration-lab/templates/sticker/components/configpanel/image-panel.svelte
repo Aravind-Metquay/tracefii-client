@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type * as fabric from 'fabric';
 
-	// Props
+	
 	let { selectedObject, updateImageDimensions } = $props<{
 		selectedObject: fabric.Image;
 		updateImageDimensions: (dims: { widthCm?: number; heightCm?: number }) => void;
@@ -39,7 +39,7 @@
 	$effect(() => {
 		const { currentWidthCm, currentHeightCm } = getCurrentDimensions();
 		if (!isInitialized && currentWidthCm !== '0.00' && currentHeightCm !== '0.00') {
-			console.log('🚀 INITIALIZING VALUES:', { currentWidthCm, currentHeightCm });
+		
 			widthInput = currentWidthCm;
 			heightInput = currentHeightCm;
 			isInitialized = true;
@@ -57,14 +57,6 @@
 			const shouldUpdateHeight = Math.abs(parseFloat(currentHeightCm) - parseFloat(heightInput)) > 0.1;
 
 			if (shouldUpdateWidth || shouldUpdateHeight) {
-				console.log('🔄 SYNCING FROM EXTERNAL CHANGE:', {
-					currentWidthCm,
-					currentHeightCm,
-					widthInput,
-					heightInput,
-					shouldUpdateWidth,
-					shouldUpdateHeight
-				});
 				
 				widthInput = currentWidthCm;
 				heightInput = currentHeightCm;
@@ -75,10 +67,7 @@
 	});
 
 	function handleInput(type: 'width' | 'height') {
-		console.log('⌨️ USER INPUT:', {
-			type,
-			value: type === 'width' ? widthInput : heightInput
-		});
+	
 
 		// Mark as user interacting
 		isUserInteracting = true;
@@ -87,16 +76,10 @@
 		debounceTimer = setTimeout(() => {
 			const value = type === 'width' ? parseFloat(widthInput) : parseFloat(heightInput);
 			
-			console.log('⏰ DEBOUNCED INPUT:', {
-				type,
-				value,
-				isValid: !isNaN(value) && value > 0
-			});
+			
 			
 			if (!isNaN(value) && value > 0) {
-				console.log('🔧 CALLING updateImageDimensions:', {
-					[type === 'width' ? 'widthCm' : 'heightCm']: value
-				});
+			
 
 				const { originalWidthCm, originalHeightCm } = getOriginalDimensions();
 
@@ -112,24 +95,24 @@
 					widthInput = (value * aspectRatio).toFixed(2);
 				}
 
-				console.log('📐 UPDATED BOTH INPUTS:', { widthInput, heightInput });
+				
 			}
 			
 			// Reset flag after delay
 			setTimeout(() => { 
-				console.log('✅ RESETTING isUserInteracting');
+				
 				isUserInteracting = false;
 			}, 200);
 		}, 300);
 	}
 
 	function handleFocus() {
-		console.log('🎯 INPUT FOCUSED - setting isUserInteracting to true');
+		
 		isUserInteracting = true;
 	}
 
 	function handleBlur() {
-		console.log('👋 INPUT BLURRED');
+		
 		// Let the debounce handle the reset
 	}
 

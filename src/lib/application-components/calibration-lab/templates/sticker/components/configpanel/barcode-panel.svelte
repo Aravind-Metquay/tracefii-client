@@ -99,9 +99,7 @@
         >
             <option value="CODE128">CODE128</option>
             <option value="CODE39">CODE39</option>
-            <option value="EAN13">EAN-13</option>
-            <option value="UPC">UPC</option>
-            <option value="ITF14">ITF-14</option>
+          
         </select>
     </div>
 
