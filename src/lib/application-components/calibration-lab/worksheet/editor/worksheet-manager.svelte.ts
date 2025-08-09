@@ -170,7 +170,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 	}
 
 	return {
-		getWroskheetExpressionData() {
+		getWorkheetExpressionSchema() {
 			return worksheetExpressionData;
 		},
 

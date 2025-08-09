@@ -51,6 +51,3 @@
         <!-- </main>
     {/if}
 </QueryClientProvider> -->
-<main class="h-[100vh] bg-[#FAFAFA]">
-            {@render children()}
-</main>

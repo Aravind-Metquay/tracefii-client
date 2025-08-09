@@ -1,16 +1,18 @@
 <script lang="ts">
-	import { Modal } from '@/components';
+	import { Button, Modal } from '@/components';
 	import ExpressionEditor from './editor.svelte';
-	import type { ExpressionType, WorksheetManager } from '@/Types';
+	import type { Component, ExpressionType, WorksheetManager } from '@/Types';
 
 	let {
 		isOpen = $bindable(false),
 		worksheetManager,
-		expressionType
+		expressionType,
+		component
 	}: {
 		isOpen: boolean;
 		worksheetManager: WorksheetManager;
 		expressionType: ExpressionType;
+		component: Component;
 	} = $props();
 
 	const expression = $derived.by(() => {
@@ -35,15 +37,33 @@
 		}
 	});
 
-	//Then we need an onSave functionality to save the expression.
-	//Clearing the state and all.
-	//No need to bound inside the epxression modal.
-	//Would be awesome if onChange has a debounce option also.
+	let updatedExpresssion = $state('');
+	const updateExpression = () => {
+		worksheetManager.updateExpression(
+			expressionType,
+			updatedExpresssion,
+			component.functionId,
+			component.componentId,
+			worksheetManager.getCurrentActiveColumn()?.columnId
+		);
+		isOpen = false;
+	};
+	const closeModal = () => {
+		updatedExpresssion = '';
+		isOpen = false;
+	};
 </script>
 
 <Modal.Root bind:isOpen title="Add Expression" size="large">
-	<ExpressionEditor
-		expression={expression ? expression : ''}
-		schema={worksheetManager.getWroskheetExpressionData()}
-	/>
+	<div class="flex flex-col">
+		<ExpressionEditor
+			expression={expression ? expression : ''}
+			schema={worksheetManager.getWorkheetExpressionSchema()}
+			onChange={(exp) => (updatedExpresssion = exp)}
+		/>
+		<div class="mt-2 self-end">
+			<Button size="small" variant="error" onclick={closeModal}>Cancel</Button>
+			<Button size="small" variant="primary" onclick={updateExpression}>Save</Button>
+		</div>
+	</div>
 </Modal.Root>

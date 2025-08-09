@@ -15,8 +15,16 @@
 			expressionType = expressionType;
 		}
 	});
-	$inspect(worksheetManager.getWorksheet());
+
+	let activeComponent = $derived(worksheetManager.getCurrentActiveComponent());
 </script>
 
 <Editor />
-<ExpressionEditorModal bind:isOpen {expressionType} {worksheetManager} />
+{#if activeComponent !== null}
+	<ExpressionEditorModal
+		bind:isOpen
+		{expressionType}
+		{worksheetManager}
+		component={activeComponent}
+	/>
+{/if}

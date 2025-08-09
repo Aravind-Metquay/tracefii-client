@@ -10,50 +10,28 @@
 	import { autocompletion, snippet, type CompletionContext } from '@codemirror/autocomplete';
 	import type { SchemaNode } from '@/Types';
 
-	let { schema, expression }: { schema: SchemaNode; expression: string } = $props();
+	let {
+		schema,
+		expression,
+		onChange,
+		debounce: debounceDelay = 300
+	}: {
+		schema: SchemaNode;
+		expression: string;
+		onChange: (exp: string) => void;
+		debounce?: number;
+	} = $props();
 
 	let editorContainer = $state<HTMLDivElement | null>();
+	let view = $state<EditorView | null>(null);
 
-	// const schema: SchemaNode = {
-	// 	type: 'object',
-	// 	children: {
-	// 		function1: {
-	// 			type: 'object',
-	// 			children: {
-	// 				rows: {
-	// 					type: 'variable',
-	// 					dataType: 'N'
-	// 				},
-	// 				is_ideal_for_calibration: {
-	// 					type: 'variable',
-	// 					dataType: 'B'
-	// 				}
-	// 			}
-	// 		},
-	// 		function2: {
-	// 			type: 'object',
-	// 			children: {
-	// 				measurement_results: {
-	// 					type: 'object',
-	// 					children: {
-	// 						nominal: {
-	// 							type: 'variable',
-	// 							dataType: 'N'
-	// 						},
-	// 						tolerance: {
-	// 							type: 'variable',
-	// 							dataType: 'N'
-	// 						},
-	// 						result: {
-	// 							type: 'variable',
-	// 							dataType: 'N'
-	// 						}
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// };
+	function debounce<T extends (...args: any[]) => any>(fn: T, delay: number) {
+		let timeoutId: number | undefined;
+		return function (this: any, ...args: Parameters<T>) {
+			clearTimeout(timeoutId);
+			timeoutId = window.setTimeout(() => fn.apply(this, args), delay);
+		};
+	}
 
 	function getNodeForPath(path: string, schemaNode: SchemaNode): SchemaNode | null {
 		const parts = path.split('.');
@@ -189,20 +167,15 @@
 					let match;
 					while ((match = variablePathRegex.exec(text))) {
 						const path = match[0];
-
 						const node = getNodeForPath(path, schema);
-
 						if (!node || node.type !== 'variable') {
 							continue;
 						}
-
 						const start = from + match.index;
 						const end = start + path.length;
-
 						if (selection.from <= end && selection.to >= start) {
 							continue;
 						}
-
 						builder.add(
 							start,
 							end,
@@ -220,11 +193,18 @@
 
 	$effect(() => {
 		if (editorContainer) {
+			const debouncedOnChange = debounce(onChange, debounceDelay);
+
 			const state = EditorState.create({
 				doc: expression,
 				extensions: [
 					autocompletion({ override: [formulaAutocomplete, variableAutocomplete] }),
 					variableChipPlugin,
+					EditorView.updateListener.of((update) => {
+						if (update.docChanged) {
+							debouncedOnChange(update.state.doc.toString());
+						}
+					}),
 					EditorView.baseTheme({
 						'.cm-content, .cm-gutter': {
 							minHeight: '144px'
@@ -235,7 +215,20 @@
 					})
 				]
 			});
-			const view = new EditorView({ state, parent: editorContainer });
+			view = new EditorView({ state, parent: editorContainer });
+		}
+
+		return () => {
+			view?.destroy();
+			view = null;
+		};
+	});
+
+	$effect(() => {
+		if (view && expression !== view.state.doc.toString()) {
+			view.dispatch({
+				changes: { from: 0, to: view.state.doc.length, insert: expression }
+			});
 		}
 	});
 </script>
