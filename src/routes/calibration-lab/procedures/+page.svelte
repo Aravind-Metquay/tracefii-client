@@ -2,12 +2,12 @@
 	import Button from "@/components/button/button.svelte";
 	import Tooltip from "@/components/tooltip/tooltip.svelte";
 	import { Building2, EllipsisVertical, Info } from "@lucide/svelte";
-    import WorksheetsTable from "@/application-components/calibration-lab/worksheets/worksheets-table.svelte";
+    import ProceduresTable from "@/application-components/calibration-lab/procedures/procedures-table.svelte";
 </script>
 
 
 <svelte:head>
-    <title>Worksheets | All Worksheets</title>
+    <title>Procedures | All procedures</title>
     <meta name="description" content="A Svelte page">
 </svelte:head>
 
@@ -15,8 +15,8 @@
     <div class="p-2 flex items-center justify-between border-b">
         <div class="flex items-center p-2 gap-2">
             <Building2  size="16"/>
-            <p class="font-semibold">Worksheets</p>
-            <Tooltip position="right" text="View all your Worksheets here">
+            <p class="font-semibold">Procedures</p>
+            <Tooltip position="right" text="View all your procedures here">
                 <Info size="12"/>
             </Tooltip>
         </div>
@@ -31,7 +31,14 @@
         <div class="h-4 w-[1px] bg-gray-300 m-1"></div>
         <Button size="tiny" variant="secondary" class="m-1">Filter</Button>
     </div>
+    <!-- <div class="h-8 border-b">
+
+    </div>
+    <div class="h-12 flex items-center gap-2 p-2">
+        <Button size="small" variant="secondary">Sort</Button>
+        <Button size="small" variant="secondary">Filter</Button>
+    </div> -->
     <div>
-        <WorksheetsTable />
+        <ProceduresTable />
     </div>
 </main>

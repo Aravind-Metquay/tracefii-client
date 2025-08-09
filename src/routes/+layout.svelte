@@ -46,10 +46,8 @@
     {#if auth.isLoading}
         <p>Loading...</p>
     {:else}
-        <main class="h-[100vh] bg-[#FAFAFA]">
+        <main class="h-[100vh] bg-[#FAFAFA]"> -->
             {@render children()}
-        </main>
+        <!-- </main>
     {/if}
-</QueryClientProvider> -->           
-
-{@render children()}
+</QueryClientProvider> -->
