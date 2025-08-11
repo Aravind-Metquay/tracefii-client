@@ -99,7 +99,7 @@
 		if (debounceTimer) clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
 			updateSelectedBarcode();
-		}, 800);
+		}, 200);
 	};
 
 	const handleInput = (updateFn: () => void) => {

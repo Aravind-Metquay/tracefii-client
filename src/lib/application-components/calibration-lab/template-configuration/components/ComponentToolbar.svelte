@@ -36,7 +36,7 @@
 
 	const customerId = 'demo'; // Replace this dynamically as needed
 
-	// ✅ Upload image to your SvelteKit API which uploads to Cloudflare
+	
 	async function uploadImageToServer(file: File): Promise<string> {
 		const reader = new FileReader();
 

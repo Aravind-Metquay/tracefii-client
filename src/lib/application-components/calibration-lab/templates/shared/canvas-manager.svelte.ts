@@ -20,6 +20,18 @@ interface SnapGuide extends fabric.FabricObject {
 	isSnapGuide?: boolean;
 }
 
+export type BarcodeOptions = {
+    expression: string;
+    format: string;
+    barWidth: number;
+    barHeight: number;
+    displayValue: boolean;
+	margin?: number;
+    marginTop?: number;
+    marginBottom?: number;
+    marginLeft?: number;
+    marginRight?: number;
+};
 // Snapping constants
 const SNAP_THRESHOLD = 10;
 const GUIDE_COLOR = 'rgb(178, 207, 255)';
@@ -35,8 +47,11 @@ interface FabricCanvasManager {
 	addText: (text?: string) => void;
 	addToCanvas: (component: fabric.FabricObject) => void;
 	addQRcode: (data?: string | null) => Promise<void>;
+	updateQRCode: (options: { expression: string; errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H' }) => Promise<void>; 
+    updateBarcode:(options:BarcodeOptions) => Promise<void>
 	addBarcode: (data?: string | null) => Promise<void>;
 	addImage: (fileOrUrl: File | string) => Promise<void>;
+	updateImageDimensions :(newDimensions: { widthCm?: number; heightCm?: number }) => void;
 	savePng: () => void;
 	saveJpg: () => void;
 	saveSvg: () => void;
@@ -56,6 +71,7 @@ interface FabricCanvasManager {
 	changeBackground: (value: string) => void;
 	alignObjects: (alignment: 'left' | 'center' | 'right') => void;
 	deleteSelected: () => void;
+	duplicateSelected: () =>Promise<void>;
 	setZoom: (value: number) => void;
 	zoomIn: () => void;
 	zoomOut: () => void;
@@ -103,7 +119,37 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		};
 
 		canvas.on('object:scaling', (e) => constrainObject(e.target!));
-		canvas.on('object:moving', (e) => constrainObject(e.target!));
+		 canvas.on('object:moving', (e) => constrainObject(e.target!));
+		// Enhanced scaling handler to prevent text skewing
+		canvas.on('object:scaling', (e) => {
+			console.log("hi")
+			const obj = e.target!;
+			
+			// Handle text objects specifically to prevent skewing
+			if (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox') {
+				// Force uniform scaling for text objects
+				const scale = Math.max(Math.abs(obj.scaleX || 1), Math.abs(obj.scaleY || 1));
+				obj.set({
+					scaleX: obj.scaleX! < 0 ? -scale : scale,
+					scaleY: obj.scaleY! < 0 ? -scale : scale
+				});
+			}
+			
+			constrainObject(obj);
+			canvas.renderAll();
+		});
+
+	
+	
+	// Additional handler to maintain text integrity after scaling
+	canvas.on('object:modified', (e) => {
+		const obj = e.target!;
+		if (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox') {
+			// Ensure text properties remain consistent
+			obj.setCoords();
+		}
+	});
+	
 	};
 
 	const initializeCanvas = (
@@ -140,6 +186,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 	};
 
 	const setDimensions = (width: number, height: number): void => {
+	
 		if (canvasInstance) {
 			canvasInstance.setDimensions({ width, height });
 		}
@@ -156,21 +203,31 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 	const addText = (text: string = 'Sample Text'): void => {
 		if (canvasInstance) {
-			const textElement = new fabric.IText(text, {
-				left: 50,
-				top: 50,
-				fill: '#000000',
-				fontFamily: 'Arial',
-				fontSize: 24,
-				fontWeight: 400,
-				width: 200,
-				height: 50,
-				selectable: true,
-				evented: true,
-				moveCursor: 'move',
-				hoverCursor: 'move'
-			});
-			addToCanvas(textElement);
+
+		const textbox = new fabric.Textbox(text, {
+        left: 50,
+        top: 50,
+        width: 200, 
+        fontSize: 24,
+        fontFamily: 'Arial',
+        fill: '#000000',
+        textAlign: 'left', // Default alignment
+
+			lockUniScaling: true,        // Prevents non-uniform scaling
+			lockScalingFlip: true,       // Prevents flipping during resize
+			centeredScaling: false,      // Scaling from corners, not center
+			centeredRotation: true,      // But rotation from center is fine
+			// Additional text-specific properties
+			splitByGrapheme: false,      // Better text rendering
+			editable: true,              // Allow text editing
+			// Constrain proportions during scaling
+			uniformScaling: true
+    });
+
+    canvasInstance.add(textbox);
+    canvasInstance.setActiveObject(textbox);
+    canvasInstance.renderAll();
+
 		}
 	};
 
@@ -181,23 +238,74 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			'{{default_qrcode}}',
 			data || `https://metquay.com/generated/${Date.now()}`
 		);
-		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 100 });
+		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 110,
+			margin:0
+		 });
 		const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
 
 		img.set({
 			left: 50,
 			top: 50,
-			scaleX: 1.5,
-			scaleY: 1.5,
-			selectable: true,
-			evented: true,
-			moveCursor: 'move',
-			hoverCursor: 'move',
-			data: { type: 'QR Code', expression: template, errorCorrectionLevel: 'H' }
+			// Add custom data for identifying and editing this object later
+			data: {
+				type: 'QR Code',
+				expression: template,
+				errorCorrectionLevel: 'H',
+				value:finalValue
+			}
+
 		});
 		addToCanvas(img);
 	};
 
+	const updateQRCode = async (options: {
+    expression: string;
+    errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
+}): Promise<void> => {
+    if (!canvasInstance) return;
+    const objectToUpdate = canvasInstance.getActiveObject() as fabric.Image & { data?: any };
+
+    if (!objectToUpdate || objectToUpdate.data?.type !== 'QR Code') {
+        return;
+    }
+
+    try {
+        // If the expression from the panel is the default template, use the object's stored value.
+        // Otherwise, use the new expression entered by the user.
+        const finalValue = 
+            options.expression === '{{default_qrcode}}' 
+            ? objectToUpdate.data.value 
+            : options.expression;
+
+        const newUrl = await QRCode.toDataURL(finalValue, {
+            errorCorrectionLevel: options.errorCorrectionLevel,
+            width: 110,
+            margin: 0
+        });
+
+        const originalScaledWidth = objectToUpdate.getScaledWidth();
+        const originalScaledHeight = objectToUpdate.getScaledHeight();
+
+        // Update the custom data on the existing object
+        objectToUpdate.set('data', {
+            ...objectToUpdate.data,
+            expression: options.expression,
+            value: finalValue, // Update the stored value as well
+            errorCorrectionLevel: options.errorCorrectionLevel
+        });
+		// 1. Use setSrc() directly with await
+        await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
+        // 2. Manually calculate and set scaleX and scaleY
+        objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
+        objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
+        
+        canvasInstance.requestRenderAll();
+        canvasInstance.fire('object:modified', { target: objectToUpdate });
+    } catch (error) {
+        console.error('QR Code update failed:', error);
+    }
+};
+	
 	const addBarcode = async (data?: string | null): Promise<void> => {
 		if (!canvasInstance) return;
 		const template = data || 'BAR##date_code##';
@@ -212,7 +320,12 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			format: 'CODE128',
 			width: 2,
 			height: 50,
-			displayValue: true
+			displayValue: true,
+			margin: 0,  
+			marginTop: 0,     
+			marginBottom: 0,  
+			marginLeft: 0,    
+			marginRight: 0  
 		});
 		const dataUrl = canvasEl.toDataURL();
 		const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
@@ -237,6 +350,112 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		});
 		addToCanvas(img);
 	};
+
+const updateBarcode = async (options: BarcodeOptions): Promise<void> => {
+  
+    if (!canvasInstance) {
+        console.error('No canvas instance found');
+        return;
+    }
+    
+    const objectToUpdate = canvasInstance.getActiveObject() as fabric.Image & { data?: any };
+   
+    if (!objectToUpdate || objectToUpdate.data?.type !== 'Barcode') {
+        return;
+    }
+   
+    let newUrl: string = '';
+    let originalLeft: number = 0;
+    let originalTop: number = 0;
+    let originalScaleX: number = 1;
+    let originalScaleY: number = 1;
+    
+    try {
+     
+        // 1. Evaluate the expression
+        const today = new Date();
+        const dateCode = `${today.getFullYear()}${(today.getMonth() + 1)
+            .toString()
+            .padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
+        const finalValue = options.expression.replace(/##date_code##/gi, dateCode);
+        
+        
+        // 2. Generate new barcode image
+        const tempCanvas = document.createElement('canvas');
+      
+        JsBarcode(tempCanvas, finalValue, {
+            format: options.format,
+            width: options.barWidth,
+            height: options.barHeight,
+            displayValue: options.displayValue,
+            fontOptions: 'bold',
+			 margin: 0,  
+				marginTop: 0,     
+				marginBottom: 0, 
+				marginLeft: 0,    
+				marginRight: 0  
+        });
+        
+        newUrl = tempCanvas.toDataURL();
+       
+        // 3. Preserve original properties
+        originalLeft = objectToUpdate.left;
+        originalTop = objectToUpdate.top;
+        originalScaleX = objectToUpdate.scaleX;
+        originalScaleY = objectToUpdate.scaleY;
+        const originalWidth = objectToUpdate.width;
+        const originalHeight = objectToUpdate.height;
+      
+        // 4. Update the object's data store
+        const newData = {
+            ...objectToUpdate.data,
+            ...options
+        };
+        objectToUpdate.set('data', newData);
+        
+        await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
+        
+        // Restore properties after setSrc
+        objectToUpdate.set({
+            left: originalLeft,
+            top: originalTop,
+            scaleX: originalScaleX,
+            scaleY: originalScaleY
+        });
+        
+        // Force canvas update
+        canvasInstance.requestRenderAll();
+    
+        // Fire modified event
+         canvasInstance.fire('object:modified', { target: objectToUpdate });
+    
+    } catch (error: any) {
+        console.error(' Barcode update failed:', error);
+        console.error('Stack trace:', error?.stack);
+        
+        
+        try {
+            if (newUrl) {
+                const newImage = await fabric.FabricImage.fromURL(newUrl, { crossOrigin: 'anonymous' });
+                objectToUpdate.setElement(newImage.getElement());
+                
+                objectToUpdate.set({
+                    left: originalLeft,
+                    top: originalTop,
+                    scaleX: originalScaleX,
+                    scaleY: originalScaleY
+                });
+                
+                canvasInstance.requestRenderAll();
+                
+            }
+            
+        } catch (altError: any) {
+            console.error(' Alternative method also failed:', altError);
+        }
+    }
+};
+
 
 	const addImage = async (fileOrUrl: File | string): Promise<void> => {
 		if (!canvasInstance) return;
@@ -298,7 +517,110 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			await handleImage(dataUrl);
 		}
 	};
+const PIXELS_PER_CM = 37.795;
 
+const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: number }): void => {
+    console.log('🔧 updateImageDimensions called with:', newDimensions);
+    
+    if (!canvasInstance) {
+        console.log(' No canvas instance');
+        return;
+    }
+    
+    const object = canvasInstance.getActiveObject() as fabric.Image;
+    console.log(' Active object:', object);
+
+    if (!object || object.type !== 'image') {
+        console.log('No active image object');
+        return;
+    }
+
+    console.log(' Current object scale before update:', { 
+        scaleX: object.scaleX, 
+        scaleY: object.scaleY,
+        width: object.width,
+        height: object.height,
+        scaledWidth: object.getScaledWidth(),
+        scaledHeight: object.getScaledHeight()
+    });
+
+    // Get the original image dimensions safely
+    const element = object.getElement();
+    let originalWidth: number;
+    let originalHeight: number;
+
+    // Type-safe way to get dimensions
+    if (element && 'naturalWidth' in element && 'naturalHeight' in element) {
+        // For HTMLImageElement
+        const imgElement = element as HTMLImageElement;
+        originalWidth = imgElement.naturalWidth || imgElement.width || object.width || 1;
+        originalHeight = imgElement.naturalHeight || imgElement.height || object.height || 1;
+    } else if (element && 'width' in element && 'height' in element) {
+        // For HTMLCanvasElement or other elements
+        const canvasElement = element as HTMLCanvasElement;
+        originalWidth = canvasElement.width || object.width || 1;
+        originalHeight = canvasElement.height || object.height || 1;
+    } else {
+        // Fallback to fabric object dimensions
+        originalWidth = object.width || 1;
+        originalHeight = object.height || 1;
+    }
+
+    console.log(' Original dimensions:', { originalWidth, originalHeight });
+
+    const aspectRatio = originalWidth / originalHeight;
+    console.log(' Aspect ratio:', aspectRatio);
+
+    if (newDimensions.widthCm !== undefined) {
+        const newWidthPx = newDimensions.widthCm * PIXELS_PER_CM;
+        const newHeightPx = newWidthPx / aspectRatio;
+        const newScaleX = newWidthPx / originalWidth;
+        const newScaleY = newHeightPx / originalHeight;
+        
+        console.log(' Setting width - calculated values:', {
+            widthCm: newDimensions.widthCm,
+            newWidthPx,
+            newHeightPx,
+            newScaleX,
+            newScaleY
+        });
+        
+        object.set({
+            scaleX: newScaleX,
+            scaleY: newScaleY
+        });
+    } else if (newDimensions.heightCm !== undefined) {
+        const newHeightPx = newDimensions.heightCm * PIXELS_PER_CM;
+        const newWidthPx = newHeightPx * aspectRatio;
+        const newScaleX = newWidthPx / originalWidth;
+        const newScaleY = newHeightPx / originalHeight;
+        
+        console.log(' Setting height - calculated values:', {
+            heightCm: newDimensions.heightCm,
+            newWidthPx,
+            newHeightPx,
+            newScaleX,
+            newScaleY
+        });
+        
+        object.set({
+            scaleX: newScaleX,
+            scaleY: newScaleY
+        });
+    }
+
+    console.log(' Object scale after update:', { 
+        scaleX: object.scaleX, 
+        scaleY: object.scaleY,
+        scaledWidth: object.getScaledWidth(),
+        scaledHeight: object.getScaledHeight()
+    });
+
+    object.setCoords();
+    canvasInstance.requestRenderAll();
+    
+    console.log(' Canvas updated and rendered');
+};
 	// Export Functions
 	const downloadFile = (dataUrl: string, format: string): void => {
 		const link = document.createElement('a');
@@ -809,18 +1131,41 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		if (activeObjects.length === 0) return;
 
 		activeObjects.forEach((obj) => {
-			canvasInstance!.remove(obj);
+			canvasInstance?.remove(obj);
 		});
 
 		canvasInstance.discardActiveObject();
 		canvasInstance.renderAll();
 	};
 
+	const duplicateSelected = async (): Promise<void> => {
+		if (!canvasInstance) return;
+		const activeObject = canvasInstance.getActiveObject();
+
+		if (!activeObject) return;
+
+		try {
+			// Use await to get the cloned object asynchronously
+			const cloned = await activeObject.clone();
+
+			// Offset the clone slightly
+			cloned.set({
+				left: (cloned.left ?? 0) + 10,
+				top: (cloned.top ?? 0) + 10
+			});
+
+			canvasInstance.add(cloned);
+			canvasInstance.setActiveObject(cloned);
+			canvasInstance.requestRenderAll();
+		} catch (error) {
+			console.error('Error duplicating object:', error);
+		}
+	};
+
 	// Zoom Controls
 	const setZoom = (value: number): void => {
 		if (!canvasInstance) return;
-
-		const zoom = Math.max(0.1, Math.min(5, value)); // Limit zoom between 10% and 500%
+		const zoom=Math.max(0.2,Math.min(1,value))
 		canvasInstance.setZoom(zoom);
 		canvasInstance.renderAll();
 	};
@@ -828,24 +1173,26 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 	const zoomIn = (): void => {
 		if (!canvasInstance) return;
 
-		const currentZoom = canvasInstance.getZoom();
-		const newZoom = Math.min(5, currentZoom * 1.1);
-		setZoom(newZoom);
+		let currentZoom = canvasInstance.getZoom();
+		currentZoom+=0.05;
+		setZoom(currentZoom)
+		
 	};
 
 	const zoomOut = (): void => {
 		if (!canvasInstance) return;
 
-		const currentZoom = canvasInstance.getZoom();
-		const newZoom = Math.max(0.1, currentZoom * 0.9);
-		setZoom(newZoom);
+		let currentZoom = canvasInstance.getZoom();
+		currentZoom -= 0.05;
+		setZoom(currentZoom);
 	};
 
-	// Public API
+	
 	return {
 		get canvas() {
 			return canvasInstance;
 		},
+	
 		initializeCanvas,
 		getCanvas,
 		disposeCanvas,
@@ -853,8 +1200,11 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		addText,
 		addToCanvas,
 		addQRcode,
+		updateQRCode,
 		addBarcode,
+		updateBarcode,
 		addImage,
+		updateImageDimensions ,
 		savePng,
 		saveJpg,
 		saveSvg,
@@ -874,6 +1224,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		changeBackground,
 		alignObjects,
 		deleteSelected,
+		duplicateSelected,
 		setZoom,
 		zoomIn,
 		zoomOut
