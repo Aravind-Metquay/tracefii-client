@@ -18,19 +18,20 @@
 
 	// Effect to sync the UI when the selected object changes
 	$effect(() => {
+		if (selectedObject && selectedObject.data){
 		expression = selectedObject.data.expression || '{{default_qrcode}}';
 		errorLevel = selectedObject.data.errorCorrectionLevel || 'H';
+		} else {
+			expression = '';
+			errorLevel = 'H';
+		}
 	});
 
-	// Effect to update the preview in real-time 
-	$effect(() => {
-		evaluatedValue = expression.replace(
-			'{{default_qrcode}}',
-			`https://metquay.com/generated/${Date.now()}`
-		);
-		
-		// Debounced QR code generation
+	function triggerUpdate() {
+		// Clear any existing timer
 		clearTimeout(debounceTimer);
+
+		// Set a new timer to run the update after 200ms of inactivity
 		debounceTimer = setTimeout(async () => {
 			isGenerating = true;
 			try {
@@ -42,19 +43,6 @@
 				isGenerating = false;
 			}
 		}, 200);
-	});
-
-	// Separate handler for select changes (immediate update)
-	async function handleSelectChange() {
-		isGenerating = true;
-		try {
-			await updateQRCode({
-				expression: expression,
-				errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H'
-			});
-		} finally {
-			isGenerating = false;
-		}
 	}
 </script>
 
@@ -65,10 +53,13 @@
 		<label for="error-level" class="text-xs text-gray-600">Error Correction Level</label>
 		<select
 			id="error-level"
-			class="w-full rounded border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100"
+			 class="w-full appearance-none rounded-md border border-gray-300 bg-white bg-no-repeat 
+			bg-[right_0.75rem_center] bg-[length:1em_1em] 
+			bg-[url('data:image/svg+xml,%3csvg%20xmlns%3d%22http%3a//www.w3.org/2000/svg%22%20viewBox%3d%220%200%2020%2020%22%20fill%3d%22currentColor%22%20class%3d%22h-5%20w-5%22%3e%3cpath%20fill-rule%3d%22evenodd%22%20d%3d%22M5.23%207.21a.75.75%200%20011.06.02L10%2010.94l3.71-3.71a.75.75%200%20111.06%201.06l-4.25%204.25a.75.75%200%2001-1.06%200L5.21%208.27a.75.75%200%2001.02-1.06z%22%20clip-rule%3d%22evenodd%22%20/%3e%3c/svg%3e')]
+			mt-1 py-2 pl-3 pr-8 text-sm  disabled:cursor-not-allowed disabled:bg-gray-100"
 			disabled={isGenerating}
 			bind:value={errorLevel}
-			onchange={handleSelectChange}
+			onchange={triggerUpdate}
 		>
 			<option value="L">Low (~7%)</option>
 			<option value="M">Medium (~15%)</option>
@@ -82,9 +73,10 @@
 		<input
 			id="expression"
 			type="text"
-			class="w-full rounded border px-3 py-2 text-sm"
+			class="w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="Enter URL or text"
 			bind:value={expression}
+			oninput={triggerUpdate}
 		/>
 		
 		<!-- <div class="mt-1 text-xs text-gray-500">

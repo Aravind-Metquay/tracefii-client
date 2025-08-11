@@ -43,7 +43,7 @@
 	{#if selectedObjectType && selectedObject}
 		<div class="flex h-full flex-col bg-white">
 			<div class="shrink-0 border-b p-4">
-				<div class="text-lg font-semibold">Config Panel</div>
+				<div class="text-lg font-semibold">Properties</div>
 			</div>
 
 			<div class="scrollbar-hide flex-1 overflow-y-auto p-4">

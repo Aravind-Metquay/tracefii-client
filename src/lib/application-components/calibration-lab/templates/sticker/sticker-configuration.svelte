@@ -141,7 +141,8 @@
 		canvasManager.changeBackground(backgroundColor);
 	}
 	function addText() { canvasManager.addText('Sample Text'); }
-	function addQRCode() { canvasManager.addQRcode('https://example.com'); }
+	function addQRCode() { canvasManager.addQRcode('https://example.com');
+	 }
 	function addBarcode() { canvasManager.addBarcode('123456789'); }
 	function handleImageUpload(event: Event) {
 		const input = event.target as HTMLInputElement;

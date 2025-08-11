@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { Button } from '$lib/components/ui/button';
+	import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from '@lucide/svelte';
+	
 	// Receive all text-related state and update functions from the parent
 	let {
 		fontSize = $bindable(),
@@ -18,6 +21,10 @@
 		setTextAlign,
 		updateOpacity
 	} = $props();
+
+	const isBold = $derived<boolean>(fontWeight >= 700);
+	const isItalic = $derived<boolean>(fontStyle === 'italic');
+	const isUnderline = $derived<boolean>(textUnderline);
 </script>
 
 <div class="space-y-4">
@@ -38,8 +45,10 @@
 				id="font-family"
 				bind:value={fontFamily}
 				onchange={updateFontFamily}
-				class="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm"
-			>
+				class="w-full appearance-none rounded-md border border-gray-300 bg-white bg-no-repeat 
+			bg-[right_0.75rem_center] bg-[length:1em_1em] 
+			bg-[url('data:image/svg+xml,%3csvg%20xmlns%3d%22http%3a//www.w3.org/2000/svg%22%20viewBox%3d%220%200%2020%2020%22%20fill%3d%22currentColor%22%20class%3d%22h-5%20w-5%22%3e%3cpath%20fill-rule%3d%22evenodd%22%20d%3d%22M5.23%207.21a.75.75%200%20011.06.02L10%2010.94l3.71-3.71a.75.75%200%20111.06%201.06l-4.25%204.25a.75.75%200%2001-1.06%200L5.21%208.27a.75.75%200%2001.02-1.06z%22%20clip-rule%3d%22evenodd%22%20/%3e%3c/svg%3e')]
+			mt-1 py-2 pl-3 pr-8 text-sm focus:border-blue-500 ">
 				<option value="Arial">Arial</option>
 				<option value="Times New Roman">Times New Roman</option>
 				<option value="Courier New">Courier New</option>
@@ -61,61 +70,58 @@
 		</div>
 	</div>
 
-	<div class="flex items-center justify-between rounded-md border border-gray-300 p-1">
-		<div class="flex">
-			<button
+	<div class="flex items-center gap-2 p-1">
+		<div class="flex items-center gap-2">
+			<Button
+				size="icon"
 				onclick={toggleBold}
-				class="p-2 transition hover:bg-gray-100"
-				class:bg-gray-200={fontWeight === 700}
+				variant={isBold ? 'primary' : 'secondary'}
 				title="Bold"
 			>
-				<span class="font-bold">B</span>
-			</button>
-			<button
+				<Bold class="h-4 w-4" />
+			</Button>
+			<Button
+				size="icon"
 				onclick={toggleItalic}
-				class="p-2 transition hover:bg-gray-100"
-				class:bg-gray-200={fontStyle === 'italic'}
+				variant={isItalic ? 'primary' : 'secondary'}
 				title="Italic"
 			>
-				<span class="italic">I</span>
-			</button>
-			<button
+				<Italic class="h-4 w-4" />
+			</Button>
+			<Button
+				size="icon"
 				onclick={toggleUnderline}
-				class="p-2 transition hover:bg-gray-100"
-				class:bg-gray-200={textUnderline}
+				variant={isUnderline ? 'primary' : 'secondary'}
 				title="Underline"
 			>
-				<span class="underline">U</span>
-			</button>
+				<Underline class="h-4 w-4" />
+			</Button>
 		</div>
-		<div class="flex">
-			<button
+		<div class="flex items-center gap-2">
+			<Button
+				size="icon"
 				onclick={() => setTextAlign('left')}
-				class="p-2 transition hover:bg-gray-100"
-				class:bg-blue-500={textAlign === 'left'}
-				class:text-white={textAlign === 'left'}
+				variant={textAlign === 'left' ? 'primary' : 'secondary'}
 				title="Align Left"
 			>
-				<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm0 4h10v2H2V8zm0 4h16v2H2v-2zm0 4h10v2H2v-2z"></path></svg>
-			</button>
-			<button
+				<AlignLeft class="h-4 w-4" />
+			</Button>
+			<Button
+				size="icon"
 				onclick={() => setTextAlign('center')}
-				class="p-2 transition hover:bg-gray-100"
-				class:bg-blue-500={textAlign === 'center'}
-				class:text-white={textAlign === 'center'}
+				variant={textAlign === 'center' ? 'primary' : 'secondary'}
 				title="Align Center"
 			>
-				<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm3 4h10v2H5V8zm-3 4h16v2H2v-2zm3 4h10v2H5v-2z"></path></svg>
-			</button>
-			<button
+				<AlignCenter class="h-4 w-4" />
+			</Button>
+			<Button
+				size="icon"
 				onclick={() => setTextAlign('right')}
-				class="p-2 transition hover:bg-gray-100"
-				class:bg-blue-500={textAlign === 'right'}
-				class:text-white={textAlign === 'right'}
+				variant={textAlign === 'right' ? 'primary' : 'secondary'}
 				title="Align Right"
 			>
-				<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 4h16v2H2V4zm6 4h10v2H8V8zm-6 4h16v2H2v-2zm6 4h10v2H8v-2z"></path></svg>
-			</button>
+				<AlignRight class="h-4 w-4" />
+			</Button>
 		</div>
 	</div>
 
@@ -130,7 +136,7 @@
 				min="0"
 				max="1"
 				step="0.01"
-				class="flex-1"
+				class="h-2 w-full appearance-none rounded-md bg-gray-200 accent-violet-500"
 			/>
 			<input
 				type="number"

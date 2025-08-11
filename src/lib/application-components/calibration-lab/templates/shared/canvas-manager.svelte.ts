@@ -26,6 +26,11 @@ export type BarcodeOptions = {
     barWidth: number;
     barHeight: number;
     displayValue: boolean;
+	margin?: number;
+    marginTop?: number;
+    marginBottom?: number;
+    marginLeft?: number;
+    marginRight?: number;
 };
 // Snapping constants
 const SNAP_THRESHOLD = 10;
@@ -233,7 +238,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			'{{default_qrcode}}',
 			data || `https://metquay.com/generated/${Date.now()}`
 		);
-		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 256,
+		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 110,
 			margin:0
 		 });
 		const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
@@ -245,63 +250,61 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			data: {
 				type: 'QR Code',
 				expression: template,
-				errorCorrectionLevel: 'H'
+				errorCorrectionLevel: 'H',
+				value:finalValue
 			}
+
 		});
 		addToCanvas(img);
 	};
-	
+
 	const updateQRCode = async (options: {
-		expression: string;
-		errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
-	}): Promise<void> => {
-		if (!canvasInstance) return;
-		const objectToUpdate = canvasInstance.getActiveObject() as fabric.Image & { data?: any };
+    expression: string;
+    errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
+}): Promise<void> => {
+    if (!canvasInstance) return;
+    const objectToUpdate = canvasInstance.getActiveObject() as fabric.Image & { data?: any };
 
-		if (!objectToUpdate || objectToUpdate.data?.type !== 'QR Code') {
-			return;
-		}
+    if (!objectToUpdate || objectToUpdate.data?.type !== 'QR Code') {
+        return;
+    }
 
-		try {
-			// Evaluate the expression to get the final value
-			const finalValue = options.expression.replace(
-				'{{default_qrcode}}',
-				`https://metquay.com/generated/${Date.now()}`
-			);
+    try {
+        // If the expression from the panel is the default template, use the object's stored value.
+        // Otherwise, use the new expression entered by the user.
+        const finalValue = 
+            options.expression === '{{default_qrcode}}' 
+            ? objectToUpdate.data.value 
+            : options.expression;
 
-			const newUrl = await QRCode.toDataURL(finalValue, {
-				errorCorrectionLevel: options.errorCorrectionLevel,
-				width: 256,
-				margin:0
-			});
+        const newUrl = await QRCode.toDataURL(finalValue, {
+            errorCorrectionLevel: options.errorCorrectionLevel,
+            width: 110,
+            margin: 0
+        });
 
-			const originalScaledWidth = objectToUpdate.getScaledWidth();
-			const originalScaledHeight = objectToUpdate.getScaledHeight();
+        const originalScaledWidth = objectToUpdate.getScaledWidth();
+        const originalScaledHeight = objectToUpdate.getScaledHeight();
 
-			// Update the custom data on the existing object
-			objectToUpdate.set('data', {
-				...objectToUpdate.data,
-				expression: options.expression,
-				errorCorrectionLevel: options.errorCorrectionLevel
-			});
-
-			
-			// 1. Use setSrc() directly with await
-			await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
-
-			// 2. Manually calculate and set scaleX and scaleY
-			objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
-			objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
-			
-			// -----------------------------------------------------------
-
-			canvasInstance.requestRenderAll();
-			canvasInstance.fire('object:modified', { target: objectToUpdate });
-		} catch (error) {
-			console.error('QR Code update failed:', error);
-		}
-	};
-	
+        // Update the custom data on the existing object
+        objectToUpdate.set('data', {
+            ...objectToUpdate.data,
+            expression: options.expression,
+            value: finalValue, // Update the stored value as well
+            errorCorrectionLevel: options.errorCorrectionLevel
+        });
+		// 1. Use setSrc() directly with await
+        await objectToUpdate.setSrc(newUrl, { crossOrigin: 'anonymous' });
+        // 2. Manually calculate and set scaleX and scaleY
+        objectToUpdate.scaleX = originalScaledWidth / (objectToUpdate.width ?? 1);
+        objectToUpdate.scaleY = originalScaledHeight / (objectToUpdate.height ?? 1);
+        
+        canvasInstance.requestRenderAll();
+        canvasInstance.fire('object:modified', { target: objectToUpdate });
+    } catch (error) {
+        console.error('QR Code update failed:', error);
+    }
+};
 	
 	const addBarcode = async (data?: string | null): Promise<void> => {
 		if (!canvasInstance) return;
@@ -317,7 +320,12 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			format: 'CODE128',
 			width: 2,
 			height: 50,
-			displayValue: true
+			displayValue: true,
+			margin: 0,  
+			marginTop: 0,     
+			marginBottom: 0,  
+			marginLeft: 0,    
+			marginRight: 0  
 		});
 		const dataUrl = canvasEl.toDataURL();
 		const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
@@ -380,7 +388,12 @@ const updateBarcode = async (options: BarcodeOptions): Promise<void> => {
             width: options.barWidth,
             height: options.barHeight,
             displayValue: options.displayValue,
-            fontOptions: 'bold'
+            fontOptions: 'bold',
+			 margin: 0,  
+				marginTop: 0,     
+				marginBottom: 0, 
+				marginLeft: 0,    
+				marginRight: 0  
         });
         
         newUrl = tempCanvas.toDataURL();

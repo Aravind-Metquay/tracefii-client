@@ -61,7 +61,7 @@
 				widthInput = currentWidthCm;
 				heightInput = currentHeightCm;
 			}
-		}, 500); // Check every 500ms
+		}, 300); // Check every 300ms
 
 		return () => clearInterval(syncInterval);
 	});
@@ -129,7 +129,7 @@
 				<input
 					id="img-width"
 					type="number"
-					class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+					class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 					bind:value={widthInput}
 					oninput={() => handleInput('width')}
 					onfocus={handleFocus}
@@ -143,7 +143,7 @@
 				<input
 					id="img-height"
 					type="number"
-					class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none  focus:ring-1 focus:ring-blue-500"
+					class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none  focus:ring-1 focus:ring-blue-500"
 					bind:value={heightInput}
 					oninput={() => handleInput('height')}
 					onfocus={handleFocus}
