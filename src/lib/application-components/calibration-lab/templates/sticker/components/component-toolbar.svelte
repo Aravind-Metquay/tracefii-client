@@ -24,12 +24,13 @@
 
 <div class="flex justify-center gap-2 rounded-lg p-2">
 	{#each components as component}
+		{@const Icon=component.icon}
 		<button
 			onclick={component.action}
 			class="flex min-w-[90px] flex-col items-center justify-center gap-1 rounded-md bg-white p-2 text-black shadow-sm transition hover:bg-gray-100"
 		>
 			
- 		<!-- <{component.icon} class="h-5 w-5" /> -->
+			<Icon class="h-5 w-5"/>
 			<span class="text-xs">{component.name}</span>
 		</button>
 	{/each}

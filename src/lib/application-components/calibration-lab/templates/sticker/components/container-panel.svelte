@@ -1,5 +1,6 @@
 <script lang="ts">
 	// The component now receives pixel dimensions and callbacks to update the parent
+	import { CircleArrowLeft } from '@lucide/svelte';
 	let {
 		pixelWidth,
 		pixelHeight,
@@ -70,7 +71,8 @@ function handleKeyDown(event: KeyboardEvent) {
 </script>
 
 <div class="h-full w-full space-y-6 overflow-y-auto bg-white p-4">
-	<button class="cursor-pointer text-2xl font-bold text-black" title="Go Back"> ← </button>
+	<!-- <button class="cursor-pointer text-2xl font-bold text-black" title="Go Back"> ← </button> -->
+	<CircleArrowLeft class="h-7 w-7 flex-shrink-0 cursor-pointer text-black " />
 	{#if isEditingName}
 			<input
 				class="text-2xl font-semibold w-full border-b border-gray-300 focus:border-blue-500 focus:outline-none"
@@ -136,7 +138,7 @@ function handleKeyDown(event: KeyboardEvent) {
 					type="color"
 					class="h-6 w-10 cursor-pointer border-none bg-transparent p-0"
 					bind:value={backgroundColor}
-					oninput={onBackgroundChange}
+					onchange={onBackgroundChange}
 				/>
 				<span class="font-mono uppercase">{backgroundColor}</span>
 			</div>

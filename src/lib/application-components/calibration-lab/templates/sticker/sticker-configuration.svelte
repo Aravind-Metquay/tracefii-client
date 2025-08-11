@@ -4,6 +4,7 @@
 	import ContainerPanel from './components/container-panel.svelte';
 	import ComponentToolbar from './components/component-toolbar.svelte';
 	import ConfigPanel from './components/config-panel.svelte';
+	import Footer from './components/footer.svelte';
 
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
 
@@ -11,6 +12,7 @@
 	let pixelWidth = $state(600);
 	let pixelHeight = $state(400);
 	let backgroundColor = $state('#ffffff');
+
 	
 	// Contextual state for the selected object
 	let selectedObjectType = $state<string | null>(null);
@@ -65,8 +67,59 @@
 			instance.on('selection:updated', (e) => updateControls(e.selected[0]));
 			instance.on('selection:cleared', () => updateControls(null));
 
+		instance.on('object:modified', (e) => {
+    		const obj = e.target;
+     
+   			 if (obj && obj.type?.includes('text')) {
+
+       		 const textObject = obj as fabric.IText;
+
+        	if (textObject.fontSize && textObject.scaleX) {
+            	const newSize = Math.round(textObject.fontSize * textObject.scaleX);
+            	textObject.set({
+                fontSize: newSize,
+                scaleX: 1,
+                scaleY: 1
+            });
+            
+           
+            fontSize = newSize;
+            instance.renderAll();
+       	 }
+  	  }
+	});
+
+		 instance.on('object:moving', (e) => {
+            const obj = e.target;
+            if (!obj) return;
+            
+            const canvasWidth = instance.getWidth();
+            const canvasHeight = instance.getHeight();
+            const objWidth = obj.getScaledWidth();
+            const objHeight = obj.getScaledHeight();
+
+            obj.setCoords();
+
+            // Check boundaries
+            if(obj.left < 0) {
+                obj.left = 0;
+            }
+            if(obj.top < 0) {
+                obj.top = 0;
+            }
+            if(obj.left + objWidth > canvasWidth) {
+                obj.left = canvasWidth - objWidth;
+            }
+            if(obj.top + objHeight > canvasHeight) {
+                obj.top = canvasHeight - objHeight;
+            }
+        });
 			
+		instance.on('mouse:wheel', (opt) => {
+				zoom = instance.getZoom();
+			});
 		}
+		
 
 		return () => {
 			canvasManager.disposeCanvas();
@@ -142,12 +195,50 @@
 		
 	}
 
-function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: number }) {
+	function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: number }) {
     canvasManager.updateImageDimensions(newDimensions);
-}
+	}
+
+	function zoomIn() {
+		canvasManager.zoomIn();
+		zoom = canvasManager.getCanvas()?.getZoom() ?? 1;
+	}
+	function zoomOut() {
+		canvasManager.zoomOut();
+		zoom = canvasManager.getCanvas()?.getZoom() ?? 1;
+	}
+	function resetZoom() {
+		canvasManager.setZoom(1);
+		zoom = 1;
+	}
+
+	function undo() {
+		console.log('Undo function needs to be implemented.');
+	}
+	function redo() {
+		console.log('Redo function needs to be implemented.');
+	}
+
+	function savePng() {
+		canvasManager.savePng();
+	}
+	function saveJpg() {
+		canvasManager.saveJpg();
+	}
+	function saveSvg() {
+		canvasManager.saveSvg();
+	}
+	function savePdf() {
+		canvasManager.savePdf();
+	}
+	function saveJson() {
+		canvasManager.saveJson();
+	}
 </script>
 
 <div class="editor-layout flex h-screen w-full overflow-hidden bg-gray-50">
+	
+	
 	<div class="w-80 shrink-0 border-r bg-white shadow-lg">
 		<ContainerPanel
 			{pixelWidth}
@@ -159,13 +250,29 @@ function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: num
 	</div>
 
 	<div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-		<div class="shrink-0 border-b bg-white p-2">
+		<div class="shrink-0 border-b p-2">
 			<ComponentToolbar {addText} {addBarcode} {addQRCode} {handleImageUpload} />
 		</div>
 
 		<div class="flex-1 overflow-auto p-5 flex items-center justify-center">
 			<canvas bind:this={canvasEl} class="border shadow-lg"></canvas>
 		</div>
+
+			<div class="shrink-0">
+		<Footer
+			bind:zoom
+			{zoomIn}
+			{zoomOut}
+			{resetZoom}
+			{undo}
+			{redo}
+			{savePng}
+			{saveJpg}
+			{saveSvg}
+			{savePdf}
+			{saveJson}
+		/>
+	</div>
 	</div>
 
 	<div class="w-80 shrink-0 border-l bg-white shadow-lg">
@@ -201,4 +308,6 @@ function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: num
 
 		/>
 	</div>
+
+
 </div>

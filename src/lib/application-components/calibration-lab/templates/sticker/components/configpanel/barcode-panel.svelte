@@ -24,7 +24,6 @@
         const data = selectedObject?.data;
        
         if (data?.type === 'Barcode') {
-            console.log('✅ Object is a barcode, syncing UI...');
             
             const newExpression = data.expression || 'BAR##date_code##';
             const newFormat = data.format || 'CODE128';
@@ -71,9 +70,8 @@
                 console.error(' Error in updateBarcode:', error);
             } finally {
                 isGenerating = false;
-                console.log(' Setting isGenerating = false');
             }
-        }, 800);
+        }, 300);
         
     });
 
@@ -112,10 +110,10 @@
             disabled={isGenerating}
             bind:value={expression}
         />
-        <p class="mt-1 w-full truncate text-xs text-gray-500" title={evaluatedValue}>
+        <!-- <p class="mt-1 w-full truncate text-xs text-gray-500" title={evaluatedValue}>
             <span class="font-medium">Preview:</span>
             {evaluatedValue}
-        </p>
+        </p> -->
     </div>
 
     <div class="flex items-center gap-2">

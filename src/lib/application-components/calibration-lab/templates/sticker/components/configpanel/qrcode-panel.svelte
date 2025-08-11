@@ -22,7 +22,7 @@
 		errorLevel = selectedObject.data.errorCorrectionLevel || 'H';
 	});
 
-	// Effect to update the preview in real-time (no debouncing)
+	// Effect to update the preview in real-time 
 	$effect(() => {
 		evaluatedValue = expression.replace(
 			'{{default_qrcode}}',
@@ -41,7 +41,7 @@
 			} finally {
 				isGenerating = false;
 			}
-		}, 500);
+		}, 200);
 	});
 
 	// Separate handler for select changes (immediate update)
@@ -87,13 +87,13 @@
 			bind:value={expression}
 		/>
 		
-		<div class="mt-1 text-xs text-gray-500">
+		<!-- <div class="mt-1 text-xs text-gray-500">
 			<div class="font-medium">Preview:</div>
 			<div class="break-all" title={evaluatedValue}>
 				{evaluatedValue.length > 50 ? evaluatedValue.substring(0, 50) + '...' : evaluatedValue}
 			</div>
-		</div>
-	</div>
+		</div>-->
+	</div> 
 
 	{#if isGenerating}
 		<div class="flex items-center gap-2 text-xs text-blue-600">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type * as fabric from 'fabric';
-	import ActionPanel from './footer.svelte';
+	import ActionPanel from './configpanel/action-panel.svelte';
 	import QRCodePanel from './configpanel/qrcode-panel.svelte';
 	import BarcodePanel from './configpanel/barcode-panel.svelte';
 	import ImagePanel from './configpanel/image-panel.svelte';

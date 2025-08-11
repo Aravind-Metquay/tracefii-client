@@ -198,21 +198,17 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 	const addText = (text: string = 'Sample Text'): void => {
 		if (canvasInstance) {
-			const textElement = new fabric.IText(text, {
-				left: 50,
-				top: 50,
-				fill: '#000000',
-				fontFamily: 'Arial',
-				fontSize: 24,
-				fontWeight: 400,
-				width: 200,
-				height: 50,
-				selectable: true,
-				evented: true,
-				moveCursor: 'move',
-				hoverCursor: 'move',
 
-				lockUniScaling: true,        // Prevents non-uniform scaling
+		const textbox = new fabric.Textbox(text, {
+        left: 50,
+        top: 50,
+        width: 200, 
+        fontSize: 24,
+        fontFamily: 'Arial',
+        fill: '#000000',
+        textAlign: 'left', // Default alignment
+
+			lockUniScaling: true,        // Prevents non-uniform scaling
 			lockScalingFlip: true,       // Prevents flipping during resize
 			centeredScaling: false,      // Scaling from corners, not center
 			centeredRotation: true,      // But rotation from center is fine
@@ -221,8 +217,12 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			editable: true,              // Allow text editing
 			// Constrain proportions during scaling
 			uniformScaling: true
-			});
-			addToCanvas(textElement);
+    });
+
+    canvasInstance.add(textbox);
+    canvasInstance.setActiveObject(textbox);
+    canvasInstance.renderAll();
+
 		}
 	};
 
@@ -233,7 +233,9 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 			'{{default_qrcode}}',
 			data || `https://metquay.com/generated/${Date.now()}`
 		);
-		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 256 });
+		const dataUrl = await QRCode.toDataURL(finalValue, { errorCorrectionLevel: 'H', width: 256,
+			margin:0
+		 });
 		const img = await fabric.FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
 
 		img.set({
@@ -269,7 +271,8 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 			const newUrl = await QRCode.toDataURL(finalValue, {
 				errorCorrectionLevel: options.errorCorrectionLevel,
-				width: 256
+				width: 256,
+				margin:0
 			});
 
 			const originalScaledWidth = objectToUpdate.getScaledWidth();
@@ -414,7 +417,7 @@ const updateBarcode = async (options: BarcodeOptions): Promise<void> => {
          canvasInstance.fire('object:modified', { target: objectToUpdate });
     
     } catch (error: any) {
-        console.error('❌ Barcode update failed:', error);
+        console.error(' Barcode update failed:', error);
         console.error('Stack trace:', error?.stack);
         
         
@@ -507,19 +510,19 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
     console.log('🔧 updateImageDimensions called with:', newDimensions);
     
     if (!canvasInstance) {
-        console.log('❌ No canvas instance');
+        console.log(' No canvas instance');
         return;
     }
     
     const object = canvasInstance.getActiveObject() as fabric.Image;
-    console.log('📦 Active object:', object);
+    console.log(' Active object:', object);
 
     if (!object || object.type !== 'image') {
-        console.log('❌ No active image object');
+        console.log('No active image object');
         return;
     }
 
-    console.log('📏 Current object scale before update:', { 
+    console.log(' Current object scale before update:', { 
         scaleX: object.scaleX, 
         scaleY: object.scaleY,
         width: object.width,
@@ -550,10 +553,10 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
         originalHeight = object.height || 1;
     }
 
-    console.log('📐 Original dimensions:', { originalWidth, originalHeight });
+    console.log(' Original dimensions:', { originalWidth, originalHeight });
 
     const aspectRatio = originalWidth / originalHeight;
-    console.log('📊 Aspect ratio:', aspectRatio);
+    console.log(' Aspect ratio:', aspectRatio);
 
     if (newDimensions.widthCm !== undefined) {
         const newWidthPx = newDimensions.widthCm * PIXELS_PER_CM;
@@ -561,7 +564,7 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
         const newScaleX = newWidthPx / originalWidth;
         const newScaleY = newHeightPx / originalHeight;
         
-        console.log('🔄 Setting width - calculated values:', {
+        console.log(' Setting width - calculated values:', {
             widthCm: newDimensions.widthCm,
             newWidthPx,
             newHeightPx,
@@ -579,7 +582,7 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
         const newScaleX = newWidthPx / originalWidth;
         const newScaleY = newHeightPx / originalHeight;
         
-        console.log('🔄 Setting height - calculated values:', {
+        console.log(' Setting height - calculated values:', {
             heightCm: newDimensions.heightCm,
             newWidthPx,
             newHeightPx,
@@ -593,7 +596,7 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
         });
     }
 
-    console.log('📏 Object scale after update:', { 
+    console.log(' Object scale after update:', { 
         scaleX: object.scaleX, 
         scaleY: object.scaleY,
         scaledWidth: object.getScaledWidth(),
@@ -603,7 +606,7 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
     object.setCoords();
     canvasInstance.requestRenderAll();
     
-    console.log('✅ Canvas updated and rendered');
+    console.log(' Canvas updated and rendered');
 };
 	// Export Functions
 	const downloadFile = (dataUrl: string, format: string): void => {
@@ -806,7 +809,6 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 
 	const changeBackground = (value: string): void => {
 		if (canvasInstance) {
-			console.log('inside canvas-manager.svelte')
 			canvasInstance.backgroundColor = value;
 			canvasInstance.renderAll();
 		}
@@ -1150,8 +1152,7 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 	// Zoom Controls
 	const setZoom = (value: number): void => {
 		if (!canvasInstance) return;
-
-		const zoom = Math.max(0.1, Math.min(5, value)); // Limit zoom between 10% and 500%
+		const zoom=Math.max(0.2,Math.min(1,value))
 		canvasInstance.setZoom(zoom);
 		canvasInstance.renderAll();
 	};
@@ -1159,20 +1160,21 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 	const zoomIn = (): void => {
 		if (!canvasInstance) return;
 
-		const currentZoom = canvasInstance.getZoom();
-		const newZoom = Math.min(5, currentZoom * 1.1);
-		setZoom(newZoom);
+		let currentZoom = canvasInstance.getZoom();
+		currentZoom+=0.05;
+		setZoom(currentZoom)
+		
 	};
 
 	const zoomOut = (): void => {
 		if (!canvasInstance) return;
 
-		const currentZoom = canvasInstance.getZoom();
-		const newZoom = Math.max(0.1, currentZoom * 0.9);
-		setZoom(newZoom);
+		let currentZoom = canvasInstance.getZoom();
+		currentZoom -= 0.05;
+		setZoom(currentZoom);
 	};
 
-	// Public API
+	
 	return {
 		get canvas() {
 			return canvasInstance;

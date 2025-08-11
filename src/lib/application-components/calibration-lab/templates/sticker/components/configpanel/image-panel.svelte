@@ -79,8 +79,7 @@
 			
 			
 			if (!isNaN(value) && value > 0) {
-			
-
+		
 				const { originalWidthCm, originalHeightCm } = getOriginalDimensions();
 
 				if (type === 'width') {
@@ -95,15 +94,13 @@
 					widthInput = (value * aspectRatio).toFixed(2);
 				}
 
-				
 			}
 			
 			// Reset flag after delay
 			setTimeout(() => { 
-				
 				isUserInteracting = false;
-			}, 200);
-		}, 300);
+			}, 100);
+		}, 200);
 	}
 
 	function handleFocus() {
@@ -113,7 +110,6 @@
 
 	function handleBlur() {
 		
-		// Let the debounce handle the reset
 	}
 
 	// Get current dimensions for display using $derived
@@ -126,10 +122,6 @@
 
 <div>
 	<div class="space-y-3 text-xs">
-		<div class="flex justify-between text-gray-500">
-			<span>Original:</span>
-			<span class="font-medium text-gray-700">{displayDimensions().originalWidthCm} x {displayDimensions().originalHeightCm} cm</span>
-		</div>
 
 		<div class="flex items-center gap-4">
 			<div class="flex-1">
@@ -161,9 +153,5 @@
 				/>
 			</div>
 		</div>
-
-		<p class="text-center text-gray-500">
-			Current: {displayDimensions().currentWidthPx} x {displayDimensions().currentHeightPx} pixels
-		</p>
 	</div>
 </div>
