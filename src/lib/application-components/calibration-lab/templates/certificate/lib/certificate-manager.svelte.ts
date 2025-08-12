@@ -78,7 +78,7 @@ interface FabricImageObject extends FabricBaseObject {
 
 type FabricObject = FabricRectObject | FabricTextboxObject | FabricImageObject;
 
-interface FabricCanvasData {
+export interface FabricCanvasData {
 	version?: string;
 	objects: FabricObject[];
 	background?: string;
@@ -128,7 +128,7 @@ enum ReferenceInstrumentColumn {
 	CompanyEmail = 'companyEmail'
 }
 
-enum CustomerAndInstrumentDetailsColoumn {
+export enum CustomerAndInstrumentDetailsColoumn {
 	CustomerNameAndAddress = 'Customer name and Address',
 	ReceivedDate = 'Received Date',
 	CalibratedDate = 'Calibrated Date',
@@ -195,7 +195,7 @@ interface CertificateTemplate {
 		left: number;
 	};
 
-	worksheet: WorksheetType | null;
+	work: WorkType | null;
 	isTemplateBilingual: boolean;
 
 	headers: {
@@ -215,14 +215,61 @@ interface CertificateTemplateManager {
 	getCertificate: () => CertificateTemplate;
 	savePDF: () => void;
 	updateWork: (work: WorkType) => void;
-	updateCertificate: () => void;
-	updateHeader: () => void;
-	updateFooter: () => void;
-	updateContent: () => void;
-	updateCustomField?: (id:string) => void;
-	deleteCustomField:(id:string)=> void;
-	updateReferenceInstrumentDetails?: () => void;
-	updateCustomerAndInstrumentDetails?: () => void;
+	certificate: {
+		updateCertificateTemplateName: (name: string) => void;
+		updateMargins: (top: number, right: number, bottom: number, left: number) => void;
+		updateFormat: (format: 'A4' | 'Custom' | 'A5') => void;
+		updateUnit: (unit: 'in' | 'mm' | 'cm' | 'px') => void;
+		setDimensions: (width?: number, height?: number) => void;
+	};
+	header: {
+		updateHeaderHeight: (
+			height: number,
+			pageType: 'firstPageHeader' | 'lastPageHeader' | 'defaultHeader'
+		) => void;
+		updateUnit: (
+			unit: 'in' | 'mm' | 'cm' | 'px',
+			pageType: 'firstPageHeader' | 'lastPageHeader' | 'defaultHeader'
+		) => void;
+		updateCanvasData: (
+			pageType: 'firstPageHeader' | 'lastPageHeader' | 'defaultHeader',
+			canvasData: FabricCanvasData
+		) => void;
+	};
+	footer: {
+		updateFooterHeight: (
+			height: number,
+			pageType: 'firstPageFooter' | 'lastPageFooter' | 'defaultFooter'
+		) => void;
+		updateUnit: (
+			unit: 'in' | 'mm' | 'cm' | 'px',
+			pageType: 'firstPageFooter' | 'lastPageFooter' | 'defaultFooter'
+		) => void;
+		updateCanvasData: (
+			pageType: 'firstPageFooter' | 'lastPageFooter' | 'defaultFooter',
+			canvasData: FabricCanvasData
+		) => void;
+	};
+	content: {
+		updateOrder: (order1: number, order2: number) => void;
+	};
+	customField: {
+		updateData: (id:string,canvasData: FabricCanvasData) => void;
+		updateTitle: (id:string,title: string) => void;
+	};
+	deleteCustomField: (id: string) => void;
+	referenceInstrumentDetails: {
+		changeTitle: (title: string) => void;
+		toggleActive: (colName: ReferenceInstrumentColumn) => void;
+		ToggleMasterInstrument: () => void;
+		dndAction: (col1: ReferenceInstrumentColumn, col2: ReferenceInstrumentColumn) => void;
+	};
+	customerAndInstrumentDetails: {
+		updateColumnCount: (columns: 1 | 2) => void;
+		toggleField: (fieldName: CustomerAndInstrumentDetailsColoumn) => void;
+		updateFieldColumn: (fieldName: CustomerAndInstrumentDetailsColoumn, column: 1 | 2) => void;
+		getFieldsByColumn: (column: 1 | 2) => CustomerAndInstrumentDetailsColoumn[];
+	};
 }
 
 // STATIC JSON HEADER - DONT EDIT THIS
@@ -2200,7 +2247,7 @@ export function CertificateManager(): CertificateTemplateManager {
 			bottom: 0,
 			left: 0
 		},
-		worksheet: null,
+		work: null,
 		isTemplateBilingual: false,
 
 		headers: {
@@ -2321,254 +2368,264 @@ export function CertificateManager(): CertificateTemplateManager {
 		]
 	});
 
-	const updateCustomerAndInstrumentDetails = () => {
-        const content = certificateState.contents.find(
-            (c) => c.ComponentType === 'Customer and Instrument Details'
-        );
-        // To Change the required number of columns
-        const updateColumnCount = (columns: 1 | 2) => {
-            if (content?.customerAndInstrumentDetails) {
-                content.customerAndInstrumentDetails.noOfColumns = columns;
-            }
-        };
-        // Required to toggle between Active / Inactive
-        const toggleField = (fieldName: CustomerAndInstrumentDetailsColoumn) => {
-            if (content?.customerAndInstrumentDetails?.fields[fieldName]) {
-                content.customerAndInstrumentDetails.fields[fieldName].isActive =
-                    !content.customerAndInstrumentDetails.fields[fieldName].isActive;
-            }
-        };
-        // Requried to Update the column
-        const updateFieldColumn = (fieldName: CustomerAndInstrumentDetailsColoumn, column: 1 | 2) => {
-            if (content?.customerAndInstrumentDetails?.fields[fieldName]) {
-                content.customerAndInstrumentDetails.fields[fieldName].columns = column;
-            }
-        };
-        // Required to print according to colums
-        const getFieldsByColumn = (column: 1 | 2) => {
-            if (!content?.customerAndInstrumentDetails) return [];
-            return Object.entries(content.customerAndInstrumentDetails.fields)
-                .filter(([_, field]) => field.isActive && field.columns === column)
-                .map(([fieldName]) => fieldName as CustomerAndInstrumentDetailsColoumn);
-        };
-        return {
-            updateColumnCount,
-            toggleField,
-            updateFieldColumn,
-            getFieldsByColumn
-        };
-    };
+	const customerAndInstrumentDetails = (() => {
+		const getContent = () =>
+			certificateState.contents.find((c) => c.ComponentType === 'Customer and Instrument Details');
 
-	const updateReferenceInstrumentDetails = () => {
-		const refIndex = certificateState.contents.findIndex(
-    (c) => c.ComponentType === 'Reference Instrument' && c.referenceInstrument
-  );
-		const changeTitle = (title:string) => {
-			if(certificateState.contents[refIndex].referenceInstrument){
-            certificateState.contents[refIndex].referenceInstrument.title=title;}
-		};
-
-		const ToggleMasterInstrument = ()=> {
-          if(certificateState.contents[refIndex].referenceInstrument){
-		    certificateState.contents[refIndex].referenceInstrument.nextLevelOfmasterInstrument=!certificateState.contents[refIndex].referenceInstrument.nextLevelOfmasterInstrument;     
-		} 
-		}
-		
-		const toggleActive = (colName:ReferenceInstrumentColumn)=> {
-		    if(certificateState.contents[refIndex].referenceInstrument){
-			   certificateState.contents[refIndex].referenceInstrument.columns[colName].isActive=!certificateState.contents[refIndex].referenceInstrument.columns[colName].isActive; 
-			}	
-		}
-
-		const dndAction=(col1:ReferenceInstrumentColumn,col2:ReferenceInstrumentColumn)=>{
-			 if(certificateState.contents[refIndex].referenceInstrument && certificateState.contents[refIndex].referenceInstrument.columns[col1] && certificateState.contents[refIndex].referenceInstrument.columns[col2]){
-			  const order=certificateState.contents[refIndex].referenceInstrument.columns[col1].order
-			  certificateState.contents[refIndex].referenceInstrument.columns[col1].order=certificateState.contents[refIndex].referenceInstrument.columns[col2].order
-			  certificateState.contents[refIndex].referenceInstrument.columns[col2].order=order
-			}
-		}
-
-		
 		return {
-			changeTitle,
-			toggleActive,
-			ToggleMasterInstrument,
-			dndAction
-		};
-	};
+			// Change number of columns
+			updateColumnCount: (columns: 1 | 2) => {
+				const content = getContent();
+				if (content?.customerAndInstrumentDetails) {
+					content.customerAndInstrumentDetails.noOfColumns = columns;
+				}
+			},
 
-	const updateCustomField= (id:string) => {
-	     const refIndex = certificateState.contents.findIndex(
-          (c) => c.ComponentType === 'Custom Field' && c.customField && c.customField.id===id);
-		
-		 const updateData=(canvasData:FabricCanvasData)=>{
-			if(certificateState.contents[refIndex].customField){
-			certificateState.contents[refIndex].customField.canvasData=canvasData;
-		 
+			// Toggle Active / Inactive
+			toggleField: (fieldName: CustomerAndInstrumentDetailsColoumn) => {
+				const content = getContent();
+				if (content?.customerAndInstrumentDetails?.fields[fieldName]) {
+					content.customerAndInstrumentDetails.fields[fieldName].isActive =
+						!content.customerAndInstrumentDetails.fields[fieldName].isActive;
+				}
+			},
+
+			// Change column placement for a field
+			updateFieldColumn: (fieldName: CustomerAndInstrumentDetailsColoumn, column: 1 | 2) => {
+				const content = getContent();
+				if (content?.customerAndInstrumentDetails?.fields[fieldName]) {
+					content.customerAndInstrumentDetails.fields[fieldName].columns = column;
+				}
+			},
+
+			// Get fields by column (only active ones)
+			getFieldsByColumn: (column: 1 | 2) => {
+				const content = getContent();
+				if (!content?.customerAndInstrumentDetails) return [];
+				return Object.entries(content.customerAndInstrumentDetails.fields)
+					.filter(([_, field]) => field.isActive && field.columns === column)
+					.map(([fieldName]) => fieldName as CustomerAndInstrumentDetailsColoumn);
 			}
-		 }
-		 const updateTitle=(title:string)=>{
-			if(certificateState.contents[refIndex].customField){
-			   certificateState.contents[refIndex].customField.title=title
-			}
-		 }
-		return{
-			updateData,
-			updateTitle
-            
 		};
-	};
-	
-	const updateHeader = () =>{
-	   const updateHeaderHeight = (height:number,pageType:'firstPageHeader' | 'lastPageHeader' | 'defaultHeader' )=>{
-		certificateState.headers[pageType].height=height;
-	   }
-	   const updateUnit = (unit:'in' | 'mm' | 'cm' | 'px',pageType:'firstPageHeader' | 'lastPageHeader' | 'defaultHeader')=>{
-		certificateState.headers[pageType].unit=unit;
-	   }
-	   const updateCanvasData = (pageType:'firstPageHeader' | 'lastPageHeader' | 'defaultHeader',canvasData:FabricCanvasData)=>{
-		certificateState.headers[pageType].canvasData=canvasData;
-	   }
-       return{
-         updateHeaderHeight,
-		 updateUnit,
-		 updateCanvasData
-	   }
-	}
+	})();
 
-	const updateFooter = () =>{
-	   const updateFooterHeight = (height:number,pageType:'firstPageFooter' | 'lastPageFooter' | 'defaultFooter' )=>{
-		certificateState.footers[pageType].height=height;
-	   }
-	   const updateUnit = (unit:'in' | 'mm' | 'cm' | 'px',pageType:'firstPageFooter' | 'lastPageFooter' | 'defaultFooter')=>{
-		certificateState.footers[pageType].unit=unit;
-	   }
-	   const updateCanvasData = (pageType:'firstPageFooter' | 'lastPageFooter' | 'defaultFooter',canvasData:FabricCanvasData)=>{
-		certificateState.footers[pageType].canvasData=canvasData;
-	   }
-       return{
-         updateFooterHeight,
-		 updateUnit,
-		 updateCanvasData
-	   }
-	}
-    
-	const updateContent = () =>{
-	  
-      const updateOrder = (order1:number,order2:number) =>{
+	const referenceInstrumentDetails = (() => {
+		const getRefIndex = () =>
+			certificateState.contents.findIndex(
+				(c) => c.ComponentType === 'Reference Instrument' && c.referenceInstrument
+			);
 
-		if (
-      order1 > 1 && order1 < certificateState.contents.length &&         
-      order2 > 1 && order2 < certificateState.contents.length &&
-      order1 !== order2
-    ){
-		[certificateState.contents[order1],certificateState.contents[order2]]=
-		     [certificateState.contents[order2],certificateState.contents[order1]];
+		return {
+			changeTitle: (title: string) => {
+				const refIndex = getRefIndex();
+				if (certificateState.contents[refIndex]?.referenceInstrument) {
+					certificateState.contents[refIndex].referenceInstrument.title = title;
+				}
+			},
 
+			ToggleMasterInstrument: () => {
+				const refIndex = getRefIndex();
+				if (certificateState.contents[refIndex]?.referenceInstrument) {
+					certificateState.contents[refIndex].referenceInstrument.nextLevelOfmasterInstrument =
+						!certificateState.contents[refIndex].referenceInstrument.nextLevelOfmasterInstrument;
+				}
+			},
 
-	  }}
-	  return{
-		updateOrder
-	  }
-	}
+			toggleActive: (colName: ReferenceInstrumentColumn) => {
+				const refIndex = getRefIndex();
+				if (certificateState.contents[refIndex]?.referenceInstrument) {
+					certificateState.contents[refIndex].referenceInstrument.columns[colName].isActive =
+						!certificateState.contents[refIndex].referenceInstrument.columns[colName].isActive;
+				}
+			},
 
-	const deleteCustomField = (id:string) =>{
-	 const refIndex = certificateState.contents.findIndex(
-          (c) => c.ComponentType === 'Custom Field' && c.customField && c.customField.id===id);
-	 certificateState.contents.splice(refIndex,1);    
-	}
+			dndAction: (col1: ReferenceInstrumentColumn, col2: ReferenceInstrumentColumn) => {
+				const refIndex = getRefIndex();
+				if (
+					certificateState.contents[refIndex]?.referenceInstrument?.columns[col1] &&
+					certificateState.contents[refIndex]?.referenceInstrument?.columns[col2]
+				) {
+					const order = certificateState.contents[refIndex].referenceInstrument.columns[col1].order;
+					certificateState.contents[refIndex].referenceInstrument.columns[col1].order =
+						certificateState.contents[refIndex].referenceInstrument.columns[col2].order;
+					certificateState.contents[refIndex].referenceInstrument.columns[col2].order = order;
+				}
+			}
+		};
+	})();
 
-	const updateCertificate=()=>{
-        const updateCertificateTemplateName=(name:string)=>{
-         certificateState.certificateTemplateName=name;
+	const customField = {
+		updateData: (id: string, canvasData: FabricCanvasData) => {
+			const refIndex = certificateState.contents.findIndex(
+				(c) => c.ComponentType === 'Custom Field' && c.customField?.id === id
+			);
+			if (refIndex !== -1 && certificateState.contents[refIndex].customField) {
+				certificateState.contents[refIndex].customField.canvasData = canvasData;
+			}
+		},
+
+		updateTitle: (id: string, title: string) => {
+			const refIndex = certificateState.contents.findIndex(
+				(c) => c.ComponentType === 'Custom Field' && c.customField?.id === id
+			);
+			if (refIndex !== -1 && certificateState.contents[refIndex].customField) {
+				certificateState.contents[refIndex].customField.title = title;
+			}
 		}
+	};
 
-	    // const certificateTemplateName = () =>{}   Pending
-	const updateMargins = (top: number, right: number, bottom: number, left: number) => {
-           certificateState.margin = { top, right, bottom, left };
-        };
-	const updateFormat = (format: 'A4' | 'Custom' | 'A5') => {
-        certificateState.format = format;
-        // Set default dimensions based on format
-        if (format === 'A4') {
-            certificateState.dimensions = {
-                width: 21,
-                height: 29.7,
-                unit: 'cm'
-            };
-        } else if (format === 'A5') {
-            certificateState.dimensions = {
-                width: 14.8,
-                height: 21,
-                unit: 'cm'
-            };
-        }
-    };
-    const updateUnit = (unit: 'in' | 'mm' | 'cm' | 'px') => {
-        const currentWidth = certificateState.dimensions.width;
-        const currentHeight = certificateState.dimensions.height;
-        const currentUnit = certificateState.dimensions.unit;
-        let newWidth = currentWidth;
-        let newHeight = currentHeight;
-        // Conversion factors to mm (base unit)
-        const toMm = {
-            mm: 1,
-            cm: 10,
-            in: 25.4,
-            px: 0.264583 // assuming 96 DPI
-        };
-        const fromMm = {
-            mm: 1,
-            cm: 0.1,
-            in: 0.0393701,
-            px: 3.77953 // assuming 96 DPI
-        };
-        // Convert current dimensions to mm, then to new unit
-        const widthInMm = currentWidth * toMm[currentUnit];
-        const heightInMm = currentHeight * toMm[currentUnit];
-        newWidth = Math.round(widthInMm * fromMm[unit] * 100) / 100;
-        newHeight = Math.round(heightInMm * fromMm[unit] * 100) / 100;
-        certificateState.dimensions = {
-            width: newWidth,
-            height: newHeight,
-            unit: unit
-        };
-    };
-    const setDimensions = (width?: number, height?: number) => {
-        if (width !== undefined) {
-            certificateState.dimensions.width = width;
-        }
-        if (height !== undefined) {
-            certificateState.dimensions.height = height;
-        }
-        if (width !== undefined || height !== undefined) {
-            certificateState.format = 'Custom';
-        }
-    };
+	const header = {
+		updateHeaderHeight: (
+			height: number,
+			pageType: 'firstPageHeader' | 'lastPageHeader' | 'defaultHeader'
+		) => {
+			certificateState.headers[pageType].height = height;
+		},
+		updateUnit: (
+			unit: 'in' | 'mm' | 'cm' | 'px',
+			pageType: 'firstPageHeader' | 'lastPageHeader' | 'defaultHeader'
+		) => {
+			certificateState.headers[pageType].unit = unit;
+		},
+		updateCanvasData: (
+			pageType: 'firstPageHeader' | 'lastPageHeader' | 'defaultHeader',
+			canvasData: FabricCanvasData
+		) => {
+			certificateState.headers[pageType].canvasData = canvasData;
+		}
+	};
 
+	const footer = {
+		updateFooterHeight: (
+			height: number,
+			pageType: 'firstPageFooter' | 'lastPageFooter' | 'defaultFooter'
+		) => {
+			certificateState.footers[pageType].height = height;
+		},
+		updateUnit: (
+			unit: 'in' | 'mm' | 'cm' | 'px',
+			pageType: 'firstPageFooter' | 'lastPageFooter' | 'defaultFooter'
+		) => {
+			certificateState.footers[pageType].unit = unit;
+		},
+		updateCanvasData: (
+			pageType: 'firstPageFooter' | 'lastPageFooter' | 'defaultFooter',
+			canvasData: FabricCanvasData
+		) => {
+			certificateState.footers[pageType].canvasData = canvasData;
+		}
+	};
 
-     return{
-       updateCertificateTemplateName,
-	   updateMargins,
-	   setDimensions,
-	   updateUnit,
-	   updateFormat
-	 }
-	}
+	const content = {
+		updateOrder: (order1: number, order2: number) => {
+			if (
+				order1 > 1 &&
+				order1 < certificateState.contents.length &&
+				order2 > 1 &&
+				order2 < certificateState.contents.length &&
+				order1 !== order2
+			) {
+				[certificateState.contents[order1], certificateState.contents[order2]] = [
+					certificateState.contents[order2],
+					certificateState.contents[order1]
+				];
+			}
+		}
+	};
+
+	const deleteCustomField = (id: string) => {
+		const refIndex = certificateState.contents.findIndex(
+			(c) => c.ComponentType === 'Custom Field' && c.customField && c.customField.id === id
+		);
+		certificateState.contents.splice(refIndex, 1);
+	};
+
+	const certificate = {
+		updateCertificateTemplateName: (name: string) => {
+			certificateState.certificateTemplateName = name;
+		},
+
+		// const certificateTemplateName = () =>{}   Pending
+		updateMargins: (top: number, right: number, bottom: number, left: number) => {
+			certificateState.margin = { top, right, bottom, left };
+		},
+		updateFormat: (format: 'A4' | 'Custom' | 'A5') => {
+			certificateState.format = format;
+			// Set default dimensions based on format
+			if (format === 'A4') {
+				certificateState.dimensions = {
+					width: 21,
+					height: 29.7,
+					unit: 'cm'
+				};
+			} else if (format === 'A5') {
+				certificateState.dimensions = {
+					width: 14.8,
+					height: 21,
+					unit: 'cm'
+				};
+			}
+		},
+		updateUnit: (unit: 'in' | 'mm' | 'cm' | 'px') => {
+			const currentWidth = certificateState.dimensions.width;
+			const currentHeight = certificateState.dimensions.height;
+			const currentUnit = certificateState.dimensions.unit;
+			let newWidth = currentWidth;
+			let newHeight = currentHeight;
+			// Conversion factors to mm (base unit)
+			const toMm = {
+				mm: 1,
+				cm: 10,
+				in: 25.4,
+				px: 0.264583 // assuming 96 DPI
+			};
+			const fromMm = {
+				mm: 1,
+				cm: 0.1,
+				in: 0.0393701,
+				px: 3.77953 // assuming 96 DPI
+			};
+			// Convert current dimensions to mm, then to new unit
+			const widthInMm = currentWidth * toMm[currentUnit];
+			const heightInMm = currentHeight * toMm[currentUnit];
+			newWidth = Math.round(widthInMm * fromMm[unit] * 100) / 100;
+			newHeight = Math.round(heightInMm * fromMm[unit] * 100) / 100;
+			certificateState.dimensions = {
+				width: newWidth,
+				height: newHeight,
+				unit: unit
+			};
+		},
+		setDimensions: (width?: number, height?: number) => {
+			if (width !== undefined) {
+				certificateState.dimensions.width = width;
+			}
+			if (height !== undefined) {
+				certificateState.dimensions.height = height;
+			}
+			if (width !== undefined || height !== undefined) {
+				certificateState.format = 'Custom';
+			}
+		}
+	};
+
+    const updateWork=(work:WorkType)=>{
+      certificateState.work=work;
+    }
 
 	return {
 		getCertificate() {
 			return certificateState;
 		},
 		savePDF() {},
-		updateWork() {},
-		updateCertificate,
-		updateHeader,
-		updateFooter,
-		updateContent,
-		updateCustomField,
+		updateWork,
+		certificate,
+		header,
+		footer,
+		content,
+		customField,
 		deleteCustomField,
-		updateReferenceInstrumentDetails,
-		updateCustomerAndInstrumentDetails
+		referenceInstrumentDetails,
+		customerAndInstrumentDetails
 	};
 }
