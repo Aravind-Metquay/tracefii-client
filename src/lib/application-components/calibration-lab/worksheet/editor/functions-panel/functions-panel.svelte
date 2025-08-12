@@ -16,8 +16,8 @@
 	</div>
 
 	<div class="flex-1 overflow-y-auto">
-		{#each worksheetManager.getAllFunctions() as fn (fn.functionId)}
-			<Function {fn} {worksheetManager} />
+		{#each worksheetManager.getAllFunctions() as fn, i (fn.functionId)}
+			<Function {fn} {worksheetManager} {i} />
 		{/each}
 	</div>
 </div>
