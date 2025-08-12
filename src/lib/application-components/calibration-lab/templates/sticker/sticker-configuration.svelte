@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { createFabricCanvasManager } from '../shared/canvas-manager.svelte';
 	import type * as fabric from 'fabric';
-	import ContainerPanel from '../components/container-panel.svelte';
-	import ComponentToolbar from '../components/component-toolbar.svelte';
-	import ConfigPanel from '../components/config-panel.svelte';
+	import ContainerPanel from './components/container-panel.svelte';
+	import ComponentToolbar from './components/component-toolbar.svelte';
+	import ConfigPanel from './components/config-panel.svelte';
+	import Footer from './components/footer.svelte';
 
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
 
@@ -11,6 +12,7 @@
 	let pixelWidth = $state(600);
 	let pixelHeight = $state(400);
 	let backgroundColor = $state('#ffffff');
+
 	
 	// Contextual state for the selected object
 	let selectedObjectType = $state<string | null>(null);
@@ -64,7 +66,60 @@
 			instance.on('selection:created', (e) => updateControls(e.selected[0]));
 			instance.on('selection:updated', (e) => updateControls(e.selected[0]));
 			instance.on('selection:cleared', () => updateControls(null));
+
+		instance.on('object:modified', (e) => {
+    		const obj = e.target;
+     
+   			 if (obj && obj.type?.includes('text')) {
+
+       		 const textObject = obj as fabric.IText;
+
+        	if (textObject.fontSize && textObject.scaleX) {
+            	const newSize = Math.round(textObject.fontSize * textObject.scaleX);
+            	textObject.set({
+                fontSize: newSize,
+                scaleX: 1,
+                scaleY: 1
+            });
+            
+           
+            fontSize = newSize;
+            instance.renderAll();
+       	 }
+  	  }
+	});
+
+		 instance.on('object:moving', (e) => {
+            const obj = e.target;
+            if (!obj) return;
+            
+            const canvasWidth = instance.getWidth();
+            const canvasHeight = instance.getHeight();
+            const objWidth = obj.getScaledWidth();
+            const objHeight = obj.getScaledHeight();
+
+            obj.setCoords();
+
+            // Check boundaries
+            if(obj.left < 0) {
+                obj.left = 0;
+            }
+            if(obj.top < 0) {
+                obj.top = 0;
+            }
+            if(obj.left + objWidth > canvasWidth) {
+                obj.left = canvasWidth - objWidth;
+            }
+            if(obj.top + objHeight > canvasHeight) {
+                obj.top = canvasHeight - objHeight;
+            }
+        });
+			
+		instance.on('mouse:wheel', (opt) => {
+				zoom = instance.getZoom();
+			});
 		}
+		
 
 		return () => {
 			canvasManager.disposeCanvas();
@@ -86,8 +141,8 @@
 		canvasManager.changeBackground(backgroundColor);
 	}
 	function addText() { canvasManager.addText('Sample Text'); }
-	//function addDate() { canvasManager.addDate(); }
-	function addQRCode() { canvasManager.addQRcode('https://example.com'); }
+	function addQRCode() { canvasManager.addQRcode('https://example.com');
+	 }
 	function addBarcode() { canvasManager.addBarcode('123456789'); }
 	function handleImageUpload(event: Event) {
 		const input = event.target as HTMLInputElement;
@@ -99,9 +154,34 @@
 	function updateFontWeight() { canvasManager.changeFontWeight(fontWeight); }
 	function updateFontStyle() { canvasManager.changeFontStyle(fontStyle); }
 	function updateTextAlign() { canvasManager.changeTextAlign(textAlign); }
-	function toggleUnderline() { canvasManager.changeFontUnderline(!textUnderline); }
+	//function toggleUnderline() { canvasManager.changeFontUnderline(!textUnderline); }
 	function updateOpacity() { canvasManager.changeOpacity(opacity); }
 	function updateFillColor() { canvasManager.changeFillColor(fillColor); }
+
+	function toggleBold() {
+		// If current weight is bold (700) or more, switch to normal (400), otherwise switch to bold.
+		const newWeight = fontWeight >= 700 ? 400 : 700;
+		canvasManager.changeFontWeight(newWeight);
+		fontWeight = newWeight; // Update local state to keep UI in sync
+	}
+
+	function toggleItalic() {
+		const newStyle = fontStyle === 'italic' ? 'normal' : 'italic';
+		canvasManager.changeFontStyle(newStyle);
+		fontStyle = newStyle; // Update local state
+	}
+
+	function setTextAlign(align: 'left' | 'center' | 'right') {
+		canvasManager.changeTextAlign(align);
+		textAlign = align; // Update local state
+	}
+
+	function toggleUnderline() {
+        // This function might already exist, but ensure it updates local state
+		const newUnderline = !textUnderline;
+		canvasManager.changeFontUnderline(newUnderline);
+		textUnderline = newUnderline;
+	}
 	function bringForward() { canvasManager.bringForward(); }
 	function sendBackwards() { canvasManager.sendBackwards(); }
 	function deleteSelected() { canvasManager.deleteSelected(); }
@@ -110,9 +190,56 @@
 	async function updateQRCode(options:any) {
 		await canvasManager.updateQRCode(options);
 	}
+
+	async function updateBarcode(options:any) {
+		await canvasManager.updateBarcode(options);
+		
+	}
+
+	function updateImageDimensions(newDimensions: { widthCm?: number; heightCm?: number }) {
+    canvasManager.updateImageDimensions(newDimensions);
+	}
+
+	function zoomIn() {
+		canvasManager.zoomIn();
+		zoom = canvasManager.getCanvas()?.getZoom() ?? 1;
+	}
+	function zoomOut() {
+		canvasManager.zoomOut();
+		zoom = canvasManager.getCanvas()?.getZoom() ?? 1;
+	}
+	function resetZoom() {
+		canvasManager.setZoom(1);
+		zoom = 1;
+	}
+
+	function undo() {
+		console.log('Undo function needs to be implemented.');
+	}
+	function redo() {
+		console.log('Redo function needs to be implemented.');
+	}
+
+	function savePng() {
+		canvasManager.savePng();
+	}
+	function saveJpg() {
+		canvasManager.saveJpg();
+	}
+	function saveSvg() {
+		canvasManager.saveSvg();
+	}
+	function savePdf() {
+		canvasManager.savePdf();
+	}
+	function saveJson() {
+		canvasManager.saveJson();
+	}
 </script>
 
 <div class="editor-layout flex h-screen w-full overflow-hidden bg-gray-50">
+	
+	
 	<div class="w-80 shrink-0 border-r bg-white shadow-lg">
 		<ContainerPanel
 			{pixelWidth}
@@ -124,13 +251,29 @@
 	</div>
 
 	<div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-		<div class="shrink-0 border-b bg-white p-2">
+		<div class="shrink-0 border-b p-2">
 			<ComponentToolbar {addText} {addBarcode} {addQRCode} {handleImageUpload} />
 		</div>
 
 		<div class="flex-1 overflow-auto p-5 flex items-center justify-center">
 			<canvas bind:this={canvasEl} class="border shadow-lg"></canvas>
 		</div>
+
+			<div class="shrink-0">
+		<Footer
+			bind:zoom
+			{zoomIn}
+			{zoomOut}
+			{resetZoom}
+			{undo}
+			{redo}
+			{savePng}
+			{saveJpg}
+			{saveSvg}
+			{savePdf}
+			{saveJson}
+		/>
+	</div>
 	</div>
 
 	<div class="w-80 shrink-0 border-l bg-white shadow-lg">
@@ -158,6 +301,14 @@
 			{duplicateSelected}
 			{deleteSelected}
 			{updateQRCode}
+			{updateBarcode}
+			{updateImageDimensions}
+			{toggleBold}
+			{toggleItalic}
+			 {setTextAlign} 
+
 		/>
 	</div>
+
+
 </div>
