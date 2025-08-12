@@ -18,7 +18,8 @@ import type {
 	WorksheetManager,
 	WorksheetStateType,
 	WorksheetType,
-	SchemaNode
+	SchemaNode,
+	PropertyType
 } from '@/Types';
 
 function isTableData(data: any): data is TableRow[] {
@@ -60,6 +61,8 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		referenceInstruments: {}
 	});
 
+	let updating = new Set<string>();
+
 	if (worksheetData) {
 		worksheet.metadata._id = worksheetData._id;
 		worksheet.metadata.orgId = worksheetData.orgId;
@@ -99,6 +102,289 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		worksheet.validationDependents = worksheetData.stores.dependents.validation;
 		worksheet.tableRowDependents = worksheetData.stores.dependents.tableRow;
 		worksheet.repeatDependents = worksheetData.stores.dependents.repeat;
+	}
+
+	/**
+	 * Evaluates a mathematical expression with custom functions and conditional logic.
+	 * All preprocessing (IFs, custom functions, and property paths) is handled inline here.
+	 *
+	 * @param expression - The expression to evaluate
+	 * @param data - The data structure to use for evaluation
+	 * @param rowIndex - The current row index being processed
+	 * @param referenceInstrumentData - Optional reference data used by CFNLookup
+	 * @returns The result of the evaluated expression, or null on error
+	 */
+	function evaluateExpression(
+		expression: string,
+		data: DataStore,
+		rowIndex: number,
+		referenceInstrumentData?: Record<string, any>
+	): any {
+		const preprocess = (expr: string): string => {
+			let result = expr;
+
+			const transformIfs = (s: string): string => {
+				let processed = s.replace(
+					/IF\s*\(\s*([^,]+),\s*IF\s*\(\s*([^,]+),\s*([^,]+),\s*([^,]+)\s*\),\s*([^)]+)\s*\)/g,
+					'($1) ? (($2) ? ($3) : ($4)) : ($5)'
+				);
+				processed = processed.replace(
+					/IF\s*\(\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/g,
+					'($1) ? ($2) : ($3)'
+				);
+				return processed;
+			};
+
+			let prev = '';
+			while (prev !== result) {
+				prev = result;
+				result = transformIfs(result);
+			}
+
+			type FunctionHandler = (path: string) => number;
+			interface FunctionRegistry {
+				[functionName: string]: FunctionHandler;
+			}
+
+			const functions: FunctionRegistry = {
+				RepeatMax: (path: string): number => {
+					const parts = path.split('.');
+					if (parts.length !== 3) throw new Error(`Invalid path format: ${path}`);
+					const [func, comp, field] = parts;
+
+					if (
+						!(func in data) ||
+						!(comp in (data as any)[func]) ||
+						!Array.isArray((data as any)[func][comp])
+					) {
+						throw new Error(`Invalid data path: ${path}`);
+					}
+
+					const targetRow = (data as any)[func][comp][rowIndex] as TableRow;
+					if (!targetRow) throw new Error(`Row index out of bounds: ${rowIndex}`);
+
+					const repeatValues = Object.entries(targetRow)
+						.filter(([key]) => key.startsWith(field + '_repeat_'))
+						.map(([, v]) => Number(v))
+						.filter((v) => !isNaN(v));
+
+					return repeatValues.length > 0 ? Math.max(...repeatValues) : 0;
+				},
+
+				RowMax: (path: string): number => {
+					const parts = path.split('.');
+					if (parts.length !== 3) throw new Error(`Invalid path format: ${path}`);
+					const [func, comp, field] = parts;
+
+					if (
+						!(func in data) ||
+						!(comp in (data as any)[func]) ||
+						!Array.isArray((data as any)[func][comp])
+					) {
+						throw new Error(`Invalid data path: ${path}`);
+					}
+
+					const rows = (data as any)[func][comp] as TableRow[];
+					const vals = rows
+						.map((r) =>
+							typeof r[field] === 'number'
+								? (r[field] as number)
+								: typeof r[field] === 'string'
+									? Number(r[field])
+									: NaN
+						)
+						.filter((v) => !isNaN(v));
+					return vals.length > 0 ? Math.max(...vals) : 0;
+				},
+
+				RowAverage: (path: string): number => {
+					const parts = path.split('.');
+					if (parts.length !== 3) throw new Error(`Invalid path format: ${path}`);
+					const [func, comp, field] = parts;
+
+					if (
+						!(func in data) ||
+						!(comp in (data as any)[func]) ||
+						!Array.isArray((data as any)[func][comp])
+					) {
+						throw new Error(`Invalid data path: ${path}`);
+					}
+
+					const rows = (data as any)[func][comp] as TableRow[];
+					const vals = rows
+						.map((r) =>
+							typeof r[field] === 'number'
+								? (r[field] as number)
+								: typeof r[field] === 'string'
+									? Number(r[field])
+									: NaN
+						)
+						.filter((v) => !isNaN(v));
+
+					if (vals.length === 0) return 0;
+					const sum = vals.reduce((a, b) => a + b, 0);
+					return sum / vals.length;
+				},
+
+				RowSum: (path: string): number => {
+					const parts = path.split('.');
+					if (parts.length !== 3) throw new Error(`Invalid path format: ${path}`);
+					const [func, comp, field] = parts;
+
+					if (
+						!(func in data) ||
+						!(comp in (data as any)[func]) ||
+						!Array.isArray((data as any)[func][comp])
+					) {
+						throw new Error(`Invalid data path: ${path}`);
+					}
+
+					const rows = (data as any)[func][comp] as TableRow[];
+					const vals = rows
+						.map((r) =>
+							typeof r[field] === 'number'
+								? (r[field] as number)
+								: typeof r[field] === 'string'
+									? Number(r[field])
+									: NaN
+						)
+						.filter((v) => !isNaN(v));
+
+					return vals.reduce((a, b) => a + b, 0);
+				},
+
+				CFNLookup: (paths: string): number => {
+					if (!referenceInstrumentData) {
+						throw new Error('CFNLookup requires referenceInstrumentData to be provided.');
+					}
+
+					const args = paths.split(',');
+					const lv = args[0].trim();
+					const lcn = args[1].trim();
+					const vcn = args[2].trim();
+
+					const lcnParts = lcn.split('.');
+					const vcnParts = vcn.split('.');
+
+					if (lcnParts.length < 2 || vcnParts.length < 2) {
+						throw new Error('LCN and VCN must have at least two hierarchical levels');
+					}
+
+					const lcnRefId = `${lcnParts[0]}.${lcnParts[1]}`;
+					const vcnRefId = `${vcnParts[0]}.${vcnParts[1]}`;
+					if (lcnRefId !== vcnRefId)
+						throw new Error('LCN and VCN must point to the same reference data');
+
+					const refData = JSON.parse(JSON.stringify(referenceInstrumentData))[lcnRefId];
+					if (!refData) throw new Error(`Reference data not found for ${lcnRefId}`);
+
+					const [fn, comp, col] = lv.split('.');
+					const lvValue = (data as any)[fn]?.[comp]?.[rowIndex]?.[col];
+					if (lvValue === undefined) throw new Error(`Value not found for LV path: ${lv}`);
+
+					const lcnRemainingPath = lcnParts.slice(2).join('.');
+					const vcnRemainingPath = vcnParts.slice(2).join('.');
+					const functionName = lcnRemainingPath.split('.')[0];
+					const tableName = lcnRemainingPath.split('.')[1];
+					const tableData = refData?.[functionName]?.[tableName];
+
+					if (!Array.isArray(tableData)) {
+						throw new Error(`Expected an array for table at path: ${lcnRemainingPath}`);
+					}
+
+					const lcnField = lcnRemainingPath.split('.').pop()!;
+					const vcnField = vcnRemainingPath.split('.').pop()!;
+
+					let out: any;
+					for (const row of tableData) {
+						if (row.from_range !== undefined && row.to_range !== undefined) {
+							const fromRange = parseFloat(row.from_range);
+							const toRange = parseFloat(row.to_range);
+							if (lvValue >= fromRange && lvValue < toRange) {
+								out = row[vcnField];
+								break;
+							}
+						} else if (row[lcnField] == lvValue) {
+							out = row[vcnField];
+							break;
+						}
+					}
+
+					return out !== undefined ? Number(out) || 0 : 0;
+				}
+			};
+
+			result = result.replace(/(\w+)\s*\(\s*([^)]+)\s*\)/g, (match, funcName, args) => {
+				if (funcName in functions) {
+					try {
+						const value = functions[funcName](String(args).trim());
+						return String(value);
+					} catch (err: any) {
+						console.error(`Error in function ${funcName}:`, err.message);
+						throw err;
+					}
+				}
+				return match; 
+			});
+
+			result = result.replace(/\b([a-zA-Z]\w*(?:\.\w+)+)\b/g, (match) => {
+				try {
+					const path = match.split('.');
+					let value: any = data;
+
+					if (path.length === 3) {
+						const [funcName, tableName, fieldName] = path;
+
+						if (!(funcName in data)) throw new Error(`Invalid function name: ${funcName}`);
+						const functionData: FunctionData = (data as any)[funcName];
+
+						if (Array.isArray((functionData as any)[tableName])) {
+							const tableData = (functionData as any)[tableName] as TableRow[];
+							if (rowIndex >= tableData.length) {
+								throw new Error(`Row index out of bounds: ${rowIndex} for table ${tableName}`);
+							}
+
+							const rowData: TableRow = tableData[rowIndex];
+							if (fieldName in rowData) {
+								const fieldValue = rowData[fieldName];
+								if (typeof fieldValue === 'string' && !isNaN(Number(fieldValue))) {
+									return String(Number(fieldValue));
+								}
+								return typeof fieldValue === 'number'
+									? String(fieldValue)
+									: ((fieldValue ?? '0') as any);
+							}
+							throw new Error(
+								`Field ${fieldName} not found in table ${tableName} at row ${rowIndex}`
+							);
+						}
+					}
+
+					for (const key of path) {
+						if (value === undefined || value === null) throw new Error(`Invalid path: ${match}`);
+						value = value[key];
+					}
+
+					if (typeof value === 'number') return String(value);
+					if (value !== undefined && value !== null) return JSON.stringify(value);
+					return '0';
+				} catch (err: any) {
+					console.error(`Error accessing property ${match}:`, err.message);
+					throw err;
+				}
+			});
+
+			return result;
+		};
+
+		try {
+			const processed = preprocess(expression);
+			const result = eval(processed);
+			return result;
+		} catch (error: any) {
+			console.error(`Error evaluating expression "${expression}": ${error.message}`);
+			return null;
+		}
 	}
 
 	const worksheetExpressionData = $derived.by(() => {
@@ -1038,6 +1324,471 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 				console.error(`Instrument data not found for path '${path}'.`);
 			}
 			return data;
+		},
+
+		processDependencyUpdates(
+			functionId: string,
+			componentId: string,
+			columnId?: string,
+			rowKey?: string
+		) {
+			const self = this;
+			const path = self.getPath(functionId, componentId, columnId);
+			if (updating.has(path)) return;
+
+			try {
+				updating.add(path);
+
+				const collectDependents = (
+					p: string,
+					updateQueue: Set<string>,
+					visited: Set<string>,
+					expressionType: ExpressionType
+				) => {
+					if (visited.has(p)) return;
+					visited.add(p);
+
+					let [pathFunctionId, compId, colId] = p.split('.');
+					const comp = worksheet.components.find((c: Component) => c.componentId === compId);
+					if (comp?.componentType === 'Table') {
+						const col = comp.tableComponent?.columns.find((c: any) => c.columnId === colId);
+						if (col && col.baseColumnId && col.baseColumnId.length > 0) {
+							colId = col.baseColumnId;
+						}
+					}
+
+					const dependents = self.getDependents(pathFunctionId, expressionType, compId, colId);
+					dependents.forEach((dep: string) => {
+						updateQueue.add(dep);
+						collectDependents(dep, updateQueue, visited, expressionType);
+					});
+				};
+
+				const processValueQueue = (updateQueue: Set<string>, rk?: string) => {
+					const updates = Array.from(updateQueue);
+					updates.forEach((p) => {
+						const [fnId, compId, colId] = p.split('.');
+						const expression = self.getExpression(fnId, 'valueExpression', compId, colId);
+						if (!expression) return;
+
+						try {
+							if (colId) {
+								const tableData = worksheet.data[fnId]?.[compId];
+								if (Array.isArray(tableData)) {
+									if (rk) {
+										const row = tableData.find((r: any) => r.key === rk);
+										if (row) {
+											row[colId] = evaluateExpression(
+												expression,
+												JSON.parse(JSON.stringify(worksheet.data)),
+												Number(rk) - 1
+											);
+										}
+									}
+								}
+							} else {
+								const newValue = evaluateExpression(
+									expression,
+									JSON.parse(JSON.stringify(worksheet.data)),
+									0
+								);
+								if (!worksheet.data[fnId]) worksheet.data[fnId] = {};
+								worksheet.data[fnId][compId] = newValue;
+							}
+						} catch (error) {
+							console.error(`Error updating dependent ${p}:`, error);
+						}
+					});
+				};
+
+				const processPropertyQueue = (updateQueue: Set<string>, propertyType: PropertyType) => {
+					const updates = Array.from(updateQueue);
+					let expressionType: ExpressionType;
+
+					if (propertyType === 'isDisabled') expressionType = 'disableExpression';
+					else if (propertyType === 'isInvalid') expressionType = 'validationExpression';
+					else expressionType = 'certificateVisibleExpression';
+
+					updates.forEach((p) => {
+						const [pathFunctionId, compId, colId] = p.split('.');
+						const expression = self.getExpression(pathFunctionId, expressionType, compId, colId);
+						if (!expression) return;
+
+						try {
+							const result = evaluateExpression(
+								expression,
+								JSON.parse(JSON.stringify(worksheet.data)),
+								0
+							);
+							const [fnId, componentId2, columnId2] = p.split('.');
+
+							if (columnId2) {
+								const comp = worksheet.components.find(
+									(c: Component) => c.componentId === componentId2 && c.functionId === fnId
+								);
+								if (comp?.tableComponent) {
+									const column = comp.tableComponent.columns.find(
+										(col: any) => col.columnId === columnId2
+									);
+									if (column) {
+										self.updateColumnProperties(column.tableId, column.columnId, {
+											[propertyType]: !!result
+										});
+									}
+								}
+							} else {
+								self.updateComponentProperties(componentId2, { [propertyType]: !!result });
+							}
+						} catch (error) {
+							console.error(`Error updating ${propertyType} for ${p}:`, error);
+						}
+					});
+				};
+
+				const processTableRowQueue = (updateQueue: Set<string>) => {
+					const updates = Array.from(updateQueue);
+					updates.forEach((p) => {
+						const [pathFunctionId, compId] = p.split('.');
+						const expression = self.getExpression(pathFunctionId, 'tableRowExpression', compId);
+						if (!expression) return;
+
+						try {
+							const result = evaluateExpression(
+								expression,
+								JSON.parse(JSON.stringify(worksheet.data)),
+								0
+							);
+							const [fnId, componentId2] = p.split('.');
+							const table = worksheet.components.find(
+								(c: Component) => c.componentId === componentId2
+							);
+							if (
+								table?.tableComponent?.columns.length &&
+								table?.tableComponent?.columns.length > 0
+							) {
+								self.updateTableRows(fnId, componentId2, table.tableComponent.columns, result);
+							}
+						} catch (error) {
+							console.error(`Error updating table rows for ${p}:`, error);
+						}
+					});
+				};
+
+				const processRepeatColumnQueue = (updateQueue: Set<string>) => {
+					const updates = Array.from(updateQueue);
+					updates.forEach((p) => {
+						const [pathFunctionId, compId, colId] = p.split('.');
+						const expression = self.getExpression(
+							pathFunctionId,
+							'repeatExpression',
+							compId,
+							colId
+						);
+						if (!expression) return;
+
+						try {
+							const result = evaluateExpression(
+								expression,
+								JSON.parse(JSON.stringify(worksheet.data)),
+								0
+							);
+							const table = worksheet.components.find((c: Component) => c.componentId === compId);
+							if (table?.tableComponent) {
+								const repeatColumn = table.tableComponent.columns.find(
+									(col: any) => col.columnId === colId
+								);
+								if (repeatColumn) {
+									table.tableComponent.columns = table.tableComponent.columns.filter(
+										(col: any) => !col.columnId.startsWith(`${repeatColumn.columnId}_repeat_`)
+									);
+
+									for (let i = 1; i <= result; i++) {
+										const newColumn = { ...repeatColumn };
+										newColumn.columnId = `${repeatColumn.columnId}_repeat_${i}`;
+										newColumn.columnName = `${repeatColumn.columnName}${i}`;
+										newColumn.isRepeatColumn = false;
+										newColumn.repeatExpression = '';
+										newColumn.baseColumnId = repeatColumn.columnId;
+										table.tableComponent.columns.push(newColumn);
+									}
+								}
+							}
+						} catch (error) {
+							console.error(`Error updating repeat columns for ${p}:`, error);
+						}
+					});
+				};
+
+				const cleanupExpressionsAndDependencies = (baseFunctionId: string) => {
+					Object.keys(worksheet.expressions).forEach((p) => {
+						if (p.startsWith(`${baseFunctionId}_repeat_`)) delete worksheet.expressions[p];
+					});
+
+					const dependentStores: DependentStore[] = [
+						worksheet.valueDependents,
+						worksheet.disableDependents,
+						worksheet.certificateVisibilityDependents,
+						worksheet.validationDependents,
+						worksheet.tableRowDependents,
+						worksheet.repeatDependents
+					];
+
+					dependentStores.forEach((store: Record<string, string[]>) => {
+						Object.keys(store).forEach((p) => {
+							if (p.startsWith(`${baseFunctionId}_repeat_`)) {
+								delete store[p];
+							} else {
+								store[p] = store[p].filter(
+									(dep: string) => !dep.startsWith(`${baseFunctionId}_repeat_`)
+								);
+								if (store[p].length === 0) delete store[p];
+							}
+						});
+					});
+				};
+
+				const cleanupExistingRepeats = (baseFunctionId: string) => {
+					for (let i = worksheet.functions.length - 1; i >= 0; i--) {
+						if (worksheet.functions[i].functionId.startsWith(`${baseFunctionId}_repeat_`)) {
+							worksheet.functions.splice(i, 1);
+						}
+					}
+					for (let i = worksheet.components.length - 1; i >= 0; i--) {
+						if (
+							(worksheet.components[i] as Component).functionId.startsWith(
+								`${baseFunctionId}_repeat_`
+							)
+						) {
+							worksheet.components.splice(i, 1);
+						}
+					}
+					cleanupExpressionsAndDependencies(baseFunctionId);
+				};
+
+				const createRepeatedFunction = (
+					baseFunction: Function,
+					newFunctionId: string,
+					repeatIndex: number
+				): Function => {
+					return {
+						...baseFunction,
+						functionId: newFunctionId,
+						functionName: `${baseFunction.functionName} ${repeatIndex}`,
+						order: baseFunction.order + repeatIndex * 0.1
+					} as Function;
+				};
+
+				const createRepeatedComponents = (
+					baseComponents: Component[],
+					newFunctionId: string,
+					repeatIndex: number
+				): Component[] => {
+					return baseComponents.map((baseComponent) => ({
+						...baseComponent,
+						functionId: newFunctionId,
+						componentId: `${baseComponent.componentId}_${repeatIndex}`,
+						label: `${baseComponent.label} ${repeatIndex}`
+					}));
+				};
+
+				const transformExpression = (
+					expression: string,
+					baseFunctionId: string,
+					newFunctionId: string,
+					repeatIndex: number
+				): string => {
+					let newExpression = expression.replace(
+						new RegExp(`${baseFunctionId}\\.([\\w]+)`, 'g'),
+						`${newFunctionId}.$1_${repeatIndex}`
+					);
+
+					newExpression = newExpression
+						.replace(/REPEAT_INDEX\(\)/g, String(repeatIndex))
+						.replace(/BASE_VALUE\(['"](.*?)['"]\)/g, (_: any, p1: string) => `GET('${p1}')`)
+						.replace(/PREV_REPEAT\(['"](.*?)['"]\)/g, (_: any, p1: string) => {
+							const prevIndex = repeatIndex - 1;
+							if (prevIndex < 1) return 'null';
+							return `GET('${p1}_repeat_${prevIndex}')`;
+						});
+
+					return newExpression;
+				};
+
+				const updateComponentExpressions = (
+					baseFunctionId: string,
+					baseComponentId: string,
+					newFunctionId: string,
+					newComponentId: string,
+					repeatIndex: number
+				) => {
+					const basePath = `${baseFunctionId}.${baseComponentId}`;
+					const newPath = `${newFunctionId}.${newComponentId}`;
+
+					const expressionTypes: ExpressionType[] = [
+						'valueExpression',
+						'disableExpression',
+						'certificateVisibleExpression',
+						'validationExpression',
+						'tableRowExpression',
+						'repeatExpression'
+					];
+
+					if (!worksheet.expressions[newPath]) worksheet.expressions[newPath] = {};
+
+					expressionTypes.forEach((type) => {
+						const baseExpression = worksheet.expressions[basePath]?.[type];
+						if (baseExpression) {
+							const newExpression = transformExpression(
+								baseExpression,
+								baseFunctionId,
+								newFunctionId,
+								repeatIndex
+							);
+							worksheet.expressions[newPath][type] = newExpression;
+							self.updateExpression(type, newExpression, newFunctionId, newComponentId);
+						}
+					});
+				};
+
+				const updateDependentStore = (
+					baseFunctionId: string,
+					newFunctionId: string,
+					repeatIndex: number
+				) => {
+					const expressionTypes: ExpressionType[] = [
+						'valueExpression',
+						'disableExpression',
+						'certificateVisibleExpression',
+						'validationExpression',
+						'tableRowExpression',
+						'repeatExpression'
+					];
+
+					expressionTypes.forEach((type) => {
+						Object.entries(worksheet.expressions)
+							.filter(
+								([p, expressions]: any) =>
+									p.startsWith(baseFunctionId) && !p.includes('repeat') && expressions[type]
+							)
+							.forEach(([basePath, expressions]: any) => {
+								const [, baseComponentId] = (basePath as string).split('.');
+								const baseExpression = expressions[type];
+								if (baseExpression) {
+									const newExpression = transformExpression(
+										baseExpression,
+										baseFunctionId,
+										newFunctionId,
+										repeatIndex
+									);
+									self.updateExpression(
+										type,
+										newExpression,
+										newFunctionId,
+										`${baseComponentId}_${repeatIndex}`
+									);
+								}
+							});
+					});
+				};
+
+				const updateExpressionsAndDependencies = (
+					baseFunctionId: string,
+					newFunctionId: string,
+					baseComponents: Component[],
+					repeatedComponents: Component[],
+					repeatIndex: number
+				) => {
+					baseComponents.forEach((baseComp, index) => {
+						const repeatedComp = repeatedComponents[index];
+						updateComponentExpressions(
+							baseFunctionId,
+							baseComp.componentId,
+							newFunctionId,
+							repeatedComp.componentId,
+							repeatIndex
+						);
+					});
+					updateDependentStore(baseFunctionId, newFunctionId, repeatIndex);
+				};
+
+				const processRepeatFunctionQueue = (updateQueue: Set<string>) => {
+					const updates = Array.from(updateQueue);
+					updates.forEach((p) => {
+						const [pathFunctionId] = p.split('.');
+						const expression = self.getExpression(pathFunctionId, 'repeatExpression');
+						if (!expression) return;
+
+						try {
+							const repeatCount = evaluateExpression(
+								expression,
+								JSON.parse(JSON.stringify(worksheet.data)),
+								0
+							);
+							const baseFunction = worksheet.functions.find(
+								(fn: Function) => fn.functionId === pathFunctionId
+							);
+							const baseComponents = worksheet.components.filter(
+								(c: Component) => c.functionId === pathFunctionId
+							);
+							if (!baseFunction || !baseComponents.length) return;
+
+							cleanupExistingRepeats(pathFunctionId);
+
+							for (let i = 1; i <= repeatCount; i++) {
+								const newFunctionId = `${pathFunctionId}_repeat_${i}`;
+								const repeatedFunction = createRepeatedFunction(baseFunction, newFunctionId, i);
+								worksheet.functions.push(repeatedFunction);
+
+								const repeatedComponents = createRepeatedComponents(
+									baseComponents,
+									newFunctionId,
+									i
+								);
+								repeatedComponents.forEach((comp: Component) => worksheet.components.push(comp));
+
+								updateExpressionsAndDependencies(
+									pathFunctionId,
+									newFunctionId,
+									baseComponents,
+									repeatedComponents,
+									i
+								);
+							}
+						} catch (error) {
+							console.error(`Error updating repeat functions for ${p}:`, error);
+						}
+					});
+				};
+
+				const valueQueue = new Set<string>();
+				const disableQueue = new Set<string>();
+				const certificateQueue = new Set<string>();
+				const invalidQueue = new Set<string>();
+				const tableRowQueue = new Set<string>();
+				const repeatQueue = new Set<string>();
+
+				collectDependents(path, valueQueue, new Set<string>(), 'valueExpression');
+				collectDependents(path, disableQueue, new Set<string>(), 'disableExpression');
+				collectDependents(
+					path,
+					certificateQueue,
+					new Set<string>(),
+					'certificateVisibleExpression'
+				);
+				collectDependents(path, invalidQueue, new Set<string>(), 'validationExpression');
+				collectDependents(path, tableRowQueue, new Set<string>(), 'tableRowExpression');
+				collectDependents(path, repeatQueue, new Set<string>(), 'repeatExpression');
+
+				processValueQueue(valueQueue, rowKey ? rowKey : undefined);
+				processPropertyQueue(disableQueue, 'isDisabled');
+				processPropertyQueue(certificateQueue, 'showInCertificate');
+				processPropertyQueue(invalidQueue, 'isInvalid');
+				processTableRowQueue(tableRowQueue);
+				processRepeatColumnQueue(repeatQueue);
+				processRepeatFunctionQueue(repeatQueue);
+			} finally {
+				updating.delete(path);
+			}
 		}
 	};
 }

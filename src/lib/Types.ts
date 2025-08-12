@@ -708,7 +708,10 @@ export type WorksheetManager = {
 	removeReferenceInstrumentData(path: string): void;
 	getReferenceInstrumentData(path: string): DataStore | undefined;
 	getWorkheetExpressionSchema(): SchemaNode;
+	processDependencyUpdates(functionId: string, componentId: string, columnId?: string, rowKey?: string): void
 };
+
+export type PropertyType = 'isDisabled' | 'showInCertificate' | 'isInvalid';
 
 export interface ProcedureType {
 	_id: string;
