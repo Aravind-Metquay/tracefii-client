@@ -487,7 +487,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 			const command = new AddElementCommand(canvas, textObj);
 			history.execute(command);
-			addToCanvas(textObj);
+			
 		} catch (error) {
 			console.error('Failed to add text:', error);
 		}
@@ -522,7 +522,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 			const command = new AddElementCommand(canvas, dateText);
 			history.execute(command);
-			addToCanvas(dateText);
+			
 		} catch (error) {
 			console.error('Failed to add date:', error);
 		}
@@ -1012,7 +1012,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		
 	}
 
 	function addRectangle(): void {
@@ -1025,7 +1025,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		
 	}
 
 	function addSoftRectangle(): void {
@@ -1040,7 +1040,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		
 	}
 
 	function addTriangle(): void {
@@ -1053,7 +1053,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		
 	}
 
 	function addInverseTriangle(): void {
@@ -1076,7 +1076,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		
 	}
 
 	function addDiamond(): void {
@@ -1100,7 +1100,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, object);
 		history.execute(command);
-		addToCanvas(object);
+		
 	}
 
 	// ================================
@@ -1132,7 +1132,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, img);
 		history.execute(command);
-		addToCanvas(img);
+		
 	}
 
 	async function addBarcode(): Promise<void> {
@@ -1177,7 +1177,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 		const command = new AddElementCommand(canvas, img);
 		history.execute(command);
-		addToCanvas(img);
+		
 	}
 
 	// Replacing previouys QRCODE
@@ -1229,7 +1229,7 @@ export function createEditor(options: EditorOptions = {}) {
 
 				const command = new AddElementCommand(canvas, image);
 				history.execute(command);
-				addToCanvas(image);
+				
 			} catch (err) {
 				console.error('Failed to load image:', err);
 			}
