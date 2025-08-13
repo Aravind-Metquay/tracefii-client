@@ -122,7 +122,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		 canvas.on('object:moving', (e) => constrainObject(e.target!));
 		// Enhanced scaling handler to prevent text skewing
 		canvas.on('object:scaling', (e) => {
-			console.log("hi")
+	
 			const obj = e.target!;
 			
 			// Handle text objects specifically to prevent skewing
@@ -156,19 +156,41 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		element: HTMLCanvasElement,
 		options?: fabric.CanvasOptions
 	): fabric.Canvas => {
-		if (canvasInstance && currentElement === element) return canvasInstance;
-		disposeCanvas();
+		console.log(' INITIALIZING Canvas...', { options });
+		if (canvasInstance && currentElement === element) {
+			console.log('Canvas already initialized for this element.');
+			if (options) {
+                if (options.width && options.height) {
+                    canvasInstance.setDimensions({ width: options.width, height: options.height });
+                }
+                if (options.backgroundColor) {
+                    canvasInstance.backgroundColor = options.backgroundColor;
+                }
+                canvasInstance.renderAll();
+            }
+			return canvasInstance;
+		}
+			
+			
+		if (canvasInstance  && currentElement !== element	) {
+			disposeCanvas();
+		}
 
+		
+		console.log('%c[Manager] ==> INITIALIZING new canvas...', 'color: orange; font-weight: bold;');
 		canvasInstance = new fabric.Canvas(element, {
 			width: 600,
 			height: 400,
 			backgroundColor: '#ffffff',
 			...options
 		});
+	
 
 		setupObjectSnapping();
 		currentElement = element;
+		console.log(' NEW Canvas Instance CREATED.');
 		setupEventHandlers(canvasInstance);
+	
 		canvasInstance.renderAll();
 		return canvasInstance;
 	};
@@ -179,6 +201,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 	const disposeCanvas = (): void => {
 		if (canvasInstance) {
+			console.error('%c[Manager] !!! DISPOSING Canvas! All objects will be lost.', 'color: red; font-weight: bold;');
 			canvasInstance.dispose();
 			canvasInstance = null;
 			currentElement = null;
@@ -186,7 +209,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 	};
 
 	const setDimensions = (width: number, height: number): void => {
-	
+		console.log(`%c[Manager] Setting dimensions: ${width}x${height}`, 'color: cyan;');
 		if (canvasInstance) {
 			canvasInstance.setDimensions({ width, height });
 		}
@@ -821,6 +844,8 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 	};
 
 	const changeBackground = (value: string): void => {
+		console.log(`%c[Manager] Changing background: ${value}`, 'color: magenta;');
+    
 		if (canvasInstance) {
 			canvasInstance.backgroundColor = value;
 			canvasInstance.renderAll();

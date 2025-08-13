@@ -6,6 +6,8 @@
 	import ConfigPanel from './components/config-panel.svelte';
 	import Footer from './components/footer.svelte';
 
+	console.log('%c[Component] Sticker Configuration Component Loaded.', 'color: blue; font-weight: bold;');
+
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
 
 	// --- STATE VARIABLES ---
@@ -31,12 +33,14 @@
 
 	// --- REACTIVE EFFECTS ---
 	$effect(() => {
+		console.log(`%c[Component] Main effect running. Initializing canvas with dimensions: ${pixelWidth}x${pixelHeight}`, 'color: green;');
 		if (!canvasEl) return;
+		
 		
 		canvasManager.initializeCanvas(canvasEl, {
 			width: Math.round(pixelWidth),
 			height: Math.round(pixelHeight),
-			backgroundColor: backgroundColor
+			//backgroundColor: backgroundColor
 		} as fabric.CanvasOptions);
 
 		const updateControls = (target: fabric.Object | null) => {
@@ -122,15 +126,31 @@
 		
 
 		return () => {
+			console.error('[Component] Main effect: Cleanup running. Calling disposeCanvas.');
 			canvasManager.disposeCanvas();
 		};
 	});
 
 	$effect(() => {
+		console.log(`%c[Component] DIMENSIONS effect running.`, 'color: cyan;');
 		if (canvasManager.canvas) {
 			canvasManager.setDimensions(Math.round(pixelWidth), Math.round(pixelHeight));
 		}
+		else {
+			console.warn('[Component] DIMENSIONS effect: canvasManager.canvas is null.');
+		}
 	});
+
+	$effect(() => {
+        console.log(`%c[Component] BACKGROUND effect running.`, 'color: magenta;');
+        if (canvasManager.getCanvas()) {
+            canvasManager.changeBackground(backgroundColor);
+        } else {
+            console.warn('[Component] Background effect: canvasManager.getCanvas() is null.');
+        }
+    });
+
+	
 
 	// --- FUNCTIONS ---
 	function onDimensionsChange(newPixelWidth: number, newPixelHeight: number) {
