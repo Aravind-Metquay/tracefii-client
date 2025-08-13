@@ -11,12 +11,6 @@
 	let currentValue = $derived(
 		worksheetManager.getComponentValue(component.functionId, component.componentId)
 	);
-	//What do we need here?
-	//1. Get data of a component. (Handled by $derived from worksheetManager)
-	//2. Write data of a component. (Handled by setComponentValue in event handlers)
-	//3. Changes should be automatically calculated and rendered here. (Svelte's reactivity with runes handles this)
-	//4. Integrate Default value into getComponent Data (This should be handled within the worksheetManager store logic)
-	//5. Need to understand if props are already reactive or do they need to be derived to become reactive? ($props() are reactive, using $derived is the correct pattern for computed values based on them)
 
 	const isNumberType = $derived(component.inputComponent?.type === 'Number');
 	const isDisabled = $derived(component.isDisabled || component.isReadOnly);
@@ -48,7 +42,6 @@
 
 	function handleTextChange(e: Event) {
 		const newValue = (e.target as HTMLInputElement).value;
-		console.log(newValue)
 		if (component.functionId) {
 			worksheetManager.setComponentValue(component.functionId, component.componentId, newValue);
 		}
@@ -85,7 +78,7 @@
 				aria-invalid={validationError ? 'true' : undefined}
 				aria-errormessage={validationError ? `${component.componentId}-error` : undefined}
 				required={component.isRequired}
-				onchange={handleNumberChange}
+				oninput={handleNumberChange}
 			/>
 		{:else}
 			<input

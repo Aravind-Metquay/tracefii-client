@@ -324,7 +324,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 						throw err;
 					}
 				}
-				return match; 
+				return match;
 			});
 
 			result = result.replace(/\b([a-zA-Z]\w*(?:\.\w+)+)\b/g, (match) => {
@@ -1068,7 +1068,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		setComponentValue(functionId: string, componentId: string, value: any) {
 			if (!worksheet.data[functionId]) worksheet.data[functionId] = {};
 			worksheet.data[functionId][componentId] = value;
-			// processDependencyUpdates could be called here
+			this.processDependencyUpdates(functionId, componentId);
 		},
 
 		removeComponentValue(functionId: string, componentId: string) {
@@ -1179,7 +1179,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 			const idx = rows.findIndex((r) => r.key === rowKey);
 			if (idx !== -1) {
 				rows[idx][columnId] = value;
-				// processDependencyUpdates could be called here
+				this.processDependencyUpdates(functionId, componentId, columnId, rowKey);
 			} else {
 				console.warn(`Row with key ${rowKey} not found in table ${componentId}`);
 			}
@@ -1194,7 +1194,7 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 		},
 
 		extractDependencies(expression: string): string[] {
-			const regex = /[A-Za-z]+_?\d*\.[A-Za-z_]\d*(?:\.[A-Za-z_]\d*)?/g;
+			const regex = /\b[a-zA-Z]\w*(?:\.\w+)+\b/g;
 			const matches = expression.match(regex) ?? [];
 			return Array.from(new Set(matches));
 		},
@@ -1364,6 +1364,43 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 					});
 				};
 
+				// const processValueQueue = (updateQueue: Set<string>, rk?: string) => {
+				// 	const updates = Array.from(updateQueue);
+				// 	updates.forEach((p) => {
+				// 		const [fnId, compId, colId] = p.split('.');
+				// 		const expression = self.getExpression(fnId, 'valueExpression', compId, colId);
+				// 		if (!expression) return;
+
+				// 		try {
+				// 			if (colId) {
+				// 				const tableData = worksheet.data[fnId]?.[compId];
+				// 				if (Array.isArray(tableData)) {
+				// 					if (rk) {
+				// 						const row = tableData.find((r: any) => r.key === rk);
+				// 						if (row) {
+				// 							row[colId] = evaluateExpression(
+				// 								expression,
+				// 								JSON.parse(JSON.stringify(worksheet.data)),
+				// 								Number(rk) - 1
+				// 							);
+				// 						}
+				// 					}
+				// 				}
+				// 			} else {
+				// 				const newValue = evaluateExpression(
+				// 					expression,
+				// 					JSON.parse(JSON.stringify(worksheet.data)),
+				// 					0
+				// 				);
+				// 				if (!worksheet.data[fnId]) worksheet.data[fnId] = {};
+				// 				worksheet.data[fnId][compId] = newValue;
+				// 			}
+				// 		} catch (error) {
+				// 			console.error(`Error updating dependent ${p}:`, error);
+				// 		}
+				// 	});
+				// };
+
 				const processValueQueue = (updateQueue: Set<string>, rk?: string) => {
 					const updates = Array.from(updateQueue);
 					updates.forEach((p) => {
@@ -1372,19 +1409,24 @@ export function initializeWorksheet(worksheetData?: WorksheetType): WorksheetMan
 						if (!expression) return;
 
 						try {
-							if (colId) {
+							if (colId && rk) {
 								const tableData = worksheet.data[fnId]?.[compId];
 								if (Array.isArray(tableData)) {
-									if (rk) {
-										const row = tableData.find((r: any) => r.key === rk);
-										if (row) {
-											row[colId] = evaluateExpression(
-												expression,
-												JSON.parse(JSON.stringify(worksheet.data)),
-												Number(rk) - 1
-											);
+									const newTableData = tableData.map((row: TableRow) => {
+										if (row.key === rk) {
+											return {
+												...row, 
+												[colId]: evaluateExpression(
+													expression,
+													JSON.parse(JSON.stringify(worksheet.data)),
+													Number(rk) - 1
+												)
+											};
 										}
-									}
+										return row;
+									});
+
+									worksheet.data[fnId][compId] = newTableData;
 								}
 							} else {
 								const newValue = evaluateExpression(
