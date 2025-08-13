@@ -13,31 +13,41 @@ export const useCreateNewOrganization = () => {
 			token: string;
 		}) => organizationService.createNewOrganization(organizationData, token),
 		onSuccess: (res) => {
-			console.log(res, "RES")
+			console.log(res, 'RES');
 		},
 		onError: (error) => {
-			console.log(error, "error")
+			console.log(error, 'error');
 		}
 	});
-
 };
 
 //Get all organizations
 
-export const getAllOrganizations = (token: string, organizationType: string, filter: string) => {
+export const getAllOrganizations = (token: string, organizationType?: string, filter?: string) => {
 	return createQuery({
-		queryKey: ['allOrgs'], // Include trigger in query key
-		queryFn: () => organizationService.getAllOrganizations(token, organizationType, filter)
+		queryKey: ['allOrgs', token, organizationType, filter],
+		queryFn: () => organizationService.getAllOrganizations(token, organizationType, filter),
+		enabled: !!token
 	});
 };
-
 
 //Find organization by ID
 export const useFindOrganizationById = (id: string | undefined, token: string | undefined) => {
 	return createQuery({
 		queryKey: ['organization', id],
-		queryFn: () => organizationService.findOrganizationById(id!, token!),
-		enabled: !!id && !!token
+		queryFn: async () => {
+			console.log(
+				'Fetching organization with ID:',
+				id,
+				'and token:',
+				token ? 'present' : 'missing'
+			);
+			const result = await organizationService.findOrganizationById(id!, token!);
+			console.log('Organization fetch result:', result);
+			return result;
+		},
+		enabled: !!id && !!token,
+		retry: 1
 	});
 };
 

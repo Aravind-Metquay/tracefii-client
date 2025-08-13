@@ -58,15 +58,24 @@ export class OrganizationService {
    * Find organization by ID
    */
   async findOrganizationById(id: string, token: string): Promise<ApiResponse<OrganizationType>> {
-    const response = await axios.get<ApiResponse<OrganizationType>>(
-      `${ORGANIZATION_ENDPOINT}/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
+    console.log('Service: Finding organization by ID:', id);
+    console.log('Service: API endpoint:', `${ORGANIZATION_ENDPOINT}/${id}`);
+    
+    try {
+      const response = await axios.get<ApiResponse<OrganizationType>>(
+        `${ORGANIZATION_ENDPOINT}/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log('Service: Response received:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Service: Error fetching organization:', error);
+      throw error;
+    }
   }
 
   /**
