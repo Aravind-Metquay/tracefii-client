@@ -37,7 +37,6 @@ export class OrganizationService {
    * Get all organizations
    */
   async getAllOrganizations(token: string, organizationType?: string, filter?: string): Promise<allOrgType> {
-  \
 
     const response = await axios.get<allOrgType>(
       `${ORGANIZATION_ENDPOINT}/organizationType/`,
