@@ -156,9 +156,9 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		element: HTMLCanvasElement,
 		options?: fabric.CanvasOptions
 	): fabric.Canvas => {
-		console.log(' INITIALIZING Canvas...', { options });
+		
 		if (canvasInstance && currentElement === element) {
-			console.log('Canvas already initialized for this element.');
+			
 			if (options) {
                 if (options.width && options.height) {
                     canvasInstance.setDimensions({ width: options.width, height: options.height });
@@ -177,7 +177,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		}
 
 		
-		console.log('%c[Manager] ==> INITIALIZING new canvas...', 'color: orange; font-weight: bold;');
+		
 		canvasInstance = new fabric.Canvas(element, {
 			width: 600,
 			height: 400,
@@ -188,7 +188,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 		setupObjectSnapping();
 		currentElement = element;
-		console.log(' NEW Canvas Instance CREATED.');
+		
 		setupEventHandlers(canvasInstance);
 	
 		canvasInstance.renderAll();
@@ -201,7 +201,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 
 	const disposeCanvas = (): void => {
 		if (canvasInstance) {
-			console.error('%c[Manager] !!! DISPOSING Canvas! All objects will be lost.', 'color: red; font-weight: bold;');
+			
 			canvasInstance.dispose();
 			canvasInstance = null;
 			currentElement = null;
@@ -209,7 +209,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 	};
 
 	const setDimensions = (width: number, height: number): void => {
-		console.log(`%c[Manager] Setting dimensions: ${width}x${height}`, 'color: cyan;');
+		
 		if (canvasInstance) {
 			canvasInstance.setDimensions({ width, height });
 		}
@@ -543,7 +543,7 @@ const updateBarcode = async (options: BarcodeOptions): Promise<void> => {
 const PIXELS_PER_CM = 37.795;
 
 const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: number }): void => {
-    console.log('🔧 updateImageDimensions called with:', newDimensions);
+    console.log('updateImageDimensions called with:', newDimensions);
     
     if (!canvasInstance) {
         console.log(' No canvas instance');
@@ -844,7 +844,7 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 	};
 
 	const changeBackground = (value: string): void => {
-		console.log(`%c[Manager] Changing background: ${value}`, 'color: magenta;');
+		
     
 		if (canvasInstance) {
 			canvasInstance.backgroundColor = value;
