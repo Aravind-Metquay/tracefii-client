@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { OrganizationType, ApiResponse } from '@/Types';
+import type { OrganizationType, ApiResponse, Pagination } from '@/Types';
 import { env } from '$env/dynamic/public';
 
 // Constants
@@ -8,8 +8,9 @@ const ORGANIZATION_ENDPOINT = `${API_BASE_URL}/organization`;
 
 interface allOrgType {
   organizations: OrganizationType[]
-  count: number
+  pagination: Pagination
 }
+
 
 export class OrganizationService {
   /**
@@ -19,6 +20,7 @@ export class OrganizationService {
     organizationData: Omit<OrganizationType, "_id">,
     token: string
   ): Promise<ApiResponse<OrganizationType>> {
+    console.log("CREATE ORG")
     const response = await axios.post<ApiResponse<OrganizationType>>(
       ORGANIZATION_ENDPOINT,
       organizationData,
@@ -35,11 +37,15 @@ export class OrganizationService {
    * Get all organizations
    */
   async getAllOrganizations(token: string, organizationType?: string, filter?: string): Promise<allOrgType> {
+  \
+
     const response = await axios.get<allOrgType>(
-      `${ORGANIZATION_ENDPOINT}/organizationType/${organizationType || "All"}`,
+      `${ORGANIZATION_ENDPOINT}/organizationType/`,
       {
-        params: {
-          filter: filter || '',
+        params:
+        {
+          organizationType,
+          filter
         },
         headers: {
           Authorization: `Bearer ${token}`,

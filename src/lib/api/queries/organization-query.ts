@@ -11,17 +11,26 @@ export const useCreateNewOrganization = () => {
 		}: {
 			organizationData: Omit<OrganizationType, '_id'>;
 			token: string;
-		}) => organizationService.createNewOrganization(organizationData, token)
+		}) => organizationService.createNewOrganization(organizationData, token),
+		onSuccess: (res) => {
+			console.log(res, "RES")
+		},
+		onError: (error) => {
+			console.log(error, "error")
+		}
 	});
+
 };
 
 //Get all organizations
+
 export const getAllOrganizations = (token: string, organizationType: string, filter: string) => {
 	return createQuery({
-		queryKey: ['allOrgs'],
+		queryKey: ['allOrgs'], // Include trigger in query key
 		queryFn: () => organizationService.getAllOrganizations(token, organizationType, filter)
 	});
 };
+
 
 //Find organization by ID
 export const useFindOrganizationById = (id: string | undefined, token: string | undefined) => {

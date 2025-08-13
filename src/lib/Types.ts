@@ -258,7 +258,7 @@ export interface OrganizationType {
   | "Metquay Integrated Asset Owner";
   emailId?: string;
   createdBy: string;
-  createdAt: Date;
+  createdAt?: Date;
   modifiedAt?: Date;
   modifiedBy?: string;
 }
@@ -481,7 +481,7 @@ export interface TableColumn {
   selectComponent?: SelectComponent;
 }
 
-export interface GraphComponent {}
+export interface GraphComponent { }
 
 export type ReferenceWorksheetStore = Record<
   string,
@@ -490,18 +490,18 @@ export type ReferenceWorksheetStore = Record<
 export type ReferenceInstrumentDataStore = Record<string, DataStore>;
 
 export interface ExpressionStore {
-    [path: string]: {
-        valueExpression?: string;
-        disableExpression?: string;
-        certificateVisibleExpression?: string;
-        validationExpression? : string
-        tableRowExpression? : string
-        repeatExpression? : string
-    }
+  [path: string]: {
+    valueExpression?: string;
+    disableExpression?: string;
+    certificateVisibleExpression?: string;
+    validationExpression?: string
+    tableRowExpression?: string
+    repeatExpression?: string
+  }
 }
 
 export interface DependentStore {
-    [path: string]: string[];  
+  [path: string]: string[];
 }
 
 export type ExpressionType = 'valueExpression' | 'disableExpression' | 'certificateVisibleExpression' | 'validationExpression' | 'tableRowExpression' | 'repeatExpression';
@@ -676,4 +676,12 @@ export interface CalibrationType {
   passed: boolean;
   showInCertificate: boolean;
   status: "To Do" | "In Progress" | "Done"
+}
+export interface Pagination {
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
 }

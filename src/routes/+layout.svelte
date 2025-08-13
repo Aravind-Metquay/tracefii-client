@@ -11,20 +11,20 @@
 
 	let { children } = $props();
 
-	const auth0Config: Auth0Config = {
-		domain: env.PUBLIC_AUTH0_DOMAIN,
-		clientID: env.PUBLIC_AUTH0_CLIENTID,
-		redirectUri: browser ? window.location.origin : '', 
-		scope: 'openid profile email',
-		responseType: 'token id_token',
-		audience: env.PUBLIC_APP_AUTH0_API_URL
-	};
+	// const auth0Config: Auth0Config = {
+	// 	domain: env.PUBLIC_AUTH0_DOMAIN,
+	// 	clientID: env.PUBLIC_AUTH0_CLIENTID,
+	// 	redirectUri: browser ? window.location.origin : '', 
+	// 	scope: 'openid profile email',
+	// 	responseType: 'token id_token',
+	// 	audience: env.PUBLIC_APP_AUTH0_API_URL
+	// };
 
 	const queryClient = new QueryClient();
 
-	if (browser) {
-		initAuth(auth0Config);
-	}
+	// if (browser) {
+	// 	initAuth(auth0Config);
+	// }
 
 	$inspect(auth)
 
@@ -45,7 +45,11 @@
 		<p>Loading...</p>
 	{:else}
 		<main class="h-[100vh] bg-[#FAFAFA]"> -->
-			{@render children()}
+			<!-- {@render children()} -->
 		<!-- </main>
 	{/if}
 </QueryClientProvider> -->
+ <QueryClientProvider client={queryClient}>
+			{@render children()}
+	
+</QueryClientProvider>
