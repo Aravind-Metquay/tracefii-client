@@ -26,16 +26,7 @@ export type BarcodeOptions = {
 	barWidth: number;
 	barHeight: number;
 	displayValue: boolean;
-	expression: string;
-	format: string;
-	barWidth: number;
-	barHeight: number;
-	displayValue: boolean;
 	margin?: number;
-	marginTop?: number;
-	marginBottom?: number;
-	marginLeft?: number;
-	marginRight?: number;
 	marginTop?: number;
 	marginBottom?: number;
 	marginLeft?: number;
