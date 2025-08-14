@@ -167,6 +167,7 @@ export const createFabricCanvasManager = (): FabricCanvasManager => {
 		});
 
 		setupObjectSnapping();
+		canvasInstance.preserveObjectStacking = true;
 		currentElement = element;
 		setupEventHandlers(canvasInstance);
 		canvasInstance.renderAll();
@@ -707,8 +708,10 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 
 	const sendBackwards = (): void => {
 		if (canvasInstance) {
+
 			canvasInstance.getActiveObjects().forEach((object) => {
-				if (canvasInstance) canvasInstance.sendObjectBackwards(object);
+				if (canvasInstance) 
+					canvasInstance.sendObjectBackwards(object);
 			});
 			if (canvasInstance) canvasInstance.renderAll();
 		}
