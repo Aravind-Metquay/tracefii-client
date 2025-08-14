@@ -41,7 +41,7 @@
 </script>
 
 <!-- <QueryClientProvider client={queryClient}>
-<!-- <QueryClientProvider client={queryClient}>
+ <QueryClientProvider client={queryClient}>
 	{#if auth.isLoading}
 		<p>Loading...</p>
 	{:else}
@@ -50,11 +50,11 @@
 		<!-- </main>
 	{/if}
 </QueryClientProvider> -->
-		<main class="h-[100vh] bg-[#FAFAFA]">
+		<!-- <main class="h-[100vh] bg-[#FAFAFA]">
 			{@render children()}
-		</main>
+		</main> -->
 	<!-- {/if} -->
-</QueryClientProvider> -->
+<!-- </QueryClientProvider> --> 
 		<main class="h-[100vh] bg-[#FAFAFA]">
 			{@render children()}
 		</main>

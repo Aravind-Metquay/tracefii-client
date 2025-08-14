@@ -197,7 +197,9 @@
 		textUnderline = newUnderline;
 	}
 	function bringForward() { canvasManager.bringForward(); }
-	function sendBackwards() { canvasManager.sendBackwards(); }
+	function sendBackwards() { 
+		canvasManager.sendBackwards();
+	}
 	function deleteSelected() { canvasManager.deleteSelected(); }
 	async function duplicateSelected() { await canvasManager.duplicateSelected(); }
 
