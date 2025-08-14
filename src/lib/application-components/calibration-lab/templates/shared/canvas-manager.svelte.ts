@@ -1149,43 +1149,115 @@ const updateImageDimensions = (newDimensions: { widthCm?: number; heightCm?: num
 	};
 
 	// Selection Operations
+	
 	const deleteSelected = (): void => {
 		if (!canvasInstance) return;
 
-		const activeObjects = canvasInstance.getActiveObjects();
-		if (activeObjects.length === 0) return;
+		const activeObject = canvasInstance.getActiveObject();
+		if (!activeObject) return;
 
-		activeObjects.forEach((obj) => {
-			canvasInstance?.remove(obj);
-		});
-
-		canvasInstance.discardActiveObject();
-		canvasInstance.renderAll();
+		try {
+			// Handle multiple selection (ActiveSelection)
+			if (activeObject.type === 'activeSelection') {
+				const activeSelection = activeObject as fabric.ActiveSelection;
+				const objects = [...activeSelection.getObjects()]; // Create a copy of the array
+				
+				// First, discard the active selection
+				canvasInstance.discardActiveObject();
+				
+				// Then remove each object individually
+				objects.forEach((obj) => {
+					console.log('Deleting object from selection:', obj);
+					canvasInstance?.remove(obj);
+				});
+				
+				console.log('Active selection deleted:', objects.length, 'objects');
+				
+			} else {
+				// Handle single object selection
+				console.log('Deleting single object:', activeObject);
+				canvasInstance.remove(activeObject);
+				console.log('Single object deleted');
+			}
+			
+			// Ensure all selections are cleared
+			canvasInstance.discardActiveObject();
+			
+			// Force a complete re-render
+			canvasInstance.requestRenderAll();
+			
+			// Additional cleanup - clear any lingering selection state
+			setTimeout(() => {
+				if (canvasInstance) {
+					canvasInstance.discardActiveObject();
+					canvasInstance.requestRenderAll();
+				}
+			}, 10);
+			
+		} catch (error) {
+			console.error('Error deleting objects:', error);
+			// Fallback cleanup
+			canvasInstance.discardActiveObject();
+			canvasInstance.requestRenderAll();
+		}
 	};
 
 	const duplicateSelected = async (): Promise<void> => {
 		if (!canvasInstance) return;
+		
 		const activeObject = canvasInstance.getActiveObject();
-
 		if (!activeObject) return;
 
 		try {
-			// Use await to get the cloned object asynchronously
-			const cloned = await activeObject.clone();
-
-			// Offset the clone slightly
-			cloned.set({
-				left: (cloned.left ?? 0) + 10,
-				top: (cloned.top ?? 0) + 10
-			});
-
-			canvasInstance.add(cloned);
-			canvasInstance.setActiveObject(cloned);
+			// Handle multiple selection (ActiveSelection)
+			if (activeObject.type === 'activeSelection') {
+				const activeSelection = activeObject as fabric.ActiveSelection;
+				const objects = activeSelection.getObjects();
+				const clonedObjects: fabric.FabricObject[] = [];
+				
+				// Clone each object individually
+				for (const obj of objects) {
+					const cloned = await obj.clone();
+					cloned.set({
+						left: (cloned.left ?? 0) + 10,
+						top: (cloned.top ?? 0) + 10
+					});
+					canvasInstance.add(cloned);
+					clonedObjects.push(cloned);
+				}
+				
+				// Clear the current selection first
+				canvasInstance.discardActiveObject();
+				
+				// Create new selection with cloned objects
+				if (clonedObjects.length > 1) {
+					const newSelection = new fabric.ActiveSelection(clonedObjects, {
+						canvas: canvasInstance
+					});
+					canvasInstance.setActiveObject(newSelection);
+				} else if (clonedObjects.length === 1) {
+					canvasInstance.setActiveObject(clonedObjects[0]);
+				}
+				
+			} else {
+				// Handle single object selection
+				const cloned = await activeObject.clone();
+				cloned.set({
+					left: (cloned.left ?? 0) + 10,
+					top: (cloned.top ?? 0) + 10
+				});
+				canvasInstance.add(cloned);
+				canvasInstance.setActiveObject(cloned);
+			}
+			
 			canvasInstance.requestRenderAll();
+			console.log('Objects duplicated successfully');
+			
 		} catch (error) {
 			console.error('Error duplicating object:', error);
 		}
 	};
+
 
 	// Zoom Controls
 	const setZoom = (value: number): void => {
