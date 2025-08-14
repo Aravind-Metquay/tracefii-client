@@ -1,73 +1,75 @@
 <script lang="ts">
 	import { createFabricCanvasManager } from '../shared/canvas-manager.svelte';
-	import type * as fabric from 'fabric';
-	import ContainerPanel from './components/container-panel.svelte';
-	import ComponentToolbar from './components/component-toolbar.svelte';
-	import ConfigPanel from './components/config-panel.svelte';
-	import Footer from './components/footer.svelte';
+    import type * as fabric from 'fabric';
+    import ContainerPanel from './components/container-panel.svelte';
+    import ComponentToolbar from './components/component-toolbar.svelte';
+    import ConfigPanel from './components/config-panel.svelte';
+    import Footer from './components/footer.svelte';
+    import { untrack } from 'svelte'; 
 
-	let canvasEl = $state<HTMLCanvasElement | null>(null);
+    
 
-	// --- STATE VARIABLES ---
-	let pixelWidth = $state(600);
-	let pixelHeight = $state(400);
-	let backgroundColor = $state('#ffffff');
+    let canvasEl = $state<HTMLCanvasElement | null>(null);
 
-	
-	// Contextual state for the selected object
-	let selectedObjectType = $state<string | null>(null);
-	let selectedObject = $state<fabric.Object | null>(null);
-	let fontFamily = $state('Arial');
-	let fontSize = $state(20);
-	let fontWeight = $state(400);
-	let fontStyle = $state<'normal' | 'italic' | 'oblique'>('normal');
-	let textAlign = $state('left');
-	let textUnderline = $state(false);
-	let opacity = $state(1);
-	let fillColor = $state('#000000');
-	let zoom = $state(1);
+    // --- STATE VARIABLES --- 
+    let pixelWidth = $state(600);
+    let pixelHeight = $state(400);
+    let backgroundColor = $state('#ffffff');
+    let selectedObjectType = $state<string | null>(null);
+    let selectedObject = $state<fabric.Object | null>(null);
+    let fontFamily = $state('Arial');
+    let fontSize = $state(20);
+    let fontWeight = $state(400);
+    let fontStyle = $state<'normal' | 'italic' | 'oblique'>('normal');
+    let textAlign = $state('left');
+    let textUnderline = $state(false);
+    let opacity = $state(1);
+    let fillColor = $state('#000000');
+    let zoom = $state(1);
 
-	const canvasManager = createFabricCanvasManager();
+    const canvasManager = createFabricCanvasManager();
 
-	// --- REACTIVE EFFECTS ---
-	$effect(() => {
-		if (!canvasEl) return;
-		
-		canvasManager.initializeCanvas(canvasEl, {
-			width: Math.round(pixelWidth),
-			height: Math.round(pixelHeight),
-			backgroundColor: backgroundColor
-		} as fabric.CanvasOptions);
+    // --- REACTIVE EFFECTS ---
 
-		const updateControls = (target: fabric.Object | null) => {
-			selectedObject = target;
-			if (!target) {
-				selectedObjectType = null;
-				return;
-			}
-			selectedObjectType = target.type || null;
-			opacity = target.opacity ?? 1;
-			if (typeof target.fill === 'string') {
-				fillColor = target.fill;
-			}
-			if (target.type?.includes('text')) {
-				const textObject = target as fabric.IText;
-				fontFamily = textObject.fontFamily || 'Arial';
-				fontSize = textObject.fontSize || 20;
-				fontWeight = (Number(textObject.fontWeight) as 400 | 700) || 400;
-				fontStyle = (textObject.fontStyle as 'normal' | 'italic' | 'oblique') || 'normal';
-				textAlign = textObject.textAlign || 'left';
-				textUnderline = textObject.underline || false;
-			}
-		};
+    // EFFECT 1: ONE-TIME SETUP AND CLEANUP
+    // ThiS runs only once when the canvas element is mounted.
+    $effect(() => {
+        if (!canvasEl) return;
+        
+        // 2. USE untrack TO READ INITIAL VALUES WITHOUT CREATING DEPENDENCIES
+        canvasManager.initializeCanvas(canvasEl, {
+            width: untrack(() => Math.round(pixelWidth)),
+            height: untrack(() => Math.round(pixelHeight)),
+            backgroundColor: untrack(() => backgroundColor)
+        } as fabric.CanvasOptions);
 
-		const instance = canvasManager.getCanvas();
-		if (instance) {
-			instance.on('selection:created', (e) => updateControls(e.selected[0]));
-			instance.on('selection:updated', (e) => updateControls(e.selected[0]));
-			instance.on('selection:cleared', () => updateControls(null));
+        const updateControls = (target: fabric.Object | null) => {
+            selectedObject = target;
+            if (!target) {
+                selectedObjectType = null;
+				 return;
+            }
+            selectedObjectType = target.type || null;
+            opacity = target.opacity ?? 1;
+            if (typeof target.fill === 'string') fillColor = target.fill;
+            if (target.type?.includes('text')) {
+                const textObject = target as fabric.IText;
+                fontFamily = textObject.fontFamily || 'Arial';
+                fontSize = textObject.fontSize || 20;
+                fontWeight = (Number(textObject.fontWeight) as 400 | 700) || 400;
+                fontStyle = (textObject.fontStyle as 'normal' | 'italic' | 'oblique') || 'normal';
+                textAlign = textObject.textAlign || 'left';
+                textUnderline = textObject.underline || false;
+            }
+        };
 
-		instance.on('object:modified', (e) => {
+        const instance = canvasManager.getCanvas();
+        if (instance) {
+            instance.on('selection:created', (e) => updateControls(e.selected[0]));
+            instance.on('selection:updated', (e) => updateControls(e.selected[0]));
+            instance.on('selection:cleared', () => updateControls(null));
+ 
+			instance.on('object:modified', (e) => {
     		const obj = e.target;
      
    			 if (obj && obj.type?.includes('text')) {
@@ -120,17 +122,29 @@
 			});
 		}
 		
+		
+        
+        // This cleanup function will only run when the component unmounts
+        return () => {
+      
+            canvasManager.disposeCanvas();
+        };
+    });
 
-		return () => {
-			canvasManager.disposeCanvas();
-		};
-	});
+    // EFFECT 2 & 3: REACTIVE UPDATES
+   
+    $effect(() => {
+        if (!canvasManager.getCanvas()) return;
+       
+        canvasManager.setDimensions(Math.round(pixelWidth), Math.round(pixelHeight));
+    });
 
-	$effect(() => {
-		if (canvasManager.canvas) {
-			canvasManager.setDimensions(Math.round(pixelWidth), Math.round(pixelHeight));
-		}
-	});
+    $effect(() => {
+        if (!canvasManager.getCanvas()) return;
+
+        canvasManager.changeBackground(backgroundColor);
+    });
+	
 
 	// --- FUNCTIONS ---
 	function onDimensionsChange(newPixelWidth: number, newPixelHeight: number) {
@@ -183,7 +197,9 @@
 		textUnderline = newUnderline;
 	}
 	function bringForward() { canvasManager.bringForward(); }
-	function sendBackwards() { canvasManager.sendBackwards(); }
+	function sendBackwards() { 
+		canvasManager.sendBackwards();
+	}
 	function deleteSelected() { canvasManager.deleteSelected(); }
 	async function duplicateSelected() { await canvasManager.duplicateSelected(); }
 
