@@ -28,23 +28,23 @@ export const useCreateNewUser = () => {
 };
 
 // Fetch all users the current token can access
-export const useFindAllUsers = (token: string | undefined) => {
+export const useGetAllUsers = (token: string, filter: string) => {
   return createQuery({
     queryKey: ['findAllUsers'],
     queryFn: async () => {
-      return await userService.findAllUsers(token!);
+      return await userService.findAllUsers(token!, filter);
     },
-    enabled: !!token,
+    enabled: true,
     staleTime: 1000 * 60 * 5
   });
 };
 
 // Fetch all users of a specific organization
-export const useUserOfAnOrg = (orgId: string | undefined, token: string | undefined) => {
+export const useGetAllUsersOfAnOrg = (orgId: string, token: string, filter: string) => {
   return createQuery({
-    queryKey: ["orgId", orgId],
+    queryKey: [orgId, filter],
     queryFn: async () => {
-      return await userService.findUserOfAnOrg(orgId!, token!);
+      return await userService.findUsersOfAnOrg(orgId!, token!, filter);
     },
     enabled: !!orgId,
     staleTime: 1000 * 60 * 5
@@ -52,7 +52,7 @@ export const useUserOfAnOrg = (orgId: string | undefined, token: string | undefi
 };
 
 // Fetch a specific user by their MongoDB ID
-export const usefindUser = (_id: string | undefined, token: string | undefined) => {
+export const useGetUser = (_id: string | undefined, token: string | undefined) => {
   return createQuery({
     queryKey: ["id", _id],
     queryFn: async () => {
@@ -86,19 +86,6 @@ export const useDeleteUser = () => {
       id: string;
       token: string;
     }) => userService.deleteUser(id, token),
-  });
-};
-
-// Remove an organization from the user's profile/account
-export const useRemoveOrganization = () => {
-  return createMutation({
-    mutationFn: ({
-      orgId,
-      token
-    }: {
-      orgId: string;
-      token: string;
-    }) => userService.removeOrganization(orgId, token),
   });
 };
 
