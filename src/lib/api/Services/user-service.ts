@@ -130,20 +130,6 @@ export class UserService {
     );
     return response.data;
   }
-  /**
-   * Delete a orgnization ,related users ,roles ,workspaces ,mapppings  
-   */
-  async removeOrganization(orgId: string, token: string): Promise<ApiResponse<void>> {
-    const response = await axios.delete<ApiResponse<void>>(
-      `${USER_ENDPOINT}/removeOrganization/${orgId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  }
 
   /**
    * Delete all users of an organization

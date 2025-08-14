@@ -89,19 +89,6 @@ export const useDeleteUser = () => {
   });
 };
 
-// Remove an organization from the user's profile/account
-export const useRemoveOrganization = () => {
-  return createMutation({
-    mutationFn: ({
-      orgId,
-      token
-    }: {
-      orgId: string;
-      token: string;
-    }) => userService.removeOrganization(orgId, token),
-  });
-};
-
 // Delete all users of an organization
 export const useDeleteUsersOfOrg = () => {
   return createMutation({
