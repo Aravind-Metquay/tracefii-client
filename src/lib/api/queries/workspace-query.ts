@@ -41,11 +41,12 @@ export const useEditWorkspace = () => {
 	});
 };
 
-// Delete a specific workspace by ID
+// Delete a specific workspace by ID [ As suggested by Kevin pass the orgID as props too]
 export const useDeleteWorkspace = () => {
 	return createMutation({
-		mutationFn: ({ id, token }: { id: string; token: string }) =>
-			workspaceService.deleteWorkspace(id, token)
+		mutationFn: (
+			{ id, token }: { id: string; token: string } // PASS orgID with this too
+		) => workspaceService.deleteWorkspace(id, token)
 	});
 };
 
