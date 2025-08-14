@@ -162,7 +162,7 @@ export interface UserType {
   };
   auth0?: TestAuth0; //Auth0 Details
   attachments?: string[];
-  createdAt: Date; //Created Date
+  createdAt?: Date; //Created Date
   createdBy: string; //Created by which user
   modifiedAt?: Date; //Modified Date
   modifiedBy?: string; //Modified by which user
