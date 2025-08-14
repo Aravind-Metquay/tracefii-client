@@ -16,6 +16,14 @@ interface ResponseCreateCustomers {
  acknowledged : boolean
   insertedId : string
 }
+
+interface QueryCustomer {
+  sort: string;
+  search: string;
+  page: number;
+  limit: number;
+  [key: string]: { value: string; operator: string } | string | number | boolean;
+}
 export class CustomerService {
   /**
    * Create a new customer
@@ -42,16 +50,19 @@ export class CustomerService {
   /**
    * Get all customers
    */
-  async getAllCustomers(token: string): Promise<ResponseCustomers> {
-    const response = await axios.get<ApiResponse<ResponseCustomers>>(
-      CUSTOMER_ENDPOINT,
+  async getAllCustomers(token: string, queryObject: QueryCustomer): Promise<ResponseCustomers> {
+    console.log(queryObject)
+    const response = await axios.get<ResponseCustomers>(
+      `${CUSTOMER_ENDPOINT}/organization/123`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: queryObject,
       }
     );
-    return response.data.data;
+    console.log(response.data)
+    return response.data;
   }
 
   async getCustomerAttachments( key: string,customerId:string):Promise<FileWithContent>{

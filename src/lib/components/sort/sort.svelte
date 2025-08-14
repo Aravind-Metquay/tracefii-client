@@ -2,24 +2,46 @@
 	import Button from '../button/button.svelte';
 	import Input from '../input/input.svelte';
 	import Dropdown from './sortdropdown.svelte';
-	import Dropdown2 from './sortdropdown2.svelte';
+	import Dropdown2 from './sortDirectionDropdown.svelte';
 	import { X } from '@lucide/svelte';
 	interface SortAttribute {
     attribute: string;
     direction: 'Ascending' | 'Descending';
   }
-	let { attributes, selectedAttributes = $bindable<SortAttribute[]>([]) } = $props();
-	
+  interface Attribute {
+	id: string;
+	header: string;
+	flexgrow?: number;
+	width?: number;
+	sort: boolean;
+	editor: string;
+}
+let {
+	attributes,
+	selectedAttributesString = $bindable('')
+}: {
+	attributes: Attribute[];
+	selectedAttributesString: string;
+} = $props();
+  	let selectedAttributes = $state<SortAttribute[]>([]);
+	let attributesNames = $derived(attributes.map((attr: Attribute) => attr.header));
 	let isPopoverOpen = $state(false);
 	let containerElement: HTMLElement | null = $state(null);
 	let searchValue = $state('');
 	let addSort = $state(false);
 	const filteredAttributes = $derived(
 		searchValue
-			? attributes.filter((name: string) => name.toLowerCase().includes(searchValue.toLowerCase()))
-			: attributes
+			? attributesNames.filter((name: string) => name.toLowerCase().includes(searchValue.toLowerCase()))
+			: attributesNames
 	);
-	
+	$effect(() => {
+        selectedAttributesString = selectedAttributes
+            .map(item => {
+				const match = attributes.find((attr: Attribute) => attr.header === item.attribute)
+				const key = match ? match.id : item.attribute;
+				return `${key}:${item.direction === 'Ascending' ? 'asc' : 'desc'}`
+			}).join(',');
+	});
 	function addAttribute(attribute: string) {
 		selectedAttributes.push({ attribute: attribute, direction: 'Ascending' });
 	}
@@ -85,7 +107,7 @@
 				<div class="mt-2 mb-2 flex w-full flex-col space-y-1 pl-2">
 					{#each selectedAttributes as attribute, index}
 						<div class="flex">
-							<Dropdown options={attributes} bind:selectedValue={selectedAttributes[index]} />
+							<Dropdown options={attributesNames} bind:selectedValue={selectedAttributes[index]} />
 							<Dropdown2 options={sortOptions} bind:selectedValue={selectedAttributes[index]} />
 							<Button
 								class="mr-2 text-xs"

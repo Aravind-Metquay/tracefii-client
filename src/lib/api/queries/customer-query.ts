@@ -2,6 +2,13 @@ import { createMutation, createQuery } from "@tanstack/svelte-query";
 import type { CustomerType, FileWithContent } from "@/Types";
 import { customerService } from "../Services/customer-service";
 
+interface QueryCustomer {
+  sort: string;
+  search: string;
+  page: number;
+  limit: number;
+  [key: string]: { value: string; operator: string } | string | number | boolean;
+}
 // Create a new customer
 export const useCreateNewCustomer = () => {
   return createMutation({
@@ -31,10 +38,11 @@ export const useCreateCustomerAttachments = () => {
 };
 
 // Fetch all customers (for current org/user)
-export const useGetAllCustomers = (token: string | undefined) => {
+export const useGetAllCustomers = (token: string | undefined, queryObject: QueryCustomer) => {
+  console.log(queryObject)
   return createQuery({
-    queryKey: ["Customers"],
-    queryFn: async () => customerService.getAllCustomers(token!),
+    queryKey: [queryObject],
+    queryFn: async () => customerService.getAllCustomers(token!, queryObject),
     enabled: !!token,
     staleTime: 1000 * 60 * 5,
   });
