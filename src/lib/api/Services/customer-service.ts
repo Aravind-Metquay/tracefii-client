@@ -63,7 +63,7 @@ export class CustomerService {
   /**
    * Get all customers of an organization
    */
-  async getAllCustomersOfOrg(orgId: string, token: string): Promise<ResponseCustomers> {
+  async getAllCustomersOfOrg(orgId: string, token: string): Promise<ApiResponse<ResponseCustomers>> {
     const response = await axios.get<ApiResponse<ResponseCustomers>>(
       `${CUSTOMER_ENDPOINT}/organization/${orgId}`,
       {
@@ -72,7 +72,7 @@ export class CustomerService {
         },
       }
     );
-    return response.data.data;
+    return response.data;
   }
 
   /**
@@ -82,7 +82,7 @@ export class CustomerService {
     orgId: string,
     workspaceId: string,
     token: string
-  ): Promise<ResponseCustomers> {
+  ): Promise<ApiResponse<ResponseCustomers>> {
     const response = await axios.get<ApiResponse<ResponseCustomers>>(
       `${CUSTOMER_ENDPOINT}/organization/${orgId}/workspace/${workspaceId}`,
       {
@@ -91,13 +91,14 @@ export class CustomerService {
         },
       }
     );
-    return response.data.data;
+
+    return response.data;
   }
 
   /**
    * Find customer by ID
    */
-  async findCustomerById(id: string, token: string): Promise<CustomerType> {
+  async findCustomerById(id: string, token: string): Promise<ApiResponse<CustomerType>> {
     const response = await axios.get<ApiResponse<CustomerType>>(
       `${CUSTOMER_ENDPOINT}/${id}`,
       {
@@ -106,7 +107,7 @@ export class CustomerService {
         },
       }
     );
-    return response.data.data;
+    return response.data;
   }
 
   /**
