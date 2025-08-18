@@ -33,8 +33,8 @@ export class RoleService {
   /**
    * Get all roles
    */
-  async getAllRoles(token: string): Promise<RolesResponse> {
-    const response = await axios.get<ApiResponse<RolesResponse>>(
+  async getAllRoles(token: string): Promise<RoleType[]> {
+    const response = await axios.get<RoleType[] | ApiResponse<RoleType[]>>(
       ROLE_ENDPOINT,
       {
         headers: {
@@ -42,17 +42,25 @@ export class RoleService {
         },
       }
     );
-    return response.data.data;
+    
+    // Handle both direct array and wrapped response
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else if (response.data && 'data' in response.data) {
+      return response.data.data;
+    }
+    
+    return [];
   }
 
   /**
    * Get all roles of an organization
    */
-  async getAllRolesOfOrg(
+ async getAllRolesOfOrg(
     orgId: string, 
     token: string
-  ): Promise<RolesResponse> {
-    const response = await axios.get<ApiResponse<RolesResponse>>(
+  ): Promise<RoleType[]> {
+    const response = await axios.get<RoleType[] | ApiResponse<RoleType[]>>(
       `${ROLE_ENDPOINT}/organization/${orgId}`,
       {
         headers: {
@@ -60,18 +68,26 @@ export class RoleService {
         },
       }
     );
-    return response.data.data;
+    
+    // Handle both direct array and wrapped response
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else if (response.data && 'data' in response.data) {
+      return response.data.data;
+    }
+    
+    return [];
   }
 
   /**
    * Get all roles of a workspace within an organization
    */
-  async getAllRolesOfAWorkspace(
+async getAllRolesOfAWorkspace(
     orgId: string,
     workspaceId: string,
     token: string
-  ): Promise<RolesResponse> {
-    const response = await axios.get<ApiResponse<RolesResponse>>(
+  ): Promise<RoleType[]> {
+    const response = await axios.get<RoleType[] | ApiResponse<RoleType[]>>(
       `${ROLE_ENDPOINT}/organization/${orgId}/workspace/${workspaceId}`,
       {
         headers: {
@@ -79,22 +95,48 @@ export class RoleService {
         },
       }
     );
-    return response.data.data;
+    
+    // Handle both direct array and wrapped response
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else if (response.data && 'data' in response.data) {
+      return response.data.data;
+    }
+    
+    return [];
   }
 
   /**
    * Find role by ID
    */
-  async findRoleById(id: string, token: string): Promise<RoleType> {
-    const response = await axios.get<ApiResponse<RoleType>>(
-      `${ROLE_ENDPOINT}/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+ async findRoleById(id: string, token: string): Promise<RoleType | null> {
+    try {
+      const response = await axios.get<RoleType | ApiResponse<RoleType>>(
+        `${ROLE_ENDPOINT}/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Handle both direct role object and wrapped response
+      if (response.data && typeof response.data === 'object') {
+        
+        if ('id' in response.data || '_id' in response.data) {
+          return response.data as RoleType;
+        }
+        // Check if it's wrapped in ApiResponse
+        else if ('data' in response.data && response.data.data) {
+          return response.data.data;
+        }
       }
-    );
-    return response.data.data;
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching role by ID:', error);
+      throw error;
+    }
   }
 
   /**

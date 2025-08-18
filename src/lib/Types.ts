@@ -236,7 +236,8 @@ export interface CustomerType {
 }
 
 export interface RoleType {
-  _id: string;
+  id:string;
+  _id?: string;
   orgId: string;
   roleName: string; //The name of the role
   roleDescription?: string; // The description of the role
