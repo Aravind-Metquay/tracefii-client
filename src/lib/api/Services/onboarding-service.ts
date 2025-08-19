@@ -12,13 +12,19 @@ export class OnboardingService {
    */
   async registerOrganizationAndUser(
     user: Omit<UserType, "_id">,
-    organization: Omit<OrganizationType, "_id">
+    organization: Omit<OrganizationType, "_id">,
+    token: string
   ): Promise<ApiResponse<{ user: UserType; organization: OrganizationType }>> {
     const response = await axios.post<ApiResponse<{ user: UserType; organization: OrganizationType }>>(
       ONBOARDING_ENDPOINT,
       {
         user,
         organization,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
     return response.data;

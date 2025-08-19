@@ -7,10 +7,12 @@ export const useRegisterOrgAndUser = () => {
     return createMutation({
         mutationFn: ({
             user,
-            organization
+            organization,
+            token = "",
         }: {
             user: Omit<UserType, "_id">,
             organization: Omit<OrganizationType, "_id">
-        }) => onboardingService.registerOrganizationAndUser(user, organization),
+            token: string,
+        }) => onboardingService.registerOrganizationAndUser(user, organization, token),
     });
 };
