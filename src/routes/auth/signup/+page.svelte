@@ -1,110 +1,116 @@
 <script lang="ts">
-	import Button from '@/components/ui/button/button.svelte';
-	import Input from '@/components/ui/input/input.svelte';
-	import { SquareCheck } from '@lucide/svelte';
-
-	let email = $state('');
-	let password = $state('');
-	let confirmPassword = $state('');
-	let passwordMatch = $state(false);
-	import { auth, signup } from '@/svelte-auth0';
-	import { goto } from '$app/navigation';
-
-	$effect(() => {
-		if (auth.isLoading) {
-			if (auth.isAuthenticated) {
-				goto('/dashboard');
-			}
-		}
-	});
+	import { SquareCheck, CheckCircle2 } from '@lucide/svelte';
+	let email = '';
+	let password = '';
+	let confirmPassword = '';
+	let passwordMatch = false;
 
 	const PasswordRules = [
 		{
-			rule: 'must contain at least 8 letters',
+			rule: 'At least 8 characters',
 			validate: (pwd: string) => pwd.length >= 8
 		},
 		{
-			rule: 'must contain atleast 1 capital letter',
+			rule: 'At least 1 capital letter (A-Z)',
 			validate: (pwd: string) => /[A-Z]/.test(pwd)
 		},
 		{
-			rule: 'must contain at least one number',
+			rule: 'At least 1 number (0-9)',
 			validate: (pwd: string) => /\d/.test(pwd)
 		},
 		{
-			rule: 'must contain at least one special character',
+			rule: 'At least 1 special character (!@#$..)',
 			validate: (pwd: string) => /[!@#$%^&*]/.test(pwd)
 		}
 	];
-	$effect(() => {
-		if (password.length > 0 && confirmPassword.length > 0) {
-			if (password == confirmPassword) {
-				passwordMatch = true;
-			} else {
-				passwordMatch = false;
-			}
-		}
-	});
 </script>
 
-<div class="flex h-full w-full items-center justify-center bg-gray-50">
-	<div class="flex h-full w-full items-center justify-center p-5 lg:w-1/2">
-		<div class="flex h-full w-[400px] flex-col justify-between gap-15">
-			<div class="mt-4 flex h-9 w-full justify-center">
-				<img src="/Metquay logo Black.png" alt="Logo" class="object-contain" />
-			</div>
-			<div class="flex flex-col gap-4">
-				<h1 class="text-center text-4xl font-semibold">Create an account</h1>
-				<p class="text-center text-xs text-gray-600">
-					Already have an account?{' '}
-					<span
-						class="cursor-pointer text-blue-500 italic underline"
-						onclick={() => goto('/auth/login')}
-					>
-						Log in
-					</span>
-				</p>
-				<div class="flex flex-col gap-4">
-					<Input class="text-xs" bind:value={email} placeholder="Enter your email address" />
-					<div>
-						<Input class="text-xs" bind:value={password} placeholder="Enter your password" />
-						<ul class="pt-1 text-xs text-gray-600">
-							{#each PasswordRules as { rule, validate }, index}
-								<li class="flex items-center text-xs text-gray-500">
-									<SquareCheck
-										size="14"
-										strokeWidth="2"
-										class={validate(password) ? 'mr-1 text-green-500' : 'mr-1 text-gray-500'}
-									/>
-									{rule}
-								</li>
-							{/each}
-						</ul>
-					</div>
-					<div class="flex flex-col">
-						<Input class="text-xs" bind:value={confirmPassword} placeholder="Confirm password" />
-						<span
-							class="text-xs text-red-500 transition-opacity duration-200"
-							class:opacity-100={!passwordMatch &&
-								password.length > 0 &&
-								confirmPassword.length > 0}
-							class:opacity-0={passwordMatch ||
-								password.length === 0 ||
-								confirmPassword.length === 0}
-						>
-							Passwords do not match.
-						</span>
-					</div>
+<div class="flex min-h-screen w-full items-center justify-center bg-slate-50 p-4">
+	<div class="w-full max-w-md rounded-xl bg-white p-6 shadow-sm sm:p-8">
+		<div class="flex flex-col items-center space-y-4 text-center">
+			<img src='/tracefii_logo.png' class="w-32"/>
 
-					<Button class="text-md w-full p-6" onclick={() => signup({ email, password })}
-						>Sign Up</Button
-					>
-				</div>
+			<div class="space-y-1">
+				<h1 class="text-2xl font-bold text-slate-800">Create your Tracefii account</h1>
+				<p class="text-sm text-slate-500">Make your calibration journey easier</p>
 			</div>
-			<p class="pb-10 text-center text-xs text-gray-500">
-				By creating an account, you agree to our{' '}
-				<a class="underline">Terms and Conditions</a>
-			</p>
 		</div>
+
+		<form class="mt-8 space-y-4">
+			<div>
+				<label for="email" class="mb-1 block text-sm font-medium text-slate-600">Email*</label>
+				<input
+					bind:value={email}
+					type="email"
+					id="email"
+					placeholder="Enter your email"
+					class="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+			</div>
+
+			<div>
+				<label for="password" class="mb-1 block text-sm font-medium text-slate-600">Password*</label>
+				<input
+					bind:value={password}
+					type="password"
+					id="password"
+					placeholder="Create a password"
+					class="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+			</div>
+
+            {#if password.length > 0}
+            <div class="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                {#each PasswordRules as { rule, validate }}
+                    <div class="flex items-center space-x-2">
+                        <SquareCheck class={validate(password) ? 'text-green-500' : 'text-slate-400'} size={16} />
+                        <span class={validate(password) ? 'text-slate-600' : 'text-slate-500'}>{rule}</span>
+                    </div>
+                {/each}
+            </div>
+            {/if}
+
+            <div>
+				<label for="confirmPassword" class="mb-1 block text-sm font-medium text-slate-600">Confirm Password*</label>
+				<input
+					bind:value={confirmPassword}
+					type="password"
+					id="confirmPassword"
+					placeholder="Confirm your password"
+					class="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				/>
+                {#if confirmPassword.length > 0 && password.length > 0}
+                <div class="mt-2 flex items-center space-x-2 text-xs">
+                    {#if passwordMatch}
+                        <CheckCircle2 class="text-green-500" size={16} />
+                        <span class="text-green-600">Passwords match!</span>
+                    {:else}
+                        <span class="text-red-500">Passwords do not match.</span>
+                    {/if}
+                </div>
+                {/if}
+			</div>
+
+			<p class="text-center text-xs text-slate-500">
+				By continuing, you agree to Tracefii'
+				<a href="#" class="font-medium text-blue-600 hover:underline">Terms of Service</a>
+				and
+				<a href="#" class="font-medium text-blue-600 hover:underline">Privacy Policy</a>
+			</p>
+
+			<div class="space-y-3 pt-2">
+				<button
+					type="submit"
+					class="cursor-pointer flex w-full justify-center rounded-md bg-gray-600 px-4 py-2 font-semibold text-white transition hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+				>
+					Get Started
+				</button>
+			</div>
+		</form>
+
+		<p class="mt-6 text-center text-sm text-slate-600">
+			Already have an account?
+			<a href="#" class="font-semibold text-blue-600 hover:underline">Sign in</a>
+		</p>
 	</div>
 </div>
