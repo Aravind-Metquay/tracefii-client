@@ -47,15 +47,12 @@ export class WorkspaceService {
 	 */
 
 	async getAllWorkspacesOfOrg(orgId: string, token: string): Promise<responseWorkspaces> {
-		const response = await axios.get<ApiResponse<responseWorkspaces>>(
-			`${WORKSPACE_ENDPOINT}/organization/${orgId}`,
-			{
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
+		const response = await axios.get<responseWorkspaces>(`${WORKSPACE_ENDPOINT}/${orgId}`, {
+			headers: {
+				Authorization: `Bearer ${token}`
 			}
-		);
-		return response.data.data;
+		});
+		return response.data;
 	}
 
 	/**
