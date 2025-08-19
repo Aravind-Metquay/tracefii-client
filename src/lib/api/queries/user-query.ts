@@ -28,11 +28,11 @@ export const useCreateNewUser = () => {
 };
 
 // Fetch all users the current token can access
-export const useGetAllUsers = (token: string, filter: string) => {
+export const useGetAllUsers = (token: string, filter: {},searchQuery?:string) => {
   return createQuery({
     queryKey: ['findAllUsers'],
     queryFn: async () => {
-      return await userService.findAllUsers(token!, filter);
+      return await userService.findAllUsers(token!, filter,searchQuery);
     },
     enabled: true,
     staleTime: 1000 * 60 * 5
@@ -40,11 +40,11 @@ export const useGetAllUsers = (token: string, filter: string) => {
 };
 
 // Fetch all users of a specific organization
-export const useGetAllUsersOfAnOrg = (orgId: string, token: string, filter: string) => {
+export const useGetAllUsersOfAnOrg = (orgId: string, token: string, filter: {},searchQuery?:string) => {
   return createQuery({
     queryKey: [orgId, filter],
     queryFn: async () => {
-      return await userService.findUsersOfAnOrg(orgId!, token!, filter);
+      return await userService.findUsersOfAnOrg(orgId!, token!, filter,searchQuery);
     },
     enabled: !!orgId,
     staleTime: 1000 * 60 * 5
