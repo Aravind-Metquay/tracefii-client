@@ -161,7 +161,7 @@ export interface UserType {
     role: MetquayIntergratedServiceProviderRoleType;
   };
   auth0?: TestAuth0; //Auth0 Details
-  attachments?: string[];
+  attachments?: FileWithContent;
   createdAt?: Date; //Created Date
   createdBy: string; //Created by which user
   modifiedAt?: Date; //Modified Date

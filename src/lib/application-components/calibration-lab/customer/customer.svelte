@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+	useCreateCustomerAttachments,
 		useCreateNewCustomer,
 		useDeleteCustomer,
 		useDeleteCustomersOfAnOrg,
@@ -9,7 +10,8 @@
 		useGetAllCustomersOfAWorkspace,
 		useGetAllCustomersOfOrg
 	} from '@/api/queries/customer-query';
-	import type { CustomerType } from '@/Types';
+	import { type CustomerType } from '@/Types';
+    import type { FileWithContent } from '@/Types';
 
 	let authToken = ' ';
 	let orgId = $state('67876a9d0c3956030771411a');
@@ -20,15 +22,21 @@
 	let createdBy = $state('Adithyatest@gmail.com');
 	let availableWorkspaces = $state(['testWorkspace']);
 	let createdWorkspace = $state('testWorkspace');
-	let contactNumber = $state('56');
-	let parentCompany = $state('');
-	let contactPerson = $state('');
-	let displayName = $state('');
-	let customerSpecificRequirement = $state('');
 	let modifiedAt = $state('');
-	let modifiedBy = $state('Adithya');
+	let modifiedBy = $state('Don');
 	let workspaceId = $state('testWorkspace');
-	let id = $state('68a2af4b30345e5d22f2d3bb');
+	let id = $state('68a40143bb4603e695545c15');
+	const attachment: FileWithContent = $state({
+  file: {
+    name: "document.txt",
+    size: 1280, // bytes
+    type: "text/plain",
+    lastModified: 1724025600000, // example epoch ms
+    key: "attachments/2025/08/document-001.txt"
+  },
+  content: "This is a sample plain text file content."
+});
+
 
 	const getCustomers = useGetAllCustomers(authToken);
 
@@ -91,7 +99,7 @@
 
 	const handleFindCustomerById = async () => {
 		try {
-			const { data } = await $findCustomerById.refetch(); 
+			const { data } = await $findCustomerById.refetch();
 
 			if (data) {
 				console.log('customer', data);
@@ -103,10 +111,10 @@
 		}
 	};
 
-    const editCustomer=useEditCustomer();
-    const handleEditCustomer=async()=>{
-        const newCustomerData: CustomerType = {
-            _id:id,
+	const editCustomer = useEditCustomer();
+	const handleEditCustomer = async () => {
+		const newCustomerData: CustomerType = {
+			_id: id,
 			orgId,
 			customerName,
 			customerEmail,
@@ -118,47 +126,57 @@
 			modifiedAt,
 			modifiedBy
 		};
-        try{
-            const result=await $editCustomer.mutateAsync({
-                token:authToken,
-                customer:newCustomerData
-            })
-            console.log("edited customer data",newCustomerData);
-            console.log("Customer edited Successfully",result)
-        }
-        catch(error)
-        {
-            console.log("Error editing Customer",error);
-        }
-    }
+		try {
+			const result = await $editCustomer.mutateAsync({
+				token: authToken,
+				customer: newCustomerData
+			});
+			console.log('edited customer data', newCustomerData);
+			console.log('Customer edited Successfully', result);
+		} catch (error) {
+			console.log('Error editing Customer', error);
+		}
+	};
 
-    const deleteCustomer=useDeleteCustomer();
-    const handleDeleteCustomer=async()=>{
-        try{
-            let result=await $deleteCustomer.mutateAsync({
-                id:id,
-                token:authToken
-            })
-            console.log("Deleted Customer",result);
-        }
-        catch(error){
-            console.log("Error Deleting Customer",error);
-        }
-    }
+	const deleteCustomer = useDeleteCustomer();
+	const handleDeleteCustomer = async () => {
+		try {
+			let result = await $deleteCustomer.mutateAsync({
+				id: id,
+				token: authToken
+			});
+			console.log('Deleted Customer', result);
+		} catch (error) {
+			console.log('Error Deleting Customer', error);
+		}
+	};
 
-    const deleteCustomersOfAnOrg=useDeleteCustomersOfAnOrg();
-    const handleDeleteCustomersOfAnOrg=async()=>{
-        try{
-            let result=await $deleteCustomersOfAnOrg.mutateAsync({
-                orgId:orgId,
-                token:authToken
-            })
-            console.log("Deleted Customers of an Org",result);
-        }
-        catch(error)
-        {
-            console.log("Error deleting Customers of an Org",error);
-        }
+	const deleteCustomersOfAnOrg = useDeleteCustomersOfAnOrg();
+	const handleDeleteCustomersOfAnOrg = async () => {
+		try {
+			let result = await $deleteCustomersOfAnOrg.mutateAsync({
+				orgId: orgId,
+				token: authToken
+			});
+			console.log('Deleted Customers of an Org', result);
+		} catch (error) {
+			console.log('Error deleting Customers of an Org', error);
+		}
+	};
+    const createCustomerAttachment=useCreateCustomerAttachments();
+    const handleCreateCustomerAttachments=async()=>{
+       try{
+        let result=await $createCustomerAttachment.mutateAsync({
+            key:attachment.file.key,
+            customerId:id,
+            attachment:attachment
+        })
+        console.log("Created Customer Attachment",result);
+       }
+       catch(error)
+       {
+        console.log("Error creating Customer attachment",error);
+       } 
     }
 </script>
 
@@ -178,6 +196,13 @@
 			Get All Customers of Org
 		</button>
 
+        <button
+			onclick={handleCreateCustomerAttachments}
+			class="rounded-lg bg-green-600 px-4 py-2 text-white shadow transition hover:bg-green-700"
+		>
+			Create Customer attachments
+		</button>
+
 		<button
 			onclick={handleGetAllCustomersOfWorkspace}
 			class="rounded-lg bg-purple-600 px-4 py-2 text-white shadow transition hover:bg-purple-700"
@@ -192,27 +217,26 @@
 			Get Customer by ID
 		</button>
 
-        <button
+		<button
 			onclick={handleEditCustomer}
 			class="rounded-lg bg-purple-600 px-4 py-2 text-white shadow transition hover:bg-purple-700"
 		>
 			Edit Customer
 		</button>
 
-        <button
+		<button
 			onclick={handleDeleteCustomer}
 			class="rounded-lg bg-red-600 px-4 py-2 text-white shadow transition hover:bg-purple-700"
 		>
 			Delete Customer
 		</button>
 
-        <button
+		<button
 			onclick={handleDeleteCustomersOfAnOrg}
 			class="rounded-lg bg-red-600 px-4 py-2 text-white shadow transition hover:bg-purple-700"
 		>
 			Delete Customers of an org
 		</button>
-		
 	</div>
 
 	{#if customers.length > 0}
