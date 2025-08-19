@@ -35,7 +35,11 @@ export class RoleService {
    * Get all roles
    */
   async getAllRoles(token: string, filter: Partial<RoleType>, search: string): Promise<RoleType[]> {
-    let params: any = { ...filter };
+    let params: any = { };
+
+    if (Object.keys(filter).length > 0) {
+      params.filter=JSON.stringify(filter);
+    }
     
     if (search && search.trim()) {
       params.searchQuery = search.trim();
@@ -70,7 +74,11 @@ export class RoleService {
     filter: Partial<RoleType>,
     search: string
   ): Promise<RoleType[]> {
-    let params: any = { ...filter };
+    let params: any = {  };
+
+    if (Object.keys(filter).length > 0) {
+      params.filter = JSON.stringify(filter);
+    }
     
     if (search && search.trim()) {
       params.searchQuery = search.trim();   
@@ -106,7 +114,11 @@ export class RoleService {
     filter: Partial<RoleType>,
     search: string
   ): Promise<RoleType[]> {
-    let params: any = { ...filter };
+    let params: any = {  };
+
+    if (Object.keys(filter).length > 0) {
+      params.filter = JSON.stringify(filter);
+    }
     
     if (search && search.trim()) {
       params.searchQuery = search.trim();
