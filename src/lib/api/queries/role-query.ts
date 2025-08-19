@@ -11,19 +11,19 @@ export const useCreateNewRole = () => {
 };
 
 //Get all roles
-export const useGetAllRoles = (token: string | undefined) => {
+export const useGetAllRoles = (token: string | undefined, filter: Partial<RoleType>, search: string) => {
 	return createQuery({
-		queryKey: ['roles'],
-		queryFn: () => roleService.getAllRoles(token!),
+		queryKey: ['roles', filter, search],
+		queryFn: () => roleService.getAllRoles(token!, filter, search),
 		enabled: !!token
 	});
 };
 
 //Get all roles of an organization
-export const useGetAllRolesOfOrg = (orgId: string | undefined, token: string | undefined) => {
+export const useGetAllRolesOfOrg = (orgId: string | undefined, token: string | undefined, filter: Partial<RoleType>, search: string) => {
 	return createQuery({
-		queryKey: ['roles', { orgId }],
-		queryFn: () => roleService.getAllRolesOfOrg(orgId!, token!),
+		queryKey: ['roles', { orgId }, filter, search],
+		queryFn: () => roleService.getAllRolesOfOrg(orgId!, token!, filter, search),
 		enabled: !!orgId && !!token
 	});
 };
@@ -32,11 +32,13 @@ export const useGetAllRolesOfOrg = (orgId: string | undefined, token: string | u
 export const useGetAllRolesOfAWorkspace = (
 	orgId: string | undefined,
 	workspaceId: string | undefined,
-	token: string | undefined
+	token: string | undefined,
+	filter: Partial<RoleType>,
+	search: string
 ) => {
 	return createQuery({
-		queryKey: ['roles', { orgId, workspaceId }],
-		queryFn: () => roleService.getAllRolesOfAWorkspace(orgId!, workspaceId!, token!),
+		queryKey: ['roles', { orgId, workspaceId }, filter, search],
+		queryFn: () => roleService.getAllRolesOfAWorkspace(orgId!, workspaceId!, token!, filter, search),
 		enabled: !!orgId && !!workspaceId && !!token
 	});
 };

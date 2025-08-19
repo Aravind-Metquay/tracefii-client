@@ -10,6 +10,7 @@ interface RolesResponse {
   roles: RoleType[];
   count : number
 }
+
 export class RoleService {
   /**
    * Create a new role
@@ -33,10 +34,17 @@ export class RoleService {
   /**
    * Get all roles
    */
-  async getAllRoles(token: string): Promise<RoleType[]> {
+  async getAllRoles(token: string, filter: Partial<RoleType>, search: string): Promise<RoleType[]> {
+    let params: any = { ...filter };
+    
+    if (search && search.trim()) {
+      params.searchQuery = search.trim();
+    }
+    
     const response = await axios.get<RoleType[] | ApiResponse<RoleType[]>>(
       ROLE_ENDPOINT,
       {
+        params,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -56,13 +64,22 @@ export class RoleService {
   /**
    * Get all roles of an organization
    */
- async getAllRolesOfOrg(
+  async getAllRolesOfOrg(
     orgId: string, 
-    token: string
+    token: string,
+    filter: Partial<RoleType>,
+    search: string
   ): Promise<RoleType[]> {
+    let params: any = { ...filter };
+    
+    if (search && search.trim()) {
+      params.searchQuery = search.trim();   
+    }
+    
     const response = await axios.get<RoleType[] | ApiResponse<RoleType[]>>(
       `${ROLE_ENDPOINT}/organization/${orgId}`,
       {
+        params,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -82,14 +99,23 @@ export class RoleService {
   /**
    * Get all roles of a workspace within an organization
    */
-async getAllRolesOfAWorkspace(
+  async getAllRolesOfAWorkspace(
     orgId: string,
     workspaceId: string,
-    token: string
+    token: string,
+    filter: Partial<RoleType>,
+    search: string
   ): Promise<RoleType[]> {
+    let params: any = { ...filter };
+    
+    if (search && search.trim()) {
+      params.searchQuery = search.trim();
+    }
+    
     const response = await axios.get<RoleType[] | ApiResponse<RoleType[]>>(
       `${ROLE_ENDPOINT}/organization/${orgId}/workspace/${workspaceId}`,
       {
+        params,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -109,7 +135,7 @@ async getAllRolesOfAWorkspace(
   /**
    * Find role by ID
    */
- async findRoleById(id: string, token: string): Promise<RoleType | null> {
+  async findRoleById(id: string, token: string): Promise<RoleType | null> {
     try {
       const response = await axios.get<RoleType | ApiResponse<RoleType>>(
         `${ROLE_ENDPOINT}/${id}`,
@@ -126,7 +152,7 @@ async getAllRolesOfAWorkspace(
         if ('id' in response.data || '_id' in response.data) {
           return response.data as RoleType;
         }
-        // Check if it's wrapped in ApiResponse
+      
         else if ('data' in response.data && response.data.data) {
           return response.data.data;
         }

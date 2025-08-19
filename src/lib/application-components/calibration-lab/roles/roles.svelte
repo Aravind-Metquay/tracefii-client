@@ -14,14 +14,16 @@
 
 	const token = 'dummy';
 
-	let orgId = $state('6894f63694a3d111ddf6e888');
+	let orgId = $state('6894f63694a3d111ddf6e999');
 	let workspaceId = $state('workspace1');
-	
 	let roleId = $state('68a2aa0d106d6d78a3801807');
+	
+	let filter = $state<Partial<RoleType>>({}); 
+	let search = $state(''); 
 
-	let newRoleData: Omit<RoleType, '_id' |'id'| 'createdAt' | 'modifiedAt'> = {
-		get orgId() { 
-			return orgId; 
+	let newRoleData: Omit<RoleType, '_id' | 'id' | 'createdAt' | 'modifiedAt'> = {
+		get orgId() {
+			return orgId;
 		},
 		roleName: 'New Test Role for geethika',
 		roleDescription: 'A role created from the testing purpose.',
@@ -40,9 +42,9 @@
 	const deleteRoleMutation = useDeleteRole();
 	const deleteOrgRolesMutation = useDeleteRolesOfAnOrg();
 
-	const allRolesQuery = useGetAllRoles(token);
-	const orgRolesQuery = $derived(useGetAllRolesOfOrg(orgId, token));
-	const workspaceRolesQuery = $derived(useGetAllRolesOfAWorkspace(orgId, workspaceId, token));
+	const allRolesQuery = $derived(useGetAllRoles(token, filter, search));
+	const orgRolesQuery = $derived(useGetAllRolesOfOrg(orgId, token, filter, search));
+	const workspaceRolesQuery = $derived(useGetAllRolesOfAWorkspace(orgId, workspaceId, token, filter, search));
 	const findRoleByIdQuery = $derived(useFindRoleById(roleId, token));
 
 	const handleCreateRole = (e: any) => {
@@ -52,10 +54,10 @@
 
 	const handleEditRole = (e: any) => {
 		e.preventDefault();
-		
+
 		const roleToUpdate = { _id: roleId, ...updateRoleData } as RoleType;
 		$editRoleMutation.mutate({ role: roleToUpdate, token });
-	}
+	};
 
 	const handleDeleteRole = () => {
 		if (confirm(`Are you sure you want to delete role ID: ${roleId}?`)) {
@@ -68,8 +70,6 @@
 			$deleteOrgRolesMutation.mutate({ orgId, token });
 		}
 	};
-
-
 
 	// Helper function to get roles array from response
 	const getRolesArray = (data: any) => {
@@ -109,6 +109,8 @@
 	<section>
 		<h2>2. Get All Roles</h2>
 		<p><code>GET /role</code></p>
+		<label>Filter (Role Name): <input type="text" bind:value={filter.roleName} placeholder="Filter by role name" /></label>
+		<label>Search: <input type="text" bind:value={search} placeholder="Search in all fields" /></label>
 		<button onclick={() => $allRolesQuery.refetch()} disabled={$allRolesQuery.isFetching}>
 			{#if $allRolesQuery.isFetching}Fetching...{:else}Fetch All Roles{/if}
 		</button>
@@ -117,7 +119,6 @@
 			{#if $allRolesQuery.data}
 				<p><b>Data:</b></p>
 				<pre>{JSON.stringify($allRolesQuery.data, null, 2)}</pre>
-			
 			{/if}
 			{#if $allRolesQuery.error}
 				<p class="error"><b>Error:</b></p>
@@ -131,6 +132,8 @@
 		<h2>3. Get All Roles of an Organization</h2>
 		<p><code>GET /role/organization/{orgId}</code></p>
 		<label>Organization ID: <input type="text" bind:value={orgId} /></label>
+		<label>Filter (Role Name): <input type="text" bind:value={filter.roleName} placeholder="Filter by role name" /></label>
+		<label>Search: <input type="text" bind:value={search} placeholder="Search in all fields" /></label>
 		<button onclick={() => $orgRolesQuery.refetch()} disabled={$orgRolesQuery.isFetching}>
 			{#if $orgRolesQuery.isFetching}Fetching...{:else}Fetch Org Roles{/if}
 		</button>
@@ -153,6 +156,8 @@
 		<p><code>GET /role/organization/{orgId}/workspace/{workspaceId}</code></p>
 		<label>Org ID: <input type="text" bind:value={orgId} /></label>
 		<label>Workspace ID: <input type="text" bind:value={workspaceId} /></label>
+		<label>Filter (Role Name): <input type="text" bind:value={filter.roleName} placeholder="Filter by role name" /></label>
+		<label>Search: <input type="text" bind:value={search} placeholder="Search in all fields" /></label>
 		<button onclick={() => $workspaceRolesQuery.refetch()} disabled={$workspaceRolesQuery.isFetching}>
 			{#if $workspaceRolesQuery.isFetching}Fetching...{:else}Fetch Workspace Roles{/if}
 		</button>
@@ -180,7 +185,7 @@
 
 		<div class="result-box">
 			<p><b>Status:</b> {$findRoleByIdQuery.status}</p>
-			
+
 			{#if $findRoleByIdQuery.isFetching}
 				<p>Fetching...</p>
 			{/if}
@@ -189,7 +194,7 @@
 				<p><b>Data:</b></p>
 				<pre>{JSON.stringify($findRoleByIdQuery.data, null, 2)}</pre>
 			{/if}
-			
+
 			{#if $findRoleByIdQuery.error}
 				<p class="error"><b>Error:</b></p>
 				<pre class="error">{JSON.stringify($findRoleByIdQuery.error, null, 2)}</pre>
@@ -203,7 +208,9 @@
 		<p><code>PATCH /role/{roleId}</code></p>
 		<form onsubmit={handleEditRole}>
 			<label>Role ID to Update: <input type="text" bind:value={roleId} /></label>
-			<label>New Description: <input type="text" bind:value={updateRoleData.roleDescription} /></label>
+			<label>
+				New Description: <input type="text" bind:value={updateRoleData.roleDescription} />
+			</label>
 			<button type="submit" disabled={$editRoleMutation.isPending}>
 				{#if $editRoleMutation.isPending}Updating...{:else}Update Role{/if}
 			</button>
@@ -247,7 +254,11 @@
 		<h2>8. Delete All Roles of an Organization</h2>
 		<p><code>DELETE /role/organization/{orgId}</code></p>
 		<label>Org ID to Clear: <input type="text" bind:value={orgId} /></label>
-		<button class="danger" onclick={handleDeleteOrgRoles} disabled={$deleteOrgRolesMutation.isPending}>
+		<button
+			class="danger"
+			onclick={handleDeleteOrgRoles}
+			disabled={$deleteOrgRolesMutation.isPending}
+		>
 			{#if $deleteOrgRolesMutation.isPending}Deleting...{:else}Delete All Org Roles{/if}
 		</button>
 		<div class="result-box">
@@ -265,74 +276,75 @@
 </main>
 
 <style>
-	.container {
-		font-family: sans-serif;
-		max-width: 800px;
-		margin: 2rem auto;
-		padding: 1rem;
-		border: 1px solid #ddd;
-		border-radius: 8px;
-	}
-	section {
-		margin-bottom: 2rem;
-		padding: 1rem;
-		border: 1px solid #eee;
-		border-radius: 4px;
-	}
-	hr {
-		border: 0;
-		height: 1px;
-		background-color: #eee;
-		margin: 2rem 0;
-	}
-	label {
-		display: block;
-		margin-bottom: 0.5rem;
-	}
-	input {
-		width: 100%;
-		padding: 8px;
-		box-sizing: border-box;
-		margin-bottom: 1rem;
-	}
-	button {
-		padding: 10px 15px;
-		border: none;
-		background-color: #007bff;
-		color: white;
-		border-radius: 4px;
-		cursor: pointer;
-		margin-right: 0.5rem;
-	}
-	button:disabled {
-		background-color: #ccc;
-		cursor: not-allowed;
-	}
-	button.danger {
-		background-color: #dc3545;
-	}
-	
-	
-	.result-box {
-		margin-top: 1rem;
-		padding: 1rem;
-		background-color: #f9f9f9;
-		border-radius: 4px;
-		border: 1px solid #e9e9e9;
-	}
-	pre {
-		background-color: #333;
-		color: #fff;
-		padding: 1rem;
-		border-radius: 4px;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-	}
-	.error {
-		color: #dc3545;
-	}
-	pre.error {
-		background-color: #ffcccc;
-		color: #333;
-	}
+
+.container {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 2rem 0;
+}
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    margin-bottom: 1rem;
+}
+button {
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+button.danger {
+    background-color: #dc3545;
+}
+
+
+.result-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border: 1px solid #e9e9e9;
+}
+pre {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.error {
+    color: #dc3545;
+}
+pre.error {
+    background-color: #ffcccc;
+    color: #333;
+}
 </style>
