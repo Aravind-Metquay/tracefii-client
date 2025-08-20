@@ -7,7 +7,7 @@
 		useDeleteWorkspace,
 		useDeleteWorkspacesofOrg
 	} from '@/api/queries/workspace-query';
-	import type { WorkspaceType } from '@/Types';
+	import type { WorkspaceType, WorkspaceQueryParams } from '@/Types';
 
 	let authToken: string = 'your-actual-jwt-token-here';
 
@@ -18,6 +18,28 @@
 	let name = $state('testUser');
 	let selectedWorkspaceId = $state('');
 	let orgIdForFetch = $state('6858fc200f95cc2a2101ac11');
+
+	// Query parameters for pagination, search, etc.
+	let queryParams = $state<WorkspaceQueryParams>({
+		page: 1,
+		limit: 10,
+		searchQuery: '',
+		sortOrder: 'desc',
+		sortBy: 'createdAt',
+		filter: { modifiedBy: 'super' }
+	});
+
+	let orgQueryParams = $state<WorkspaceQueryParams>({
+		page: 1,
+		limit: 10,
+		searchQuery: '',
+		sortOrder: 'desc',
+		sortBy: 'createdAt',
+		filter: {}
+	});
+
+	let filterJson = $state('{}');
+	let orgFilterJson = $state('{}');
 
 	// UI state
 	let activeTab = $state('view');
@@ -33,6 +55,24 @@
 		setTimeout(() => {
 			showNotification = false;
 		}, 3000);
+	};
+
+	const handleFilterChange = () => {
+		try {
+			queryParams.filter = JSON.parse(filterJson);
+			handleGetWorkspace();
+		} catch (error) {
+			showNotificationMessage('Invalid filter JSON', 'error');
+		}
+	};
+
+	const handleOrgFilterChange = () => {
+		try {
+			orgQueryParams.filter = JSON.parse(orgFilterJson);
+			handleGetWorkspacesOfOrg();
+		} catch (error) {
+			showNotificationMessage('Invalid filter JSON', 'error');
+		}
 	};
 
 	const createNewWorkspace = useCreateNewWorkspace();
@@ -52,23 +92,30 @@
 			});
 			showNotificationMessage('Workspace created successfully!', 'success');
 			$getAllWorkspace.refetch();
-			activeTab = 'view'; // Switch to view tab to see the new workspace
+			activeTab = 'view';
 		} catch (error) {
 			showNotificationMessage('Unable to create workspace', 'error');
 			console.error('Unable to create a workspace', error);
 		}
 	};
 
-	const getAllWorkspace = useGetAllWorkspaces(authToken);
-	const getData = $getAllWorkspace.data;
-
-	const getAllWorkspacesOfOrg = $derived(useGetAllWorkspacesOfOrg(orgIdForFetch, authToken));
-	const getOrgData = $getAllWorkspacesOfOrg.data;
+	// Create reactive queries that update when parameters change
+	let getAllWorkspace = useGetAllWorkspaces(authToken, queryParams);
 
 	const handleGetWorkspace = async () => {
 		try {
-			$getAllWorkspace.refetch();
-			console.log('Already fetched', getData);
+			const queryString = new URLSearchParams({
+				page: (queryParams.page || 1).toString(),
+				limit: (queryParams.limit || 5).toString(),
+				searchQuery: queryParams.searchQuery || '',
+				sortOrder: queryParams.sortOrder || 'desc',
+				sortBy: queryParams.sortBy || 'createdAt',
+				filter: JSON.stringify(queryParams.filter || {})
+			}).toString();
+			const url = `http://localhost:3000/workspace?${queryString}`;
+			console.log('Fetching workspaces with URL:', url);
+			await $getAllWorkspace.refetch();
+			console.log('Fetched workspaces:', $getAllWorkspace.data);
 			showNotificationMessage('Workspaces refreshed successfully!', 'success');
 		} catch (error) {
 			showNotificationMessage('Error fetching workspaces', 'error');
@@ -76,11 +123,25 @@
 		}
 	};
 
+	// Create reactive query for organization workspaces
+	let getAllWorkspacesOfOrg = $derived(
+		useGetAllWorkspacesOfOrg(orgIdForFetch, authToken, orgQueryParams)
+	);
+	let getOrgData = $derived($getAllWorkspacesOfOrg.data);
 	const handleGetWorkspacesOfOrg = async () => {
 		try {
+			const queryString = new URLSearchParams({
+				page: (orgQueryParams.page || 1).toString(),
+				limit: (orgQueryParams.limit || 5).toString(),
+				searchQuery: orgQueryParams.searchQuery || '',
+				sortOrder: orgQueryParams.sortOrder || 'desc',
+				sortBy: orgQueryParams.sortBy || 'createdAt',
+				filter: JSON.stringify(orgQueryParams.filter || {})
+			}).toString();
+			const url = `http://localhost:3000/workspace/${orgIdForFetch}?${queryString}`;
+			console.log('Fetching org workspaces with URL:', url);
 			await $getAllWorkspacesOfOrg.refetch();
-			console.log('Org workspaces fetched for:', orgIdForFetch);
-			console.log('Fetched Data : ', getOrgData);
+			console.log('Fetched org workspaces:', getOrgData);
 			showNotificationMessage('Organization workspaces refreshed successfully!', 'success');
 		} catch (error) {
 			showNotificationMessage('Error fetching organization workspaces', 'error');
@@ -111,12 +172,13 @@
 			});
 			showNotificationMessage('Workspace updated successfully!', 'success');
 			$getAllWorkspace.refetch();
-			activeTab = 'view'; // Switch to view tab to see the updated workspace
+			activeTab = 'view';
 		} catch (error) {
 			showNotificationMessage('Unable to edit workspace', 'error');
 			console.log(`Unable to edit the workspace of ${selectedWorkspaceId}`, error);
 		}
 	};
+
 	const deleteWorkspace = useDeleteWorkspace();
 	const handleDeleteWorkspace = async () => {
 		if (!selectedWorkspaceId) {
@@ -136,8 +198,8 @@
 			});
 			showNotificationMessage('Workspace deleted successfully!', 'success');
 			$getAllWorkspace.refetch();
-			selectedWorkspaceId = ''; // Clear selection
-			activeTab = 'view'; // Switch to view tab
+			selectedWorkspaceId = '';
+			activeTab = 'view';
 		} catch (error) {
 			showNotificationMessage('Unable to delete workspace', 'error');
 			console.log(`Unable to delete the workspace of ${selectedWorkspaceId}`, error);
@@ -163,14 +225,13 @@
 			});
 			showNotificationMessage('All organization workspaces deleted successfully!', 'success');
 			$getAllWorkspace.refetch();
-			activeTab = 'view'; // Switch to view tab
+			activeTab = 'view';
 		} catch (error) {
 			showNotificationMessage('Unable to delete organization workspaces', 'error');
 			console.error('Unable to delete the workspaces of an ORG', error);
 		}
 	};
 
-	// Helper function to select workspace for editing
 	const selectWorkspaceForEdit = (workspace: any) => {
 		selectedWorkspaceId = workspace._id || workspace.id;
 		orgId = workspace.orgId;
@@ -181,7 +242,6 @@
 		showNotificationMessage('Workspace selected for editing', 'info');
 	};
 
-	// Function to fetch workspace details by ID
 	const fetchWorkspaceDetails = async () => {
 		if (!selectedWorkspaceId) {
 			showNotificationMessage('Please enter a workspace ID', 'error');
@@ -189,7 +249,6 @@
 		}
 
 		try {
-			// Find the workspace in the current data
 			const allWorkspaces = Array.isArray($getAllWorkspace.data)
 				? $getAllWorkspace.data
 				: $getAllWorkspace.data?.workspaces || [];
@@ -205,7 +264,6 @@
 				name = workspace.createdBy;
 				showNotificationMessage('Workspace details loaded successfully!', 'success');
 			} else {
-				// If not found in current data, refetch all workspaces
 				await $getAllWorkspace.refetch();
 				const refreshedWorkspaces = Array.isArray($getAllWorkspace.data)
 					? $getAllWorkspace.data
@@ -231,32 +289,42 @@
 		}
 	};
 
-	// Function to clear edit form
 	const clearEditForm = () => {
 		selectedWorkspaceId = '';
-		orgId = '6858fc200f95cc2a2101ac11'; // Reset to default
+		orgId = '6858fc200f95cc2a2101ac11';
 		workSpaceName = '';
 		workSpaceCode = '';
-		name = 'testUser'; // Reset to default
+		name = 'testUser';
 		showNotificationMessage('Edit form cleared', 'info');
 	};
 
-	// Handle workspace ID input changes
 	const handleWorkspaceIdInput = (event: Event) => {
 		const target = event.target as HTMLInputElement;
 		selectedWorkspaceId = target.value;
+	};
+
+	const handlePageChange = (newPage: number, isOrgQuery = false) => {
+		if (isOrgQuery) {
+			orgQueryParams.page = newPage;
+			handleGetWorkspacesOfOrg();
+		} else {
+			queryParams.page = newPage;
+			handleGetWorkspace();
+		}
+	};
+
+	const getTotalPages = (totalCount: number, limit: number) => {
+		return Math.ceil(totalCount / limit);
 	};
 </script>
 
 <div class="min-h-screen bg-gray-50 p-6">
 	<div class="mx-auto max-w-6xl">
-		<!-- Header -->
 		<div class="mb-8">
 			<h1 class="text-3xl font-bold text-gray-900">Workspace Management</h1>
 			<p class="mt-2 text-gray-600">Manage your organization's workspaces</p>
 		</div>
 
-		<!-- Notification -->
 		{#if showNotification}
 			<div
 				class="mb-6 rounded-lg border-l-4 p-4 {notificationType === 'success'
@@ -269,7 +337,6 @@
 			</div>
 		{/if}
 
-		<!-- Tab Navigation -->
 		<div class="mb-6">
 			<nav class="flex space-x-8" aria-label="Tabs">
 				<button
@@ -321,9 +388,7 @@
 			</nav>
 		</div>
 
-		<!-- Tab Content -->
 		<div class="rounded-lg bg-white shadow">
-			<!-- View Workspaces Tab -->
 			{#if activeTab === 'view'}
 				<div class="p-6">
 					<div class="mb-4 flex items-center justify-between">
@@ -334,6 +399,70 @@
 						>
 							Refresh
 						</button>
+					</div>
+
+					<div class="mb-6 rounded-lg border border-gray-200 p-4">
+						<div class="grid gap-4 md:grid-cols-4">
+							<div>
+								<label for="searchInput" class="block text-sm font-medium text-gray-700"
+									>Search Workspaces</label
+								>
+								<input
+									id="searchInput"
+									type="text"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									placeholder="Search by name or code..."
+									bind:value={queryParams.searchQuery}
+									oninput={() => handleGetWorkspace()}
+								/>
+							</div>
+							<div>
+								<label for="limitSelect" class="block text-sm font-medium text-gray-700"
+									>Items per page</label
+								>
+								<select
+									id="limitSelect"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									bind:value={queryParams.limit}
+									onchange={() => handleGetWorkspace()}
+								>
+									<option value={5}>5</option>
+									<option value={10}>10</option>
+									<option value={20}>20</option>
+									<option value={50}>50</option>
+								</select>
+							</div>
+							<div>
+								<label for="sortSelect" class="block text-sm font-medium text-gray-700"
+									>Sort Order</label
+								>
+								<select
+									id="sortSelect"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									bind:value={queryParams.sortOrder}
+									onchange={() => handleGetWorkspace()}
+								>
+									<option value="asc">Ascending</option>
+									<option value="desc">Descending</option>
+								</select>
+							</div>
+							<div>
+								<label for="sortBySelect" class="block text-sm font-medium text-gray-700"
+									>Sort By</label
+								>
+								<select
+									id="sortBySelect"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									bind:value={queryParams.sortBy}
+									onchange={() => handleGetWorkspace()}
+								>
+									<option value="workspaceName">Workspace Name</option>
+									<option value="workspaceCode">Workspace Code</option>
+									<option value="createdAt">Created At</option>
+									<option value="modifiedAt">Modified At</option>
+								</select>
+							</div>
+						</div>
 					</div>
 
 					{#if $getAllWorkspace.isLoading}
@@ -352,7 +481,6 @@
 							</div>
 						</div>
 					{:else if $getAllWorkspace.data}
-						<!-- Debug info - remove this after fixing -->
 						<div class="mb-4 rounded bg-gray-100 p-4 text-sm">
 							<p><strong>Debug - Data structure:</strong></p>
 							<pre>{JSON.stringify($getAllWorkspace.data, null, 2)}</pre>
@@ -408,11 +536,44 @@
 								</div>
 							{/if}
 						</div>
+
+						{#if $getAllWorkspace.data && $getAllWorkspace.data.count}
+							{@const totalPages = getTotalPages(
+								$getAllWorkspace.data.count,
+								queryParams.limit || 10
+							)}
+							{#if totalPages > 1}
+								<div class="mt-6 flex items-center justify-between">
+									<div class="text-sm text-gray-700">
+										Showing page {queryParams.page || 1} of {totalPages}
+										({$getAllWorkspace.data.count} total workspaces)
+									</div>
+									<div class="flex space-x-2">
+										<button
+											class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+											onclick={() => handlePageChange((queryParams.page || 1) - 1)}
+											disabled={(queryParams.page || 1) <= 1}
+										>
+											Previous
+										</button>
+										<span class="flex items-center px-3 py-2 text-sm text-gray-700">
+											Page {queryParams.page || 1}
+										</span>
+										<button
+											class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+											onclick={() => handlePageChange((queryParams.page || 1) + 1)}
+											disabled={(queryParams.page || 1) >= totalPages}
+										>
+											Next
+										</button>
+									</div>
+								</div>
+							{/if}
+						{/if}
 					{/if}
 				</div>
 			{/if}
 
-			<!-- View Organization Workspaces Tab -->
 			{#if activeTab === 'viewOrg'}
 				<div class="p-6">
 					<div class="mb-4 flex items-center justify-between">
@@ -437,6 +598,70 @@
 						</div>
 					</div>
 
+					<div class="mb-6 rounded-lg border border-gray-200 p-4">
+						<div class="grid gap-4 md:grid-cols-4">
+							<div>
+								<label for="orgSearchInput" class="block text-sm font-medium text-gray-700"
+									>Search Workspaces</label
+								>
+								<input
+									id="orgSearchInput"
+									type="text"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									placeholder="Search by name or code..."
+									bind:value={orgQueryParams.searchQuery}
+									oninput={() => handleGetWorkspacesOfOrg()}
+								/>
+							</div>
+							<div>
+								<label for="orgLimitSelect" class="block text-sm font-medium text-gray-700"
+									>Items per page</label
+								>
+								<select
+									id="orgLimitSelect"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									bind:value={orgQueryParams.limit}
+									onchange={() => handleGetWorkspacesOfOrg()}
+								>
+									<option value={5}>5</option>
+									<option value={10}>10</option>
+									<option value={20}>20</option>
+									<option value={50}>50</option>
+								</select>
+							</div>
+							<div>
+								<label for="orgSortSelect" class="block text-sm font-medium text-gray-700"
+									>Sort Order</label
+								>
+								<select
+									id="orgSortSelect"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									bind:value={orgQueryParams.sortOrder}
+									onchange={() => handleGetWorkspacesOfOrg()}
+								>
+									<option value="asc">Ascending</option>
+									<option value="desc">Descending</option>
+								</select>
+							</div>
+							<div>
+								<label for="orgSortBySelect" class="block text-sm font-medium text-gray-700"
+									>Sort By</label
+								>
+								<select
+									id="orgSortBySelect"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+									bind:value={orgQueryParams.sortBy}
+									onchange={() => handleGetWorkspacesOfOrg()}
+								>
+									<option value="workspaceName">Workspace Name</option>
+									<option value="workspaceCode">Workspace Code</option>
+									<option value="createdAt">Created At</option>
+									<option value="modifiedAt">Modified At</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
 					{#if $getAllWorkspacesOfOrg.isLoading}
 						<div class="flex items-center justify-center py-12">
 							<div class="text-center">
@@ -454,7 +679,6 @@
 							</div>
 						</div>
 					{:else if $getAllWorkspacesOfOrg.data}
-						<!-- Debug info for org workspaces -->
 						<div class="mb-4 rounded bg-gray-100 p-4 text-sm">
 							<p><strong>Debug - Org Data structure:</strong></p>
 							<pre>{JSON.stringify($getAllWorkspacesOfOrg.data, null, 2)}</pre>
@@ -518,10 +742,43 @@
 							</p>
 						</div>
 					{/if}
+
+					{#if $getAllWorkspacesOfOrg.data && $getAllWorkspacesOfOrg.data.count}
+						{@const totalOrgPages = getTotalPages(
+							$getAllWorkspacesOfOrg.data.count,
+							orgQueryParams.limit || 10
+						)}
+						{#if totalOrgPages > 1}
+							<div class="mt-6 flex items-center justify-between">
+								<div class="text-sm text-gray-700">
+									Showing page {orgQueryParams.page || 1} of {totalOrgPages}
+									({$getAllWorkspacesOfOrg.data.count} total workspaces)
+								</div>
+								<div class="flex space-x-2">
+									<button
+										class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+										onclick={() => handlePageChange((orgQueryParams.page || 1) - 1, true)}
+										disabled={(orgQueryParams.page || 1) <= 1}
+									>
+										Previous
+									</button>
+									<span class="flex items-center px-3 py-2 text-sm text-gray-700">
+										Page {orgQueryParams.page || 1}
+									</span>
+									<button
+										class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+										onclick={() => handlePageChange((orgQueryParams.page || 1) + 1, true)}
+										disabled={(orgQueryParams.page || 1) >= totalOrgPages}
+									>
+										Next
+									</button>
+								</div>
+							</div>
+						{/if}
+					{/if}
 				</div>
 			{/if}
 
-			<!-- Create Workspace Tab -->
 			{#if activeTab === 'create'}
 				<div class="p-6">
 					<h2 class="mb-6 text-xl font-semibold text-gray-900">Create New Workspace</h2>
@@ -589,12 +846,9 @@
 				</div>
 			{/if}
 
-			<!-- Edit Workspace Tab -->
 			{#if activeTab === 'edit'}
 				<div class="p-6">
 					<h2 class="mb-6 text-xl font-semibold text-gray-900">Edit Workspace</h2>
-
-					<!-- Debug info for edit tab -->
 					<div class="mb-4 rounded bg-blue-50 p-3 text-sm">
 						<p><strong>Debug - Edit State:</strong></p>
 						<p>Selected ID: {selectedWorkspaceId || 'None'}</p>
@@ -603,7 +857,6 @@
 						<p>Workspace Code: {workSpaceCode}</p>
 					</div>
 
-					<!-- Workspace ID Input Section -->
 					<div class="mb-6 rounded-lg border border-gray-200 p-4">
 						<h3 class="mb-4 text-lg font-medium text-gray-900">Find Workspace to Edit</h3>
 						<div class="flex gap-4">
@@ -633,7 +886,6 @@
 						</div>
 					</div>
 
-					<!-- Edit Form -->
 					{#if selectedWorkspaceId && (workSpaceName || orgId)}
 						<form class="space-y-6" onsubmit={handleEditWorkspace}>
 							<div class="grid gap-6 md:grid-cols-2">
@@ -717,12 +969,10 @@
 				</div>
 			{/if}
 
-			<!-- Delete Operations Tab -->
 			{#if activeTab === 'delete'}
 				<div class="p-6">
 					<h2 class="mb-6 text-xl font-semibold text-gray-900">Delete Operations</h2>
 					<div class="space-y-8">
-						<!-- Delete Single Workspace -->
 						<div class="rounded-lg border border-red-200 p-4">
 							<h3 class="mb-4 text-lg font-medium text-red-900">Delete Single Workspace</h3>
 							<div class="mb-4">
@@ -746,7 +996,6 @@
 							</button>
 						</div>
 
-						<!-- Delete All Workspaces of Organization -->
 						<div class="rounded-lg border border-red-300 p-4">
 							<h3 class="mb-4 text-lg font-medium text-red-900">
 								Delete All Organization Workspaces

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { WorkspaceType, ApiResponse } from '@/Types';
+import type { WorkspaceType, ApiResponse, WorkspaceQueryParams } from '@/Types';
 import { env } from '$env/dynamic/public';
 
 // Constants
@@ -33,10 +33,20 @@ export class WorkspaceService {
 	 * Get all workspaces
 	 */
 
-	async getAllWorkspaces(token: string): Promise<responseWorkspaces> {
+	async getAllWorkspaces(
+		token: string,
+		params?: WorkspaceQueryParams
+	): Promise<responseWorkspaces> {
 		const response = await axios.get<responseWorkspaces>(WORKSPACE_ENDPOINT, {
 			headers: {
 				Authorization: `Bearer ${token}`
+			},
+			params: {
+				page: params?.page,
+				limit: params?.limit,
+				search: params?.searchQuery,
+				sort: params?.sortOrder,
+				filter: JSON.stringify(params?.filter)
 			}
 		});
 		return response.data;
@@ -46,10 +56,21 @@ export class WorkspaceService {
 	 * Get all workspaces of an organization
 	 */
 
-	async getAllWorkspacesOfOrg(orgId: string, token: string): Promise<responseWorkspaces> {
+	async getAllWorkspacesOfOrg(
+		orgId: string,
+		token: string,
+		params?: WorkspaceQueryParams
+	): Promise<responseWorkspaces> {
 		const response = await axios.get<responseWorkspaces>(`${WORKSPACE_ENDPOINT}/${orgId}`, {
 			headers: {
 				Authorization: `Bearer ${token}`
+			},
+			params: {
+				page: params?.page,
+				limit: params?.limit,
+				search: params?.searchQuery,
+				sort: params?.sortOrder,
+				filter: JSON.stringify(params?.filter)
 			}
 		});
 		return response.data;

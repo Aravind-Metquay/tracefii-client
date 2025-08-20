@@ -1,4 +1,4 @@
-import type { WorkspaceType } from '@/Types';
+import type { WorkspaceQueryParams, WorkspaceType } from '@/Types';
 import { workspaceService } from '../Services/workspace-service';
 import { createMutation, createQuery } from '@tanstack/svelte-query';
 
@@ -16,20 +16,24 @@ export const useCreateNewWorkspace = () => {
 };
 
 // Fetch all workspaces (for the current user/session)
-export const useGetAllWorkspaces = (token: string | undefined) => {
+export const useGetAllWorkspaces = (token: string | undefined, params?: WorkspaceQueryParams) => {
 	return createQuery({
-		queryKey: ['WorkSpaces'],
-		queryFn: async () => await workspaceService.getAllWorkspaces(token!),
+		queryKey: ['WorkSpaces', params],
+		queryFn: async () => await workspaceService.getAllWorkspaces(token!, params),
 		enabled: !!token,
 		staleTime: 1000 * 60 * 5
 	});
 };
 
 // Fetch all workspaces belonging to an organization
-export const useGetAllWorkspacesOfOrg = (orgId: string | undefined, token: string | undefined) => {
+export const useGetAllWorkspacesOfOrg = (
+	orgId: string | undefined,
+	token: string | undefined,
+	params?: WorkspaceQueryParams
+) => {
 	return createQuery({
-		queryKey: ['orgid', orgId],
-		queryFn: async () => await workspaceService.getAllWorkspacesOfOrg(orgId!, token!)
+		queryKey: ['orgid', orgId, params],
+		queryFn: async () => await workspaceService.getAllWorkspacesOfOrg(orgId!, token!, params)
 	});
 };
 
