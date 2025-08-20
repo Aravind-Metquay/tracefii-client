@@ -1,6 +1,7 @@
 import { createMutation, createQuery } from '@tanstack/svelte-query';
 import { organizationService } from '../Services/organization-service';
 import type { OrganizationType } from '@/Types';
+import type Organizations from '@/application-components/calibration-lab/organizations/organizations.svelte';
 
 //Create a new organization
 export const useCreateNewOrganization = () => {
@@ -23,10 +24,10 @@ export const useCreateNewOrganization = () => {
 
 //Get all organizations
 
-export const getAllOrganizations = (token: string, organizationType?: string, filter?: string) => {
+export const getAllOrganizations = (token: string, organizationType?: string, filter?: Partial<Organizations>, searchQuery?: string,) => {
 	return createQuery({
-		queryKey: ['allOrgs', token, organizationType, filter],
-		queryFn: () => organizationService.getAllOrganizations(token, organizationType, filter),
+		queryKey: ['allOrgs', token, organizationType, filter, searchQuery],
+		queryFn: () => organizationService.getAllOrganizations(token, organizationType, filter, searchQuery),
 		enabled: !!token
 	});
 };
