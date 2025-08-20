@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { OrganizationType, ApiResponse, Pagination } from '@/Types';
 import { env } from '$env/dynamic/public';
+import type Organizations from '@/application-components/calibration-lab/organizations/organizations.svelte';
 
 // Constants
 const API_BASE_URL = env.PUBLIC_BACKEND_API_URL;
@@ -36,15 +37,15 @@ export class OrganizationService {
   /**
    * Get all organizations
    */
-  async getAllOrganizations(token: string, organizationType?: string, filter?: string): Promise<allOrgType> {
+  async getAllOrganizations(token: string, organizationType?: string, filter?: Partial<Organizations>, searchQuery?: string): Promise<allOrgType> {
 
     const response = await axios.get<allOrgType>(
-      `${ORGANIZATION_ENDPOINT}/organizationType/`,
+      `${ORGANIZATION_ENDPOINT}/organizationType/${organizationType}`,
       {
         params:
         {
-          organizationType,
-          filter
+          filter,
+          searchQuery
         },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,7 +61,7 @@ export class OrganizationService {
   async findOrganizationById(id: string, token: string): Promise<ApiResponse<OrganizationType>> {
     console.log('Service: Finding organization by ID:', id);
     console.log('Service: API endpoint:', `${ORGANIZATION_ENDPOINT}/${id}`);
-    
+
     try {
       const response = await axios.get<ApiResponse<OrganizationType>>(
         `${ORGANIZATION_ENDPOINT}/${id}`,
