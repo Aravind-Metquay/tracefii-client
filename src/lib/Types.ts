@@ -134,19 +134,23 @@ export interface MetquayIntegratedAssetOwnerDetails extends MetquayUserData {
 	metquayToken: string;
 	isMetquayIntegrated: boolean;
 }
-export type MetquayIntergratedServiceProviderRoleType = 'Admin' | 'Lab Manager' | 'Technician';
+export type MetquayIntergratedServiceProviderRoleType =
+  | "Admin"
+  | "Lab Manager"
+  | "Technician";
+export type SystemRole =
+  | "Admin"
+  | "Asset Owner"
+  | "Service Provider"
+  | "Metquay Integrated Asset Owner"
+  | "Metquay Integrated Service Provider";
 export interface UserType {
 	_id: string;
 	orgId: string;
 	firstName: string; //First Name of the user
 	lastName?: string; //Last name of the user
 	emailId: string; //Email Id of the user
-	system_role:
-		| 'Admin'
-		| 'Asset Owner'
-		| 'Service Provider'
-		| 'Metquay Integrated Asset Owner'
-		| 'Metquay Integrated Service Provider';
+	system_role:SystemRole
 	contactNumber?: string; //Phone number of the user
 	serviceProviderDetails?: ServiceProviderDetails; //Service Provider Details
 	assetOwnerDetails?: AssetOwnerDetails; //Asset Owner Details
