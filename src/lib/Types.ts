@@ -233,16 +233,16 @@ export interface CustomerType {
 }
 
 export interface RoleType {
-  _id?: string;
-  orgId: string;
-  roleName: string; //The name of the role
-  roleDescription?: string; // The description of the role
-  availableWorkspaces: string[]; //The available workspaces of the role.
-  permissions: string[];
-  createdAt: Date; //Created Date
-  createdBy: string; //Created by which user
-  modifiedAt?: Date; //Modified Date
-  modifiedBy?: string; //Modified by which user
+	_id?: string;
+	orgId: string;
+	roleName: string; //The name of the role
+	roleDescription?: string; // The description of the role
+	availableWorkspaces: string[]; //The available workspaces of the role.
+	permissions: string[];
+	createdAt: Date; //Created Date
+	createdBy: string; //Created by which user
+	modifiedAt?: Date; //Modified Date
+	modifiedBy?: string; //Modified by which user
 }
 
 export interface OrganizationType {
