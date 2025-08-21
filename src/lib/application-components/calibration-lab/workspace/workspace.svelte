@@ -5,7 +5,7 @@
 	import { House } from '@lucide/svelte';
 
 	let authToken: string = 'your-actual-jwt-token-here';
-	let orgIdForFetch = $state('6858fc200f95cc2a2101a100'); // Test - 6858fc200f95cc2a2101ac11
+	let orgIdForFetch = $state('6858fc200f95cc2a2101ac11'); // Test - 6858fc200f95cc2a2101ac11
 	let orgQueryParams = $state<WorkspaceQueryParams>({
 		page: 1,
 		limit: 10,

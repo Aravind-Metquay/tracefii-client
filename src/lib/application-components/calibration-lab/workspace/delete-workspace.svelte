@@ -2,7 +2,7 @@
 	import { useDeleteWorkspace } from '@/api/queries/workspace-query';
 	import { Button } from '@/components/ui/button';
 
-	let { id, onWorkspaceUpdated } = $props();
+	let { id } = $props();
 
 	let authToken: string = 'your-actual-jwt-token-here';
 	let isOpen = $state(false);
@@ -15,8 +15,6 @@
 		try {
 			await $deleteWorkspace.mutateAsync({ id, token: authToken });
 			window.alert('Workspace deleted successfully');
-
-			onWorkspaceUpdated();
 			isOpen = false;
 		} catch (error) {
 			window.alert('Unable to delete workspace(s)');
@@ -28,7 +26,7 @@
 </script>
 
 <!-- Trigger button -->
-<Button color="danger" size="sm" variant="default" onclick={() => (isOpen = true)}>
+<Button class="border-1 border-black" size="sm" variant="default" onclick={() => (isOpen = true)}>
 	{'Delete'}
 </Button>
 
@@ -53,7 +51,7 @@
 					Cancel
 				</Button>
 				<Button color="danger" onclick={handleDelete} size="sm" disabled={isLoading}>
-					{isLoading ? 'Deleting...' : 'Deleted'}
+					{isLoading ? 'Deleting...' : 'Delete'}
 				</Button>
 			</div>
 		</div>

@@ -3,7 +3,7 @@
 	import { useEditWorkspace } from '@/api/queries/workspace-query';
 	import type { WorkspaceType } from '@/Types';
 
-	let { workspace, onWorkspaceUpdated } = $props();
+	let { workspace } = $props();
 
 	let authToken: string = 'your-actual-jwt-token-here';
 	let isOpen = $state(false);
@@ -24,7 +24,7 @@
 	async function handleSubmit() {
 		isLoading = true;
 		const updatedWorkspace: WorkspaceType = {
-			_id: workspace._id,
+			_id: workspace.id,
 			orgId,
 			workspaceName,
 			workspaceCode,
@@ -34,20 +34,25 @@
 			modifiedAt: new Date()
 		};
 		try {
+			window.alert('Pending. Edit needs to be done later')
 			await $editWorkspace.mutateAsync({ workspace: updatedWorkspace, token: authToken });
-			onWorkspaceUpdated();
 			window.alert('Workspace updated successfully');
 			isOpen = false;
 		} catch (error) {
 			window.alert('Unable to edit workspace');
-			console.error(`Unable to edit the workspace of ${workspace._id}`, error);
+			console.error(`Unable to edit the workspace of ${workspace.id}`, error);
 		} finally {
 			isLoading = false;
 		}
 	}
 </script>
 
-<Button size="sm" variant="default" onclick={() => (isOpen = true)}>Edit</Button>
+<Button
+	size="sm"
+	class="font-dm_sans border-1 border-black"
+	variant="ghost"
+	onclick={() => (isOpen = true)}>Edit</Button
+>
 
 {#if isOpen}
 	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

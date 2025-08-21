@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { useCreateNewWorkspace } from '@/api/queries/workspace-query';
 	import { Button } from '@/components/ui/button';
-	import { Input } from '@/components/ui/command';
+	import { Input } from '@/components/ui/input';
+
 	import type { WorkspaceType } from '@/Types';
 
-	let existingWorkspaces: WorkspaceType[] = [];
+	let { existingWorkspaces } = $props();
 
 	let authToken: string = 'your-actual-jwt-token-here';
 	let isOpen = $state(false);
@@ -19,9 +20,9 @@
 	function generateWorkspaceCode(name: string): string {
 		if (!name) return '';
 		const cleanName = name.replace(/[^a-zA-Z]/g, '').toUpperCase();
-		if (cleanName.length <= 3) return cleanName.padEnd(3, 'X');
+		if (cleanName.length <= 4) return cleanName.padEnd(4, 'X');
 		const positions: number[] = [];
-		while (positions.length < 3) {
+		while (positions.length < 4) {
 			const randomPos = Math.floor(Math.random() * cleanName.length);
 			if (!positions.includes(randomPos)) positions.push(randomPos);
 		}
@@ -32,7 +33,7 @@
 	function ensureUniqueCode(baseCode: string): string {
 		let finalCode = baseCode;
 		let counter = 1;
-		while (existingWorkspaces.some((ws) => ws.workspaceCode === finalCode)) {
+		while (existingWorkspaces.some((ws: WorkspaceType) => ws.workspaceCode === finalCode)) {
 			finalCode = `${baseCode}${counter}`;
 			counter++;
 		}
@@ -42,13 +43,13 @@
 	function validateWorkspace(): boolean {
 		if (
 			existingWorkspaces.some(
-				(ws) => ws.workspaceName.toLowerCase() === workspaceName.toLowerCase()
+				(ws: WorkspaceType) => ws.workspaceName.toLowerCase() === workspaceName.toLowerCase()
 			)
 		) {
 			window.alert('Workspace name already exists');
 			return false;
 		}
-		if (existingWorkspaces.some((ws) => ws.workspaceCode === workspaceCode)) {
+		if (existingWorkspaces.some((ws: WorkspaceType) => ws.workspaceCode === workspaceCode)) {
 			window.alert('Workspace code already exists');
 			return false;
 		}
@@ -95,10 +96,7 @@
 
 	{#if isOpen}
 		<!-- Backdrop -->
-		<div
-			class="fixed inset-0 z-40 flex items-center justify-center bg-black/50"
-			onclick={() => (isOpen = false)}
-		>
+		<div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
 			<!-- Modal Box -->
 			<div class="w-[400px] max-w-[90%] rounded-xl bg-white p-6 shadow-lg">
 				<!-- Header -->
@@ -119,7 +117,7 @@
 						placeholder="Auto-generated 3-character code"
 						bind:value={workspaceCode}
 						oninput={(e) => (workspaceCode = e.currentTarget.value.slice(0, 3).toUpperCase())}
-						maxlength={3}
+						maxlength={4}
 					/>
 				</div>
 
@@ -136,7 +134,10 @@
 					</Button>
 					<Button
 						color="primary"
-						onclick={handleSubmit}
+						onclick={() => {
+							handleSubmit();
+							isOpen = false;
+						}}
 						size="sm"
 						disabled={isLoading}
 						class="font-dm_sans"

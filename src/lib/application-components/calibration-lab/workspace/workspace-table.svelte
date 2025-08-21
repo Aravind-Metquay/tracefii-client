@@ -2,8 +2,7 @@
 	// @ts-ignore
 	import GridTable from '@/application-components/common/grid-table/grid-table.svelte';
 	import CreateWorkspaceModal from './create-workspace.svelte';
-	import EditWorkspaceModal from './edit-workspace.svelte';
-	import DeleteWorkspaceConfirm from './delete-workspace.svelte';
+	import EditDeleteButtons from './EditDeleteButtons.svelte';
 	import type { WorkspaceType } from '@/Types';
 	import { Input } from '@/components/ui/input';
 	import { Button } from '@/components/ui/button';
@@ -17,25 +16,17 @@
 		Search
 	} from '@lucide/svelte';
 
-	let {
-		workspaces,
-		totalCount,
-		page,
-		limit,
-		onPageChange,
-		onLimitChange,
-		onSearchChange,
-		onWorkspaceUpdated
-	} = $props<{
-		workspaces: WorkspaceType[];
-		totalCount: number;
-		page: number;
-		limit: number;
-		onPageChange: (page: number) => void;
-		onLimitChange: (limit: number) => void;
-		onSearchChange: (value: string) => void;
-		onWorkspaceUpdated: () => void;
-	}>();
+	let { workspaces, totalCount, page, limit, onPageChange, onLimitChange, onSearchChange } =
+		$props<{
+			workspaces: WorkspaceType[];
+			totalCount: number;
+			page: number;
+			limit: number;
+			onPageChange: (page: number) => void;
+			onLimitChange: (limit: number) => void;
+			onSearchChange: (value: string) => void;
+			onWorkspaceUpdated: () => void;
+		}>();
 
 	let filterValue = $state('');
 	let visibleColumns = $state(
@@ -52,7 +43,7 @@
 		{ name: 'Created At', id: 'createdAt', sortable: true, header: 'Created At' },
 		{ name: 'Modified By', id: 'modifiedBy', sortable: true, header: 'Modified By' },
 		{ name: 'Modified At', id: 'modifiedAt', sortable: true, header: 'Modified At' },
-		{ name: 'Actions', id: 'actions', header: 'Actions' }
+		{ name: 'Actions', id: 'actions', header: 'Actions', sortable: false, cell: EditDeleteButtons }
 	]);
 
 	$effect(() => {
@@ -170,14 +161,7 @@
 					{/if}
 				</div>
 
-				<!-- Add New Button -->
-				<Button
-					class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-					onclick={() => (showCreateModal = true)}
-				>
-					<Plus class="h-4 w-4" />
-					Add New
-				</Button>
+				<CreateWorkspaceModal existingWorkspaces={workspaces} />
 			</div>
 		</div>
 	</div>
@@ -253,11 +237,6 @@
 		</div>
 	</div>
 </div>
-
-<!-- Modals
-{#if showCreateModal}
-	<CreateWorkspaceModal onClose={() => (showCreateModal = false)} {onWorkspaceUpdated} />
-{/if} -->
 
 <style>
 	/* Custom scrollbar for table */
