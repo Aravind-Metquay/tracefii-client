@@ -1,5 +1,6 @@
 import auth0 from 'auth0-js';
 import type { Auth0Config, Auth0User, LoginCredentials, SignupCredentials } from './types';
+import { env } from '$env/dynamic/public';
 
 // #region --- Module-level State ---
 
@@ -59,6 +60,7 @@ function getUserInfo(accessToken: string): Promise<Auth0User> {
  * Handles the authentication result from Auth0, sets tokens, and updates state.
  * @param authResult The result object from an Auth0 authentication flow.
  */
+
 async function handleAuthResult(authResult: auth0.Auth0DecodedHash): Promise<void> {
 	try {
 		if (authResult.accessToken && authResult.idToken) {
@@ -67,9 +69,13 @@ async function handleAuthResult(authResult: auth0.Auth0DecodedHash): Promise<voi
 			localStorage.setItem('id_token', authResult.idToken);
 			localStorage.setItem('expires_at', expiresAt);
 
-			auth.user = await getUserInfo(authResult.accessToken);
+			const userInfo = await getUserInfo(authResult.accessToken);
+			auth.user = userInfo;
 			auth.isAuthenticated = true;
-			auth.error = null; // Clear any previous errors on success
+			auth.error = null;
+
+			// Cache user info for optimistic loading
+			localStorage.setItem('user_info', JSON.stringify(userInfo));
 		}
 	} catch (err) {
 		handleError(err);
@@ -119,7 +125,22 @@ function parseHash(): Promise<void> {
 export async function initAuth(authConfig: Auth0Config): Promise<void> {
 	config = authConfig;
 	auth0Client = new auth0.WebAuth(config);
-	auth.isLoading = true;
+
+	const accessToken = getAccessToken();
+	const storedUser = localStorage.getItem('user_info');
+
+	if (accessToken && storedUser) {
+		try {
+			auth.user = JSON.parse(storedUser);
+			auth.isAuthenticated = true;
+			auth.isLoading = false;
+		} catch (e) {
+			auth.isLoading = true;
+		}
+	} else {
+		auth.isLoading = true;
+	}
+
 	auth.error = null;
 
 	try {
@@ -178,7 +199,7 @@ export async function login(credentials: LoginCredentials): Promise<void> {
 	await new Promise<void>((resolve, reject) => {
 		auth0Client!.login(
 			{
-				realm: 'Username-Password-Authentication',
+				realm: env.PUBLIC_DEFAULT_PROVIDER,
 				email: credentials.email,
 				password: credentials.password
 			},
@@ -206,7 +227,7 @@ export async function signup(credentials: SignupCredentials): Promise<void> {
 		await new Promise<void>((resolve, reject) => {
 			auth0Client!.signup(
 				{
-					connection: 'Username-Password-Authentication',
+					connection: env.PUBLIC_DEFAULT_PROVIDER,
 					email: credentials.email,
 					password: credentials.password,
 					username: credentials.name
@@ -258,7 +279,7 @@ export async function sendResetPasswordEmail(email: string): Promise<string> {
 		return await new Promise<string>((resolve, reject) => {
 			auth0Client!.changePassword(
 				{
-					connection: 'Username-Password-Authentication',
+					connection: env.PUBLIC_DEFAULT_PROVIDER,
 					email: email
 				},
 				(err, resp) => {

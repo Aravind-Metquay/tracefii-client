@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { Repeat , Trash , GripVertical} from '@lucide/svelte';
-  import type { WorksheetManager } from '../store.svelte';
-  import type {Function} from '@/Types'
+  import { Trash , GripVertical} from '@lucide/svelte';
+  import type {Function , WorksheetManager} from '@/Types'
 
   let { fn , worksheetManager } : {fn : Function , worksheetManager : WorksheetManager} = $props();
 
@@ -34,12 +33,9 @@
     </span>
   {/if}
 
-  {#if fn.isRepeat}
-    <Repeat size="12" class="mr-2" />
-  {/if}
 
   <a
-    onclick={() => worksheetManager.removeFunction(fn.functionId)}
+    onclick={(e) => {e.stopPropagation(); worksheetManager.removeFunction(fn.functionId);}}
   >
     <Trash
       size="16"

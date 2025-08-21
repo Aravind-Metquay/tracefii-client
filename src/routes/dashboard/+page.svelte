@@ -1,14 +1,7 @@
-<script lang='ts'>
-	import { useUserWithOrg } from "@/api/queries/user-query";
-    import {auth} from '@/svelte-auth0'
+<script lang=ts>
+	import { getContext } from "svelte";
 
-    const userQuery = useUserWithOrg(auth.user?.email , '')
+    const authUser = getContext("auth")
+    console.log(authUser)
+    
 </script>
-
-{#if $userQuery.isLoading}
-    <p>Loading user data...</p>
-{:else if $userQuery.isError}
-    <p>Error loading data!</p>
-{:else if $userQuery.data}
-    <p>Welcome, {$userQuery.data.firstName}!</p>
-{/if}
