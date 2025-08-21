@@ -6,6 +6,17 @@ import { env } from '$env/dynamic/public';
 const API_BASE_URL = env.PUBLIC_BACKEND_API_URL;
 const ONBOARDING_ENDPOINT = `${API_BASE_URL}/onboarding`;
 
+interface OnboardingResponse {
+  mapping: {
+    mappingId: string,
+    orgId: string,
+    userId: string,
+    workspaceId: string,
+  },
+  success: boolean;
+  message?: string;
+  error?: string;
+}
 export class OnboardingService {
   /**
    * Register new organization and user
@@ -14,8 +25,8 @@ export class OnboardingService {
     user: Omit<UserType, "_id">,
     organization: Omit<OrganizationType, "_id">,
     token: string
-  ): Promise<ApiResponse<{ user: UserType; organization: OrganizationType }>> {
-    const response = await axios.post<ApiResponse<{ user: UserType; organization: OrganizationType }>>(
+  ): Promise<OnboardingResponse> {
+    const response = await axios.post<OnboardingResponse>(
       ONBOARDING_ENDPOINT,
       {
         user,
