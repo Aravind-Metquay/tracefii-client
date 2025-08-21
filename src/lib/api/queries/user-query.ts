@@ -2,6 +2,7 @@ import { createQuery, createMutation } from '@tanstack/svelte-query';
 import { userService } from '../Services/user-service';
 import type { UserType } from '@/Types';
 
+
 // Fetch a user's data along with their organization
 export const useUserWithOrg = (email: string | undefined, token: string | undefined) => {
   return createQuery({

@@ -138,6 +138,12 @@ export type MetquayIntergratedServiceProviderRoleType =
   | "Admin"
   | "Lab Manager"
   | "Technician";
+export type SystemRole =
+  | "Admin"
+  | "Asset Owner"
+  | "Service Provider"
+  | "Metquay Integrated Asset Owner"
+  | "Metquay Integrated Service Provider";
 export interface UserType {
   _id: string;
   orgId: string;
