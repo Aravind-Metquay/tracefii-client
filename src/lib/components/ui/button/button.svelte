@@ -1,83 +1,182 @@
-<script lang="ts" module>
-	import { cn, type WithElementRef } from "$lib/utils.js";
-	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
-	import { type VariantProps, tv } from "tailwind-variants";
-	
-
-	export const buttonVariants = tv({
-		base: "flex items-center justify-center gap-2 rounded-md text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer",
-		variants: {
-			variant: {
-				default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-				primary:"bg-primary text-primary-foreground hover:bg-[var(--primary-hover)] focus:ring-4 focus:ring-[var(--ring-primary)] focus:bg-primary ",
-				secondary: "bg-secondary text-secondary-foreground hover:bg-[var(--secondary-hover)] focus:ring-4 focus:ring-[var(--ring-secondary)]  ",
-				destructive:
-					"bg-destructive text-white hover:bg-[var(--destructive-hover)] focus:ring-4 focus:ring-[var(--ring-destructive)] focus:bg-destructive",
-				outline:
-					"bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border",
-				ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-				link: "text-primary underline-offset-4 hover:underline",
-			},	
-			size: {
-	            default: "min-h-[2.5rem] min-w-[6.875rem] py-[0.625rem] px-[1rem] border rounded-lg",
-	            sm: "min-h-[2.25rem] min-w-[6.625rem] py-[0.5rem] px-[0.875rem] border rounded-lg",
-	            lg: "min-h-[2.75rem] min-w-[7.8125rem] py-[0.625rem] px-[1.125rem] border rounded-lg",
-	            xl: "min-h-[3rem] min-w-[8.0625rem] py-[0.75rem] px-[1.25rem] border rounded-lg",
-	            icon: "size-9",
-             },
-		},
-		defaultVariants: {
-			variant: "default",
-			size: "default",
-		},
-	});
-
-	export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
-	export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
-
-	export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
-		WithElementRef<HTMLAnchorAttributes> & {
-			variant?: ButtonVariant;
-			size?: ButtonSize;
-		};
-</script>
-
 <script lang="ts">
-	let {
-		class: className,
-		variant = "default",
-		size = "default",
-		ref = $bindable(null),
-		href = undefined,
-		type = "button",
-		disabled,
-		children,
-		...restProps
-	}: ButtonProps = $props();
+  import type { Component, Snippet } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import type { HTMLButtonAttributes } from 'svelte/elements';
+
+  interface Props extends HTMLButtonAttributes {
+    buttonElement?: HTMLButtonElement;
+    onclick?: (evt: Event) => void;
+    class?: string;
+    shape?: 'circle' | 'square' | undefined;
+    size?: 'tiny' | 'small' | 'medium' | 'large';
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'warning';
+    iconPrefix?: Component | undefined;
+    iconSuffix?: Component | undefined;
+    rounded?: boolean;
+    loading?: boolean;
+    disabled?: boolean;
+    children: Snippet;
+  }
+
+  let {
+    buttonElement = $bindable(),
+    onclick = undefined,
+    class: _class = '',
+    shape = undefined,
+    size = 'medium',
+    variant = 'primary',
+    iconPrefix = undefined,
+    iconSuffix = undefined,
+    rounded = false,
+    loading = false,
+    disabled = false,
+    children,
+    ...rest
+  }: Props = $props();
+
+  const sizeObj = {
+    tiny: 'h-[24px] text-xs leading-3',
+    small: 'h-[32px] px-[6px] text-sm leading-4',
+    medium: 'h-[40px] px-[10px] text-sm leading-[20px]',
+    large: 'h-[48px] px-[14px] text-base leading-[24px]'
+  };
+  const shapeSizeObj = {
+    tiny: `w-[24px] ${sizeObj.tiny}`,
+    small: `w-[32px] ${sizeObj.small}`,
+    medium: `w-[40px] ${sizeObj.medium}`,
+    large: `w-[48px] ${sizeObj.large}`
+  };
+  let sizeClass = $derived.by(() => (shape ? shapeSizeObj[size] : sizeObj[size]));
+
+  const prefixSuffixSpinnerObj = {
+    tiny: 'w-[14px] h-[14px]',
+    small: 'w-[16px] h-[16px]',
+    medium: 'w-[16px] h-[16px]',
+    large: 'w-[24px] h-[24px]'
+  };
+  let iconSize = $derived.by(() => prefixSuffixSpinnerObj[size]);
+
+  const variantObj = {
+    primary: `text-white dark:text-kui-dark-bg bg-kui-light-gray-1000 dark:bg-kui-dark-gray-1000 hover:bg-opacity-85 hover:dark:bg-opacity-90`,
+    secondary: `text-kui-light-gray-1000 dark:text-kui-dark-gray-1000 bg-kui-light-bg dark:bg-kui-dark-bg border border-kui-light-gray-200 dark:border-kui-dark-gray-400 hover:bg-kui-light-gray-100 hover:dark:bg-kui-dark-gray-100`,
+    tertiary: `text-kui-light-gray-1000 dark:text-kui-dark-gray-1000 hover:bg-kui-light-gray-200 hover:dark:bg-kui-dark-gray-200`,
+    error: `text-[#F5F5F5] bg-kui-light-red-800 dark:bg-kui-dark-red-800 hover:bg-kui-light-red-900 hover:dark:bg-kui-dark-red-900`,
+    warning: `text-kui-light-gray-1000 bg-kui-light-amber-700 dark:bg-kui-dark-amber-700 hover:bg-kui-light-amber-800 hover:dark:bg-kui-dark-amber-800`
+  };
+  let typeClass = $derived.by(() => variantObj[variant]);
+
+  let roundedStyle = $derived.by(() => (rounded ? 'rounded-full' : 'rounded-[6px]'));
+
+  const radiusObj = {
+    tiny: 'rounded-[4px]',
+    small: 'rounded-[6px]',
+    medium: 'rounded-[6px]',
+    large: 'rounded-[8px]'
+  };
+  let roundedWithShapeStyle = $derived.by(() => (shape === 'circle' ? 'rounded-full' : radiusObj[size]));
+
+  let radiusStyle = $derived.by(() => (shape ? roundedWithShapeStyle : roundedStyle));
+
+  let loadingDisabledClass = $derived.by(() =>
+    disabled || loading
+      ? 'cursor-not-allowed text-kui-light-gray-700 dark:text-kui-dark-gray-700 bg-kui-light-gray-100 dark:bg-kui-dark-gray-100 border border-kui-light-gray-200 dark:border-kui-dark-gray-400'
+      : ''
+  );
+
+  let interactionClasses = $derived.by(() => 'hover:scale-[1.02] active:scale-[0.97] transform transition-transform ease-in-out duration-150');
+  let transitionStyles = 'transition duration-200 ease-in-out hover:shadow-md active:shadow-sm';
+
+  let buttonClass = $derived.by(() => {
+    if (disabled || loading) {
+      return `${sizeClass} ${radiusStyle} ${loadingDisabledClass} ${_class}`;
+    }
+    return `${sizeClass} ${typeClass} ${radiusStyle} ${interactionClasses} ${transitionStyles} ${_class} cursor-pointer`;
+  });
+
+  let clicked = $state(false);
+  function handleClick(evt: Event) {
+    if (onclick) onclick(evt);
+    clicked = true;
+    setTimeout(() => (clicked = false), 200);
+  }
 </script>
 
-{#if href}
-	<a
-		bind:this={ref}
-		data-slot="button"
-		class={cn(buttonVariants({ variant, size }), className)}
-		href={disabled ? undefined : href}
-		aria-disabled={disabled}
-		role={disabled ? "link" : undefined}
-		tabindex={disabled ? -1 : undefined}
-		{...restProps}
-	>
-		{@render children?.()}
-	</a>
+{#snippet spinner()}
+  {#if loading}
+    <div class="relative {iconSize} inline-flex items-center justify-center animate-spin">
+      <!-- Loader SVG can go here -->
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet prefixSnip()}
+  {#if iconPrefix}
+    {@const Prefix = iconPrefix}
+    <div class="{iconSize} inline-flex items-center justify-center shrink-0">
+      <Prefix />
+    </div>
+  {:else if loading}
+    {@render spinner()}
+  {/if}
+{/snippet}
+
+{#snippet suffixSnip()}
+  {#if iconSuffix}
+    {@const Suffix = iconSuffix}
+    <div class="{iconSize} inline-flex items-center justify-center shrink-0">
+      <Suffix />
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet withShape()}
+  <button
+    bind:this={buttonElement}
+    type="button"
+    onclick={handleClick}
+    {disabled}
+    class="{buttonClass} relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-offset-black"
+    {...rest}
+  >
+    {#if clicked}
+      <div class="absolute inset-0 rounded-full bg-current opacity-10 animate-ping z-0"></div>
+    {/if}
+
+    <!-- Shape buttons typically center a single glyph; keep inline-flex if you add text/icons -->
+    <div class="w-full h-full flex items-center justify-center whitespace-nowrap relative z-10">
+      <span class="font-medium first-letter:capitalize">
+        {@render children()}
+      </span>
+    </div>
+  </button>
+{/snippet}
+
+{#snippet mainButton()}
+  <button
+    bind:this={buttonElement}
+    type="button"
+    onclick={handleClick}
+    {disabled}
+    class="{buttonClass} relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-offset-black"
+    {...rest}
+  >
+    {#if clicked}
+      <div class="absolute inset-0 rounded-[inherit] bg-current opacity-10 animate-ping z-0"></div>
+    {/if}
+
+    <!-- Inline row, no wrap, vertically centered -->
+    <div class="w-full h-full px-[6px] flex items-center justify-center gap-[8px] whitespace-nowrap relative z-10">
+      {@render prefixSnip()}
+      <span class="font-medium first-letter:capitalize">
+        {@render children()}
+      </span>
+      {@render suffixSnip()}
+    </div>
+  </button>
+{/snippet}
+
+{#if shape}
+  {@render withShape()}
 {:else}
-	<button
-		bind:this={ref}
-		data-slot="button"
-		class={cn(buttonVariants({ variant, size }), className)}
-		{type}
-		{disabled}
-		{...restProps}
-	>
-		{@render children?.()}
-	</button>
+  {@render mainButton()}
 {/if}
