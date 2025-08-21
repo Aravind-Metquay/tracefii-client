@@ -92,7 +92,6 @@
 				<label for="password" class="mb-1 block text-sm font-medium text-slate-600">Password*</label>
 				<input
 					bind:value={password}
-					type="password"
 					id="password"
 					placeholder="Create a password"
 					class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -119,7 +118,6 @@
 				<label for="confirmPassword" class="mb-1 block text-sm font-medium text-slate-600">Confirm Password*</label>
 				<input
 					bind:value={confirmPassword}
-					type="password"
 					id="confirmPassword"
 					placeholder="Confirm your password"
 					class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -167,7 +165,7 @@
 
 		<p class="mt-6 text-center text-sm text-slate-600">
 			Already have an account?
-			<a href="/sign-in" class="font-semibold text-blue-600 hover:underline">Sign in</a>
+			<a href="/signin" class="font-semibold text-blue-600 hover:underline">Sign in</a>
 		</p>
 	</div>
 </div>
