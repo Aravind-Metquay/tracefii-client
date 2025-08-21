@@ -10,8 +10,14 @@ interface ResponseUsers {
 	users: UserType[];
 	pagination: Pagination;
 }
-interface ResponseOfUsersWithOrg extends UserType {
+interface UsersWithOrg extends UserType {
 	organization: OrganizationType;
+}
+interface ResponseOfUsersWithOrg {
+	user: UsersWithOrg;
+	success: boolean;
+	message: string;
+	status?: string | number;
 }
 export interface DeleteUserResponse {
 	id: string;
