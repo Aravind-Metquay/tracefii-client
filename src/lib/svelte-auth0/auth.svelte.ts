@@ -59,6 +59,7 @@ function getUserInfo(accessToken: string): Promise<Auth0User> {
  * Handles the authentication result from Auth0, sets tokens, and updates state.
  * @param authResult The result object from an Auth0 authentication flow.
  */
+
 async function handleAuthResult(authResult: auth0.Auth0DecodedHash): Promise<void> {
 	try {
 		if (authResult.accessToken && authResult.idToken) {
@@ -67,9 +68,13 @@ async function handleAuthResult(authResult: auth0.Auth0DecodedHash): Promise<voi
 			localStorage.setItem('id_token', authResult.idToken);
 			localStorage.setItem('expires_at', expiresAt);
 
-			auth.user = await getUserInfo(authResult.accessToken);
+			const userInfo = await getUserInfo(authResult.accessToken);
+			auth.user = userInfo;
 			auth.isAuthenticated = true;
-			auth.error = null; // Clear any previous errors on success
+			auth.error = null;
+
+			// Cache user info for optimistic loading
+			localStorage.setItem('user_info', JSON.stringify(userInfo));
 		}
 	} catch (err) {
 		handleError(err);
@@ -119,7 +124,22 @@ function parseHash(): Promise<void> {
 export async function initAuth(authConfig: Auth0Config): Promise<void> {
 	config = authConfig;
 	auth0Client = new auth0.WebAuth(config);
-	auth.isLoading = true;
+
+	const accessToken = getAccessToken();
+	const storedUser = localStorage.getItem('user_info');
+
+	if (accessToken && storedUser) {
+		try {
+			auth.user = JSON.parse(storedUser);
+			auth.isAuthenticated = true;
+			auth.isLoading = false;
+		} catch (e) {
+			auth.isLoading = true;
+		}
+	} else {
+		auth.isLoading = true;
+	}
+
 	auth.error = null;
 
 	try {
