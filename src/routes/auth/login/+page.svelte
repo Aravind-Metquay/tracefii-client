@@ -41,20 +41,15 @@
 						<div>
 							<Input class="text-xs" bind:value={password} placeholder="Enter your password" />
 							<p
-								class="ml-1 pt-2 cursor-pointer text-xs text-red-500 hover:underline"
+								class="ml-2 cursor-pointer text-xs text-red-500 hover:underline"
 								onclick={() => goto('/auth/forgot-password')}
 							>
 								Forgot password?
 							</p>
 						</div>
-						<div class="flex w-full  gap-2 pt-2">
-							<Button class="text-md w-full p-2" onclick={() => login({ email, password })}>
+						<Button class="text-md w-full p-6" onclick={() => login({ email, password })}>
 							Log In
 						</Button>
-						<Button class="text-md w-full p-2" onclick={() => goto('/dashboard')}>
-							Dev Mode
-						</Button></div>
-						
 					</div>
 				</div>
 			</div>
