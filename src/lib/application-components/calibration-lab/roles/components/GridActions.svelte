@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Edit, Trash2 } from '@lucide/svelte';
 
- // Accept the row prop directly
+
 	let { row } = $props<{ row: { id?: string; _id?: string } }>();
 
     // 1. Add state to control modal visibility
@@ -30,7 +30,7 @@
 		<Edit class="size-4" />
     </button>
     
-     <button onclick={() => showDeleteModal = true} class="text-gray-500 hover:text-red-600" title="Delete role">
+     <button onclick={() => showDeleteModal = true} class="text-red-600 hover:text-red-600" title="Delete role">
           <Trash2 class="size-4" />
 		</button>
 </div>

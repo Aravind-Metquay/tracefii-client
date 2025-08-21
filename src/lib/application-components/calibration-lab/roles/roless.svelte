@@ -54,10 +54,10 @@
 	// Fetch roles from API
 	const rolesQuery = $derived(useGetAllRoles(token, filter, searchTerm));
 
-	// Use the proper workspace query instead of direct axios call
+	
 	const workspacesQuery = $derived(useGetAllWorkspacesOfOrg(orgId, token));
 
-	// Transform API data to match our grid format
+	
 	let roles = $derived(() => {
 		if (!$rolesQuery.data) return [];
 		const apiRoles = Array.isArray($rolesQuery.data) ? $rolesQuery.data : [];
@@ -94,7 +94,7 @@
 		return [];
 	});
 
-	// Manage dropdown state and column visibility
+	
 	let isColumnsDropdownOpen = $state(false);
 
 	function onEditRole(roleId: string) {
@@ -133,7 +133,7 @@
 		}
 	});
 
-	// Updated columns configuration with flexgrow for equal distribution
+	
 	let allColumns = $state([
 		{ id: 'name', title: 'Role Name', prop: 'name', visible: true, flexgrow: 1 },
 		{ id: 'description', title: 'Description', prop: 'description', visible: true, flexgrow: 1 },
@@ -153,7 +153,7 @@
 		}
 	]);
 
-	// Create derived array for the grid with proper flexgrow
+	
 	let visibleColumns = $derived(
 		allColumns
 			.filter((c) => c.visible)
@@ -294,7 +294,7 @@
 
          <div class="flex flex-row justify-between">
               <div>
-            	<h1 class="flex items-center gap-3 text-2xl font-bold text-gray-800">
+            	<h1 class="flex items-center gap-3 text-xl font-bold text-gray-800">
 					Roles
 					<span
 						class="flex size-6 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold text-gray-600"
@@ -381,7 +381,19 @@
 					Error loading roles: {$rolesQuery.error.message || 'Unknown error'}
 				</div>
 			{:else}
-				<div class="grid-container flex-grow w-full">
+				<div class="grid-container flex-grow w-full text-sm font-normal">
+               {#key $rolesQuery.data ? $rolesQuery.data.length : 0}
+                  <Grid
+                     columns={visibleColumns}
+                     data={roles()}
+                     theme="willow"
+                     rowHover={true}
+                     fixedHeader={true}
+                     sizes={sizes}
+                     onEditRole={onEditRole}
+                     onDeleteRole={onDeleteRole}
+                  />
+               {/key}
 					{#key visibleColumns.length + roles().length}
 						<Grid
 							columns={visibleColumns}

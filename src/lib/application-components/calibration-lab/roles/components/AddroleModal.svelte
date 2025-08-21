@@ -2,7 +2,7 @@
 	import type { RoleType } from '@/Types';
 	import { X, ChevronDown } from '@lucide/svelte';
 
-	// Define props interface
+	
 	interface Props {
 		showModal: boolean;
 		onSave: (roleData: RoleFormData) => void;
@@ -19,7 +19,7 @@
 		permissions: string[];
 	}
 
-	// Updated interface to be more specific
+	
 	interface PermissionState {
 		screen: string;
 		all: boolean;
@@ -42,9 +42,7 @@
 	let showWorkspaceDropdown = $state(false);
 	let selectedWorkspaces = $state<{id: string, name: string}[]>([]);
 
-	$effect(() => {
-		console.log('--- DEBUG 3: Prop Received by Modal ---', availableWorkspacesList);
-	});
+	
 
 	const screens = [
 		{ name: 'Users', permissions: ['View', 'Add', 'Edit', 'Delete'] },
@@ -84,7 +82,7 @@
 			roleData.availableWorkspaces = editingRole.availableWorkspaces || [];
 			roleData.permissions = editingRole.permissions || [];
 
-			// Update selected workspaces for dropdown
+			
 			selectedWorkspaces = availableWorkspacesList.filter(ws => 
 				roleData.availableWorkspaces.includes(ws.id)
 			);
@@ -113,7 +111,7 @@
 		roleData.permissions = newPermissions;
 	});
 
-	// Update roleData.availableWorkspaces when selectedWorkspaces changes
+	
 	$effect(() => {
 		roleData.availableWorkspaces = selectedWorkspaces.map(ws => ws.id);
 	});
