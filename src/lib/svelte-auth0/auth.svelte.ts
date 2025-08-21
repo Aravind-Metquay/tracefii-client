@@ -1,5 +1,6 @@
 import auth0 from 'auth0-js';
 import type { Auth0Config, Auth0User, LoginCredentials, SignupCredentials } from './types';
+import { env } from '$env/dynamic/public';
 
 // #region --- Module-level State ---
 
@@ -198,7 +199,7 @@ export async function login(credentials: LoginCredentials): Promise<void> {
 	await new Promise<void>((resolve, reject) => {
 		auth0Client!.login(
 			{
-				realm: 'Username-Password-Authentication',
+				realm: env.PUBLIC_DEFAULT_PROVIDER,
 				email: credentials.email,
 				password: credentials.password
 			},
@@ -226,7 +227,7 @@ export async function signup(credentials: SignupCredentials): Promise<void> {
 		await new Promise<void>((resolve, reject) => {
 			auth0Client!.signup(
 				{
-					connection: 'Username-Password-Authentication',
+					connection: env.PUBLIC_DEFAULT_PROVIDER,
 					email: credentials.email,
 					password: credentials.password,
 					username: credentials.name
@@ -278,7 +279,7 @@ export async function sendResetPasswordEmail(email: string): Promise<string> {
 		return await new Promise<string>((resolve, reject) => {
 			auth0Client!.changePassword(
 				{
-					connection: 'Username-Password-Authentication',
+					connection: env.PUBLIC_DEFAULT_PROVIDER,
 					email: email
 				},
 				(err, resp) => {
