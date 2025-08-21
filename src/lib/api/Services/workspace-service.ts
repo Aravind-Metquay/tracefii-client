@@ -5,10 +5,12 @@ import { env } from '$env/dynamic/public';
 // Constants
 const API_BASE_URL = env.PUBLIC_BACKEND_API_URL;
 const WORKSPACE_ENDPOINT = `${API_BASE_URL}/workspace`;
- interface responseWorkspaces {
-    workspaces: WorkspaceType[];
-    count : number;
-  }
+
+interface responseWorkspaces {
+  workspaces: WorkspaceType[];
+  count: number;
+}
+
 export class WorkspaceService {
   /**
    * Create a new workspace
@@ -32,7 +34,6 @@ export class WorkspaceService {
   /**
    * Get all workspaces
    */
- 
   async getAllWorkspaces(token: string): Promise<responseWorkspaces> {
     const response = await axios.get<ApiResponse<responseWorkspaces>>(
       WORKSPACE_ENDPOINT,
@@ -46,22 +47,21 @@ export class WorkspaceService {
   }
 
   /**
-   * Get all workspaces of an organization
+   * Get all workspaces of an organization 
    */
-
   async getAllWorkspacesOfOrg(
     orgId: string, 
     token: string
-  ): Promise<responseWorkspaces>{
-    const response = await axios.get<ApiResponse<responseWorkspaces>>(
-      `${WORKSPACE_ENDPOINT}/organization/${orgId}`,
+  ): Promise<{ Workspaces: WorkspaceType[] }> {
+    const response = await axios.get(
+      `${WORKSPACE_ENDPOINT}/${orgId}`, 
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
-    return response.data.data;
+    return response.data; // Return the full response structure
   }
 
   /**

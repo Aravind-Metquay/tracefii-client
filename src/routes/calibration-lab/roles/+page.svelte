@@ -1,4 +1,4 @@
 <script lang="ts">
-    import Roles from "@/application-components/calibration-lab/roles/roles.svelte";
+    import Roless from "@/application-components/calibration-lab/roles/roless.svelte";
 </script>
-<Roles />
+<Roless />

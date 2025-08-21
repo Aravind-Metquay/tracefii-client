@@ -1,4 +1,5 @@
 <script lang="ts">
+	// CODE TO CHECK FUNCTIONALITY AND WORKING OF GET,DELETE,CREATE,EDIT API CALLS
 	import {
 		useCreateNewRole,
 		useGetAllRoles,
