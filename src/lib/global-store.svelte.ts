@@ -73,7 +73,7 @@ function initializeGlobalStore() {
 		getAuth(): Auth0User {
 			return store.authUser;
 		},
-		async setAuth(authUser: Auth0User) {
+		setAuth(authUser: Auth0User) {
 			store.authUser = authUser;
 		},
 		getTheme(): string {

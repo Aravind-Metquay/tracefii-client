@@ -165,7 +165,7 @@
 
 		<p class="mt-6 text-center text-sm text-slate-600">
 			Already have an account?
-			<a href="/signin" class="font-semibold text-blue-600 hover:underline">Sign in</a>
+			<a href="/auth/signin" class="font-semibold text-blue-600 hover:underline">Sign in</a>
 		</p>
 	</div>
 </div>

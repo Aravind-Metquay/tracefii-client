@@ -4,8 +4,9 @@
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { browser } from '$app/environment';
 	import { initAuth, auth, type Auth0Config } from '@/svelte-auth0';
-	import { setContext } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { setContext } from 'svelte';
+	import { appState } from '@/global-store.svelte';
 
 	let { children } = $props();
 
@@ -15,21 +16,22 @@
 		redirectUri: env.PUBLIC_AUTH0_REDIRECT_URI,
 		scope: 'openid profile email',
 		responseType: 'token id_token',
-		audience: env.PUBLIC_APP_AUTH0_API_URL,
+		audience: env.PUBLIC_APP_AUTH0_API_URL
 	};
 
 	const queryClient = new QueryClient();
 
 	if (browser) {
-		initAuth(auth0Config)
+		initAuth(auth0Config);
 	}
 
 	$effect(() => {
 		if (!auth.isLoading) {
-			if (auth.isAuthenticated) {
-				setContext('auth', auth.user);
+			if (auth.isAuthenticated && auth.user) {
+				appState.setAuth(auth.user)
+				goto('/dashboard')
 			} else {
-				goto('/auth/signup')
+				goto('/auth/signup');
 			}
 		}
 	})
